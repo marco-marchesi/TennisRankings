@@ -1,0 +1,37 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+.vercel/
+
+# env
+.env
+.env.local
+.env*.local
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# testing
+coverage/
+playwright-report/
+test-results/
+.lighthouseci/
+
+# os
+.DS_Store
+Thumbs.db
+
+# editor
+.idea/
+*.swp
+*.swo
+
+# drizzle
+drizzle/meta/
+
+# scraper artefacts
+scraper/.cache/
