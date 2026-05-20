@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-navy-950: #0a1628;
+  --color-navy-900: #0f1d34;
+  --color-navy-800: #152540;
+  --color-ink-50: #f4f4f6;
+  --color-ink-100: #e5e7eb;
+  --color-ink-900: #111827;
+
+  --color-up: #00e87a;
+  --color-down: #ff3b5c;
+  --color-hold: #9ca3af;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+}
+
+@layer base {
+  :root {
+    --background: oklch(0.99 0.005 250);
+    --foreground: oklch(0.18 0.02 250);
+    --muted: oklch(0.95 0.01 250);
+    --muted-foreground: oklch(0.45 0.02 250);
+    --border: oklch(0.9 0.01 250);
+    --ring: oklch(0.6 0.18 230);
+  }
+
+  :root.dark {
+    --background: oklch(0.16 0.02 250);
+    --foreground: oklch(0.96 0.005 250);
+    --muted: oklch(0.22 0.02 250);
+    --muted-foreground: oklch(0.7 0.02 250);
+    --border: oklch(0.26 0.02 250);
+    --ring: oklch(0.7 0.18 160);
+  }
+
+  *,
+  *::before,
+  *::after {
+    border-color: var(--border);
+  }
+
+  html {
+    color-scheme: light dark;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01", "ss03";
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
+
+  /* Tabular numbers in data tables — crucial for ranking columns */
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* Focus rings — visible, not removed */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Respect reduced motion globally */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--muted) 25%,
+      color-mix(in oklch, var(--muted), white 10%) 50%,
+      var(--muted) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+}
