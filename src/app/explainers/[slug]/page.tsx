@@ -22,8 +22,9 @@ async function loadExplainer(slug: string): Promise<Explainer | null> {
     const raw = await fs.readFile(path.join(CONTENT_DIR, `${slug}.md`), "utf-8");
     const match = raw.match(/^---\n([\s\S]+?)\n---\n([\s\S]+)$/);
     if (!match) return null;
+    const [, frontmatter = "", body = ""] = match;
     const front = Object.fromEntries(
-      match[1]
+      frontmatter
         .split("\n")
         .map((line) => line.match(/^(\w+):\s*"?([^"]+?)"?$/))
         .filter((m): m is RegExpMatchArray => Boolean(m))
@@ -36,7 +37,7 @@ async function loadExplainer(slug: string): Promise<Explainer | null> {
       publishedAt: front.publishedAt ?? "",
       updatedAt: front.updatedAt ?? "",
       readingMinutes: Number(front.readingMinutes ?? 5),
-      body: match[2].trim(),
+      body: body.trim(),
     };
   } catch {
     return null;

@@ -14,12 +14,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const staticEntries: MetadataRoute.Sitemap = [
-    { url: `${SITE_URL}/`, changeFrequency: "daily", priority: 1.0 },
-    { url: `${SITE_URL}/rankings/atp`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${SITE_URL}/rankings/wta`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${SITE_URL}/race/atp`, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${SITE_URL}/race/wta`, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${SITE_URL}/explainers/atp-points`, changeFrequency: "yearly", priority: 0.5 },
+    { url: `${SITE_URL}/`,                       changeFrequency: "daily" as const,   priority: 1.0 },
+    { url: `${SITE_URL}/rankings/atp`,           changeFrequency: "weekly" as const,  priority: 0.9 },
+    { url: `${SITE_URL}/rankings/wta`,           changeFrequency: "weekly" as const,  priority: 0.9 },
+    { url: `${SITE_URL}/race/atp`,               changeFrequency: "weekly" as const,  priority: 0.7 },
+    { url: `${SITE_URL}/race/wta`,               changeFrequency: "weekly" as const,  priority: 0.7 },
+    { url: `${SITE_URL}/explainers/atp-points`,  changeFrequency: "yearly" as const,  priority: 0.5 },
   ].map((e) => ({ ...e, lastModified: now }));
 
   const playerEntries = players.map((p) => ({

@@ -107,24 +107,30 @@ export function parseLeaderboard(html: string, tour: Tour, category: Category): 
 
   // TA's reports render the same dataset in two `<table>`s — the first has a
   // malformed structure where all `<td>` cells collapse into a single row,
-  // the second is a clean one-row-per-player table. We pick the table that
-  // has the most rows containing a player-profile link (`<a href="...?p=...">`),
+  // the second is a clean one-row-per-player table. We pick the table whose
+  // rows include the most player-profile links (`<a href="...?p=...">`),
   // which reliably identifies the cleanly-structured copy.
-  let bestTable: cheerio.AnyNode | null = null;
+  //
+  // We track the *index* of the best table rather than the element itself —
+  // cheerio's element type is awkward to spell across versions (no public
+  // `cheerio.AnyNode` export), and `$("table").eq(idx)` gives us a Cheerio
+  // wrapper with full chainable typing.
+  let bestIdx = -1;
   let bestCount = 0;
-  $("table").each((_, t) => {
+  $("table").each((idx, t) => {
     const linkRows = $(t).find("tr").filter((__, tr) => $(tr).find("a[href*='?p=']").length > 0);
     if (linkRows.length > bestCount) {
       bestCount = linkRows.length;
-      bestTable = t;
+      bestIdx = idx;
     }
   });
-  if (!bestTable || bestCount === 0) return [];
+  if (bestIdx < 0 || bestCount === 0) return [];
 
+  const bestTable = $("table").eq(bestIdx);
   const colMap = COLUMN_MAP[category];
   const result: LeaderboardRow[] = [];
 
-  $(bestTable).find("tr").each((_idx, tr) => {
+  bestTable.find("tr").each((_idx, tr) => {
     // Only real data rows — they have a player-profile link as their first
     // cell. Anything else (header, separator, summary) is filtered out.
     const link = $(tr).find("a[href*='?p=']").first();
@@ -175,7 +181,7 @@ export function parseLeaderboard(html: string, tour: Tour, category: Category): 
  * and the common "-" / blank placeholders. Returns null when not numeric.
  */
 function parseNumericCell(text: string): number | null {
-  const trimmed = text.replace(/ /g, " ").trim();
+  const trimmed = text.replace(/ /g, " ").trim();
   if (!trimmed || trimmed === "-" || trimmed === "—") return null;
   const stripped = trimmed.replace(/[,%\s]/g, "");
   const n = Number(stripped);

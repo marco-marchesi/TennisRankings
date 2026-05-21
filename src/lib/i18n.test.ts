@@ -7,7 +7,8 @@ describe("t (translation lookup)", () => {
   });
 
   it("falls back to the key when locale lacks a translation", () => {
-    // @ts-expect-error — intentionally passing an unknown key
+    // i18n's `t` accepts any string (Dict = Record<string, string>) so a
+    // “nonexistent” key is type-valid; the fallback is enforced at runtime.
     expect(t("nonexistent.key")).toBe("nonexistent.key");
   });
 
