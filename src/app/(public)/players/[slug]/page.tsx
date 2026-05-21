@@ -63,7 +63,11 @@ export default async function PlayerPage({ params }: Params) {
                   width={96}
                   height={96}
                   unoptimized={p.hasCachedPhoto}
-                  className="h-full w-full object-cover"
+                  // object-top: Wikipedia infobox photos are usually portrait
+                  // (taller than wide). Default object-position is center,
+                  // which crops to the torso for the typical full-body shot.
+                  // Anchoring to the top keeps the face in frame.
+                  className="h-full w-full object-cover object-top"
                 />
               );
             }
