@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TennisRankings — Design preview</title>
+  <meta name="description" content="Static design preview of the TennisRankings web app — homepage, rankings, projection, player profile, head-to-head, tournament, search, and consent banner." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+      --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+      --color-up: #00e87a;
+      --color-down: #ff3b5c;
+      --color-amber: #f5b54a;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+
+    html[data-theme="light"] {
+      --bg: oklch(0.99 0.005 250);
+      --fg: oklch(0.18 0.02 250);
+      --muted: oklch(0.95 0.01 250);
+      --muted-fg: oklch(0.45 0.02 250);
+      --border: oklch(0.9 0.01 250);
+      --surface: oklch(1 0 0);
+      --surface-2: oklch(0.97 0.005 250);
+      --accent: #0a1628;
+    }
+    html[data-theme="dark"] {
+      --bg: oklch(0.16 0.02 250);
+      --fg: oklch(0.96 0.005 250);
+      --muted: oklch(0.22 0.02 250);
+      --muted-fg: oklch(0.7 0.02 250);
+      --border: oklch(0.26 0.02 250);
+      --surface: oklch(0.18 0.02 250);
+      --surface-2: oklch(0.20 0.02 250);
+      --accent: #00e87a;
+    }
+
+    * { box-sizing: border-box; }
+    *,*::before,*::after { border-color: var(--border); }
+    html { color-scheme: light dark; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-sans);
+      font-feature-settings: "cv11", "ss01";
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    h1, h2, h3 { font-family: var(--font-serif); font-weight: 400; letter-spacing: -0.01em; margin: 0; }
+    .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+    a { color: inherit; text-decoration: none; }
+    .container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+    .section { padding: 56px 0; border-top: 1px solid var(--border); position: relative; }
+    .section:first-of-type { border-top: 0; }
+    .section-label {
+      position: absolute; top: 28px; left: 24px;
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em;
+      color: var(--muted-fg); font-weight: 600;
+    }
+    @media (min-width: 768px) {
+      .container { padding: 0 32px; }
+      .section-label { left: 32px; }
+    }
+
+    /* Preview metadata bar */
+    .preview-bar {
+      position: sticky; top: 0; z-index: 100;
+      background: color-mix(in oklch, var(--bg) 80%, transparent);
+      backdrop-filter: blur(10px) saturate(140%);
+      -webkit-backdrop-filter: blur(10px) saturate(140%);
+      border-bottom: 1px solid var(--border);
+    }
+    .preview-bar .row {
+      display: flex; align-items: center; gap: 16px;
+      max-width: 1180px; margin: 0 auto; padding: 12px 24px;
+      font-size: 13px;
+    }
+    .preview-bar strong { font-family: var(--font-serif); font-size: 16px; }
+    .preview-bar .meta { color: var(--muted-fg); }
+    .preview-bar .actions { margin-left: auto; display: flex; gap: 8px; }
+    .btn {
+      background: transparent; color: inherit;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 6px 12px; font: inherit; font-size: 13px;
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--muted); }
+    .btn.primary {
+      background: var(--fg); color: var(--bg); border-color: var(--fg);
+    }
+
+    /* === In-page screen mockup frame === */
+    .frame {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      overflow: hidden;
+      box-shadow: 0 1px 0 color-mix(in oklch, var(--border) 50%, transparent),
+                  0 20px 40px -20px color-mix(in oklch, black 60%, transparent);
+    }
+    .frame-chrome {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+      font-size: 12px; color: var(--muted-fg);
+    }
+    .frame-chrome .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--border); }
+    .frame-chrome .url {
+      flex: 1; text-align: center; padding: 4px 10px;
+      background: var(--bg); border-radius: 999px;
+      max-width: 420px; margin: 0 auto;
+      font-variant-numeric: tabular-nums; letter-spacing: 0.01em;
+    }
+    .frame-body { padding: 0; }
+
+    /* === Site header (in mock) === */
+    .site-header {
+      display: flex; align-items: center; gap: 20px;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in oklch, var(--surface) 90%, transparent);
+    }
+    .site-header .brand { font-family: var(--font-serif); font-size: 22px; }
+    .site-header nav { display: flex; gap: 18px; font-size: 14px; color: var(--muted-fg); }
+    .site-header nav a:hover { color: var(--fg); }
+    .site-header .right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+    .search-trigger {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius-md);
+      font-size: 13px; color: var(--muted-fg);
+    }
+    .search-trigger kbd {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+      padding: 0 6px; font-size: 11px;
+    }
+    .theme-btn {
+      width: 32px; height: 32px; border: 1px solid var(--border); border-radius: var(--radius-md);
+      display: inline-flex; align-items: center; justify-content: center;
+      background: transparent; cursor: pointer; color: var(--muted-fg);
+    }
+
+    /* === Hero === */
+    .hero { padding: 56px 24px 32px; }
+    .hero .eyebrow {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em;
+      color: var(--muted-fg);
+    }
+    .hero h1 {
+      font-size: clamp(40px, 7vw, 84px); line-height: 1.0; margin-top: 8px;
+    }
+    .hero p { color: var(--muted-fg); max-width: 640px; margin-top: 16px; }
+    .hero .cta { display: flex; gap: 10px; margin-top: 24px; }
+
+    /* === Rankings tables === */
+    .tables-grid { display: grid; gap: 24px; padding: 0 24px 32px; }
+    @media (min-width: 880px) { .tables-grid { grid-template-columns: 1fr 1fr; } }
+    .table-card h3 {
+      font-size: 24px; margin-bottom: 12px; display: flex; align-items: baseline; justify-content: space-between;
+    }
+    .table-card .meta { font-size: 12px; color: var(--muted-fg); }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 13.5px;
+      border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden;
+    }
+    thead {
+      background: var(--surface-2);
+      color: var(--muted-fg);
+      font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: color-mix(in oklch, var(--muted) 50%, transparent); }
+    .col-num { text-align: right; }
+    .player-name { font-weight: 500; }
+    .player-country { color: var(--muted-fg); font-size: 12px; margin-left: 6px; }
+    .up { color: var(--color-up); }
+    .down { color: var(--color-down); }
+    .hold { color: var(--muted-fg); }
+    .delta {
+      display: inline-flex; align-items: center; gap: 2px;
+      font-size: 12px; font-variant-numeric: tabular-nums;
+    }
+    .delta .sr-only {
+      position: absolute; clip: rect(0 0 0 0); width: 1px; height: 1px; overflow: hidden;
+    }
+
+    /* === Projection table === */
+    .projection-tip {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 14px 16px;
+      font-size: 13px; color: var(--muted-fg);
+    }
+    .projection-tip strong { color: var(--fg); }
+    .arrow-col { text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* === Player profile === */
+    .profile-grid {
+      display: grid; gap: 16px;
+    }
+    @media (min-width: 720px) {
+      .profile-grid { grid-template-columns: 2fr 1fr; }
+    }
+    .profile-header {
+      display: flex; align-items: flex-start; gap: 20px; padding: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: var(--muted); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-serif); font-size: 28px; color: var(--muted-fg);
+    }
+    .profile-meta { display: flex; flex-direction: column; gap: 6px; }
+    .profile-meta .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--muted-fg); }
+    .profile-meta h2 { font-size: 38px; line-height: 1; }
+    .breadcrumb { font-size: 12px; color: var(--muted-fg); padding: 16px 24px 0; }
+    .profile-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .profile-section { padding: 20px 24px; border-top: 1px solid var(--border); }
+    .profile-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--muted-fg); }
+    .profile-section h3 + * { margin-top: 12px; }
+
+    /* === Form widget (CB-safe) === */
+    .form-widget { display: flex; gap: 6px; }
+    .form-cell {
+      width: 28px; height: 28px; border-radius: var(--radius-sm);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 13px; border: 1px solid;
+    }
+    .form-cell.win { color: var(--color-up); background: color-mix(in oklch, var(--color-up) 15%, transparent); border-color: color-mix(in oklch, var(--color-up) 35%, transparent); }
+    .form-cell.loss { color: var(--color-down); background: color-mix(in oklch, var(--color-down) 15%, transparent); border-color: color-mix(in oklch, var(--color-down) 35%, transparent); }
+
+    /* === H2H === */
+    .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 12px 0 24px; }
+    .stat-card { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; text-align: center; }
+    .stat-card .v { font-family: var(--font-serif); font-size: 44px; line-height: 1; }
+    .stat-card .l { font-size: 11px; color: var(--muted-fg); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* === Tournament cards === */
+    .tour-grid { display: grid; gap: 12px; }
+    @media (min-width: 720px) { .tour-grid { grid-template-columns: repeat(3, 1fr); } }
+    .card {
+      border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px;
+    }
+    .card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--muted-fg); }
+    .card .value { margin-top: 6px; font-size: 18px; font-weight: 500; }
+
+    /* === Surface heatmap === */
+    .heatmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .heatmap li { list-style: none; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; text-align: center; }
+    .heatmap .pct { font-family: var(--font-serif); font-size: 36px; line-height: 1; margin-top: 4px; }
+    .heatmap .surface { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85; }
+    .heatmap .wl { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+    .hm-hard  { background: color-mix(in oklch, hsl(95 70% 45%) 70%, transparent); color: white; }
+    .hm-clay  { background: color-mix(in oklch, hsl(75 70% 45%) 55%, transparent); color: white; }
+    .hm-grass { background: color-mix(in oklch, hsl(60 70% 45%) 40%, transparent); color: white; }
+
+    /* === Buttons & chips === */
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; font-size: 12px; border-radius: 999px;
+      border: 1px solid var(--border); color: var(--muted-fg);
+    }
+    .btn-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px; font-size: 14px; border-radius: var(--radius-md);
+      border: 1px solid var(--border); color: var(--fg);
+    }
+    .btn-link.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+    /* === Search dialog overlay (static demo) === */
+    .search-demo { position: relative; min-height: 320px; padding: 24px; }
+    .search-backdrop {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.45);
+      display: flex; justify-content: center; padding-top: 80px;
+    }
+    .search-dialog {
+      width: 100%; max-width: 460px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    .search-dialog input {
+      width: 100%; padding: 14px 16px; border: 0; outline: 0;
+      background: transparent; color: var(--fg); font: inherit; font-size: 16px;
+    }
+    .search-dialog ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
+    .search-dialog li a {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px; font-size: 14px;
+    }
+    .search-dialog li a:hover { background: var(--muted); }
+    .search-dialog .meta { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-fg); }
+
+    /* === Consent banner demo === */
+    .consent-demo { padding: 24px; }
+    .consent-bar {
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      background: color-mix(in oklch, var(--surface) 92%, transparent);
+      padding: 14px 18px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    @media (min-width: 720px) { .consent-bar { flex-direction: row; align-items: center; } }
+    .consent-bar p { margin: 0; font-size: 13px; flex: 1; }
+    .consent-actions { display: flex; gap: 8px; }
+
+    /* === Footer === */
+    .preview-footer {
+      padding: 40px 24px; border-top: 1px solid var(--border);
+      color: var(--muted-fg); font-size: 13px; text-align: center;
+    }
+
+    /* === Mobile demo === */
+    .mobile-grid {
+      display: grid; gap: 20px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 880px) { .mobile-grid { grid-template-columns: 360px 1fr; align-items: start; } }
+    .phone-frame {
+      width: 100%; max-width: 360px; margin: 0 auto;
+      border: 14px solid #111; border-radius: 36px; background: #000;
+      overflow: hidden;
+      box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5);
+    }
+    .phone-frame .phone-inner {
+      background: var(--bg); color: var(--fg);
+      min-height: 480px;
+    }
+
+    /* === Tiny chart === */
+    .chart { background: var(--surface); padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-md); }
+    .chart .toggle {
+      display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden;
+      font-size: 12px; margin-bottom: 8px;
+    }
+    .chart .toggle button {
+      background: transparent; border: 0; color: inherit; padding: 5px 10px; cursor: pointer; font: inherit;
+    }
+    .chart .toggle button.on { background: var(--fg); color: var(--bg); }
+
+    /* === Bottom of page === */
+    .legend {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      font-size: 12px; color: var(--muted-fg); margin-top: 12px;
+    }
+    .legend span {
+      border: 1px solid var(--border); padding: 4px 8px; border-radius: 999px;
+    }
+
+    /* SVG line dots */
+    .area { fill: color-mix(in oklch, var(--color-up) 14%, transparent); }
+    .line { stroke: var(--color-up); stroke-width: 2.2; fill: none; }
+    .grid { stroke: color-mix(in oklch, var(--border) 70%, transparent); stroke-dasharray: 2 4; }
+    .axis text { font-size: 10px; fill: var(--muted-fg); }
+
+  </style>
+</head>
+<body>
+
+  <!-- Sticky preview metadata -->
+  <div class="preview-bar">
+    <div class="row">
+      <strong>TennisRankings — design preview</strong>
+      <span class="meta">10 key screens · light + dark · CB-safe · WCAG AA</span>
+      <div class="actions">
+        <button class="btn" id="themeToggle">Toggle theme</button>
+        <a class="btn primary" href="https://github.com/marco-marchesi/TennisRankings">View repo →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. Homepage -->
+  <section class="section" id="homepage">
+    <span class="section-label">01 · Homepage</span>
+    <div class="container">
+      <div class="frame">
+        <div class="frame-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">tennisrankings.example/</span>
+        </div>
+        <div class="frame-body">
+          <header class="site-header">
+            <div class="brand">TennisRankings</div>
+            <nav>
+              <a>ATP</a><a>WTA</a><a>Projection</a><a>Race</a><a>Explainers</a>
+            </nav>
+            <div class="right">
+              <span class="search-trigger">🔍 Search… <kbd>/</kbd></span>
+              <button class="theme-btn" aria-label="Theme">☾</button>
+            </div>
+          </header>
+
+          <div class="hero">
+            <div class="eyebrow">Rankings · Projections · Points-expiry · Head-to-head</div>
+            <h1>The smartest tennis<br>rankings site.</h1>
+            <p>Independent ATP &amp; WTA ranking intelligence. Every player, every point, every Monday — plus tools the incumbents never built.</p>
+            <div class="cta">
+              <a class="btn-link primary">See the projection →</a>
+              <a class="btn-link">How rankings work</a>
+            </div>
+          </div>
+
+          <div class="tables-grid">
+            <div class="table-card">
+              <h3>ATP — Top 10 <a class="meta">Full table →</a></h3>
+              <table role="table" aria-label="ATP top 10">
+                <thead>
+                  <tr><th class="col-num">#</th><th></th><th>Player</th><th class="col-num">Points</th><th class="col-num">Δ pts</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td class="col-num num">1</td><td class="delta hold" aria-label="no change">–</td><td><span class="player-name">Jannik Sinner</span><span class="player-country">ITA</span></td><td class="col-num num">11,830</td><td class="col-num num hold">0</td></tr>
+                  <tr><td class="col-num num">2</td><td class="delta hold" aria-label="no change">–</td><td><span class="player-name">Carlos Alcaraz</span><span class="player-country">ESP</span></td><td class="col-num num">8,390</td><td class="col-num num down">−30</td></tr>
+                  <tr><td class="col-num num">3</td><td class="delta up">▲ 1<span class="sr-only">up 1 place</span></td><td><span class="player-name">Alexander Zverev</span><span class="player-country">GER</span></td><td class="col-num num">7,915</td><td class="col-num num up">+440</td></tr>
+                  <tr><td class="col-num num">4</td><td class="delta down">▼ 1<span class="sr-only">down 1 place</span></td><td><span class="player-name">Daniil Medvedev</span><span class="player-country">—</span></td><td class="col-num num">6,230</td><td class="col-num num down">−150</td></tr>
+                  <tr><td class="col-num num">5</td><td class="delta hold" aria-label="no change">–</td><td><span class="player-name">Novak Djokovic</span><span class="player-country">SRB</span></td><td class="col-num num">5,560</td><td class="col-num num hold">0</td></tr>
+                  <tr><td class="col-num num">6</td><td class="delta up">▲ 1</td><td><span class="player-name">Taylor Fritz</span><span class="player-country">USA</span></td><td class="col-num num">4,810</td><td class="col-num num up">+195</td></tr>
+                  <tr><td class="col-num num">7</td><td class="delta down">▼ 1</td><td><span class="player-name">Casper Ruud</span><span class="player-country">NOR</span></td><td class="col-num num">4,500</td><td class="col-num num down">−220</td></tr>
+                  <tr><td class="col-num num">8</td><td class="delta hold">–</td><td><span class="player-name">Andrey Rublev</span><span class="player-country">—</span></td><td class="col-num num">4,275</td><td class="col-num num hold">0</td></tr>
+                  <tr><td class="col-num num">9</td><td class="delta hold">–</td><td><span class="player-name">Hubert Hurkacz</span><span class="player-country">POL</span></td><td class="col-num num">3,960</td><td class="col-num num hold">0</td></tr>
+                  <tr><td class="col-num num">10</td><td class="delta hold">–</td><td><span class="player-name">Grigor Dimitrov</span><span class="player-country">BUL</span></td><td class="col-num num">3,775</td><td class="col-num num down">−25</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="table-card">
+              <h3>WTA — Top 10 <a class="meta">Full table →</a></h3>
+              <table role="table" aria-label="WTA top 10">
+                <thead>
+                  <tr><th class="col-num">#</th><th></th><th>Player</th><th class="col-num">Points</th><th class="col-num">Δ pts</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td class="col-num num">1</td><td class="delta hold">–</td><td><span class="player-name">Iga Świątek</span><span class="player-country">POL</span></td><td class="col-num num">10,715</td><td class="col-num num hold">0</td></tr>
+                  <tr><td class="col-num num">2</td><td class="delta hold">–</td><td><span class="player-name">Aryna Sabalenka</span><span class="player-country">—</span></td><td class="col-num num">8,725</td><td class="col-num num hold">0</td></tr>
+                  <tr><td class="col-num num">3</td><td class="delta hold">–</td><td><span class="player-name">Coco Gauff</span><span class="player-country">USA</span></td><td class="col-num num">7,150</td><td class="col-num num hold">0</td></tr>
+                  <tr><td class="col-num num">4</td><td class="delta hold">–</td><td><span class="player-name">Elena Rybakina</span><span class="player-country">KAZ</span></td><td class="col-num num">5,871</td><td class="col-num num hold">0</td></tr>
+                  <tr><td class="col-num num">5</td><td class="delta hold">–</td><td><span class="player-name">Jessica Pegula</span><span class="player-country">USA</span></td><td class="col-num num">5,705</td><td class="col-num num hold">0</td></tr>
+                  <tr><td class="col-num num">6</td><td class="delta up">▲ 1</td><td><span class="player-name">Jasmine Paolini</span><span class="player-country">ITA</span></td><td class="col-num num">4,068</td><td class="col-num num up">+148</td></tr>
+                  <tr><td class="col-num num">7</td><td class="delta down">▼ 1</td><td><span class="player-name">Qinwen Zheng</span><span class="player-country">CHN</span></td><td class="col-num num">4,515</td><td class="col-num num hold">0</td></tr>
+                  <tr><td class="col-num num">8</td><td class="delta hold">–</td><td><span class="player-name">Emma Navarro</span><span class="player-country">USA</span></td><td class="col-num num">3,589</td><td class="col-num num hold">0</td></tr>
+                  <tr><td class="col-num num">9</td><td class="delta hold">–</td><td><span class="player-name">Barbora Krejčíková</span><span class="player-country">CZE</span></td><td class="col-num num">3,214</td><td class="col-num num hold">0</td></tr>
+                  <tr><td class="col-num num">10</td><td class="delta hold">–</td><td><span class="player-name">Danielle Collins</span><span class="player-country">USA</span></td><td class="col-num num">3,035</td><td class="col-num num hold">0</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="legend">
+        <span>Sticky header w/ backdrop-blur</span>
+        <span>Serif display + Inter UI</span>
+        <span>Tabular-nums on every numeric</span>
+        <span>Skip-to-content (keyboard)</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- 2. Full rankings page -->
+  <section class="section" id="rankings">
+    <span class="section-label">02 · Rankings page</span>
+    <div class="container">
+      <div class="frame">
+        <div class="frame-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">tennisrankings.example/rankings/atp</span>
+        </div>
+        <div style="padding: 24px;">
+          <p class="breadcrumb" style="padding-left:0">Home › Rankings › ATP</p>
+          <h2 style="font-size: 48px; margin-top: 6px;">ATP Live Ranking</h2>
+          <p class="meta" style="color:var(--muted-fg); font-size: 13px; margin-top: 6px;">Week of 18 May 2026 · <span class="num">100</span> players shown</p>
+          <table style="margin-top: 20px;">
+            <thead>
+              <tr><th class="col-num">#</th><th></th><th>Player</th><th class="col-num">Points</th><th class="col-num">Δ pts</th><th class="col-num">Played</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="col-num num">1</td><td class="delta hold">–</td><td><span class="player-name">Jannik Sinner</span><span class="player-country">ITA</span></td><td class="col-num num">11,830</td><td class="col-num num hold">0</td><td class="col-num num">19</td></tr>
+              <tr><td class="col-num num">2</td><td class="delta hold">–</td><td><span class="player-name">Carlos Alcaraz</span><span class="player-country">ESP</span></td><td class="col-num num">8,390</td><td class="col-num num down">−30</td><td class="col-num num">20</td></tr>
+              <tr><td class="col-num num">3</td><td class="delta up">▲ 1</td><td><span class="player-name">Alexander Zverev</span><span class="player-country">GER</span></td><td class="col-num num">7,915</td><td class="col-num num up">+440</td><td class="col-num num">22</td></tr>
+              <tr><td class="col-num num">4</td><td class="delta down">▼ 1</td><td><span class="player-name">Daniil Medvedev</span><span class="player-country">—</span></td><td class="col-num num">6,230</td><td class="col-num num down">−150</td><td class="col-num num">24</td></tr>
+              <tr><td class="col-num num">5</td><td class="delta hold">–</td><td><span class="player-name">Novak Djokovic</span><span class="player-country">SRB</span></td><td class="col-num num">5,560</td><td class="col-num num hold">0</td><td class="col-num num">14</td></tr>
+              <tr><td class="col-num num">6</td><td class="delta up">▲ 1</td><td><span class="player-name">Taylor Fritz</span><span class="player-country">USA</span></td><td class="col-num num">4,810</td><td class="col-num num up">+195</td><td class="col-num num">23</td></tr>
+              <tr><td class="col-num num">7</td><td class="delta down">▼ 1</td><td><span class="player-name">Casper Ruud</span><span class="player-country">NOR</span></td><td class="col-num num">4,500</td><td class="col-num num down">−220</td><td class="col-num num">23</td></tr>
+              <tr><td class="col-num num">8</td><td class="delta hold">–</td><td><span class="player-name">Andrey Rublev</span><span class="player-country">—</span></td><td class="col-num num">4,275</td><td class="col-num num hold">0</td><td class="col-num num">22</td></tr>
+              <tr><td class="col-num num">9</td><td class="delta hold">–</td><td><span class="player-name">Hubert Hurkacz</span><span class="player-country">POL</span></td><td class="col-num num">3,960</td><td class="col-num num hold">0</td><td class="col-num num">21</td></tr>
+              <tr><td class="col-num num">10</td><td class="delta hold">–</td><td><span class="player-name">Grigor Dimitrov</span><span class="player-country">BUL</span></td><td class="col-num num">3,775</td><td class="col-num num down">−25</td><td class="col-num num">22</td></tr>
+              <tr><td class="col-num num">11</td><td class="delta up">▲ 3</td><td><span class="player-name">Holger Rune</span><span class="player-country">DEN</span></td><td class="col-num num">3,490</td><td class="col-num num up">+310</td><td class="col-num num">23</td></tr>
+              <tr><td class="col-num num">12</td><td class="delta down">▼ 1</td><td><span class="player-name">Tommy Paul</span><span class="player-country">USA</span></td><td class="col-num num">3,460</td><td class="col-num num down">−95</td><td class="col-num num">24</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="legend">
+        <span>ItemList + BreadcrumbList JSON-LD</span>
+        <span>ARIA caption (sr-only)</span>
+        <span>Δ pts colour + sign — never colour-only</span>
+        <span>Virtualised for top-500</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- 3. Projection page -->
+  <section class="section" id="projection">
+    <span class="section-label">03 · Projection (the wedge)</span>
+    <div class="container">
+      <div class="frame">
+        <div class="frame-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">tennisrankings.example/rankings/projection</span>
+        </div>
+        <div style="padding: 24px;">
+          <h2 style="font-size: 44px;">Ranking projection</h2>
+          <p style="color: var(--muted-fg); margin-top: 8px; max-width: 640px;">
+            Points expire 52 weeks after they were won. This table shows where the top 100 will sit once the points expiring in the next four weeks fall off. Green = moving up, red = moving down.
+          </p>
+          <div class="projection-tip" style="margin-top: 16px;">
+            <strong>How to read it →</strong> Now = current rank · → = projected rank · Expiring = points falling off · Δ = movement.
+          </div>
+          <table style="margin-top: 18px;">
+            <thead>
+              <tr>
+                <th class="col-num">Now</th><th class="col-num">→</th><th>Player</th>
+                <th class="col-num">Current</th><th class="col-num">Expiring</th>
+                <th class="col-num">Projected</th><th class="col-num">Δ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="col-num num">2</td><td class="arrow-col num up">1</td><td><span class="player-name">Carlos Alcaraz</span><span class="player-country">ESP</span></td><td class="col-num num">8,390</td><td class="col-num num down">−200</td><td class="col-num num">8,190</td><td class="col-num up">▲ 1</td></tr>
+              <tr><td class="col-num num">1</td><td class="arrow-col num down">2</td><td><span class="player-name">Jannik Sinner</span><span class="player-country">ITA</span></td><td class="col-num num">11,830</td><td class="col-num num down">−4,000</td><td class="col-num num">7,830</td><td class="col-num down">▼ 1</td></tr>
+              <tr><td class="col-num num">3</td><td class="arrow-col num hold">3</td><td><span class="player-name">Alexander Zverev</span><span class="player-country">GER</span></td><td class="col-num num">7,915</td><td class="col-num num down">−360</td><td class="col-num num">7,555</td><td class="col-num hold">–</td></tr>
+              <tr><td class="col-num num">7</td><td class="arrow-col num up">4</td><td><span class="player-name">Casper Ruud</span><span class="player-country">NOR</span></td><td class="col-num num">4,500</td><td class="col-num num up">—</td><td class="col-num num">4,500</td><td class="col-num up">▲ 3</td></tr>
+              <tr><td class="col-num num">4</td><td class="arrow-col num down">5</td><td><span class="player-name">Daniil Medvedev</span><span class="player-country">—</span></td><td class="col-num num">6,230</td><td class="col-num num down">−1,800</td><td class="col-num num">4,430</td><td class="col-num down">▼ 1</td></tr>
+              <tr><td class="col-num num">6</td><td class="arrow-col num up">6</td><td><span class="player-name">Taylor Fritz</span><span class="player-country">USA</span></td><td class="col-num num">4,810</td><td class="col-num num down">−500</td><td class="col-num num">4,310</td><td class="col-num hold">–</td></tr>
+              <tr><td class="col-num num">5</td><td class="arrow-col num down">7</td><td><span class="player-name">Novak Djokovic</span><span class="player-country">SRB</span></td><td class="col-num num">5,560</td><td class="col-num num down">−1,400</td><td class="col-num num">4,160</td><td class="col-num down">▼ 2</td></tr>
+              <tr><td class="col-num num">8</td><td class="arrow-col num hold">8</td><td><span class="player-name">Andrey Rublev</span><span class="player-country">—</span></td><td class="col-num num">4,275</td><td class="col-num num down">−325</td><td class="col-num num">3,950</td><td class="col-num hold">–</td></tr>
+              <tr><td class="col-num num">11</td><td class="arrow-col num up">9</td><td><span class="player-name">Holger Rune</span><span class="player-country">DEN</span></td><td class="col-num num">3,490</td><td class="col-num num up">—</td><td class="col-num num">3,490</td><td class="col-num up">▲ 2</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="legend">
+        <span>Killer feature — competitor monetises this poorly</span>
+        <span>Pure-math <code>computeProjection</code></span>
+        <span>Unit-tested (8 assertions)</span>
+        <span>ISR'd, 1-hour s-maxage</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- 4. Player profile -->
+  <section class="section" id="player">
+    <span class="section-label">04 · Player profile</span>
+    <div class="container">
+      <div class="frame">
+        <div class="frame-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">tennisrankings.example/players/jannik-sinner</span>
+        </div>
+        <p class="breadcrumb">Home › ATP › <span aria-current="page">Jannik Sinner</span></p>
+        <div class="profile-header">
+          <div class="avatar">JS</div>
+          <div class="profile-meta">
+            <span class="eyebrow">ATP singles · ITA</span>
+            <h2>Jannik Sinner</h2>
+            <p style="color: var(--muted-fg); max-width: 540px; margin: 4px 0 0; font-size: 14px;">
+              World No. 1. Right-handed, two-handed backhand. Turned pro in 2018. Career-high singles ranking achieved 11 March 2024.
+            </p>
+            <div class="profile-actions">
+              <a class="btn-link">Ranking history</a>
+              <a class="btn-link">Head-to-head</a>
+              <a class="btn-link">Schedule</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <div class="profile-grid">
+            <div>
+              <h3>Recent form</h3>
+              <ul class="form-widget" aria-label="Recent form, most recent first">
+                <li class="form-cell win" title="Win on hard"><span aria-hidden>■</span></li>
+                <li class="form-cell win" title="Win on hard"><span aria-hidden>■</span></li>
+                <li class="form-cell loss" title="Loss on hard"><span aria-hidden>■</span></li>
+                <li class="form-cell win" title="Win on clay"><span aria-hidden>▲</span></li>
+                <li class="form-cell win" title="Win on clay"><span aria-hidden>▲</span></li>
+                <li class="form-cell win" title="Win on clay"><span aria-hidden>▲</span></li>
+                <li class="form-cell win" title="Win on clay"><span aria-hidden>▲</span></li>
+                <li class="form-cell loss" title="Loss on clay"><span aria-hidden>▲</span></li>
+                <li class="form-cell win" title="Win on hard"><span aria-hidden>■</span></li>
+                <li class="form-cell win" title="Win on hard"><span aria-hidden>■</span></li>
+              </ul>
+              <p style="font-size: 12px; color: var(--muted-fg); margin-top: 10px;">
+                Last 10. Shape = surface (■ hard, ▲ clay, ● grass). Colour = result. Screen-reader-friendly.
+              </p>
+
+              <h3 style="margin-top: 24px;">Surface splits — 2025–26</h3>
+              <ul class="heatmap" style="list-style:none; padding-left:0; margin-top:10px;">
+                <li class="hm-hard">
+                  <div class="surface">Hard</div>
+                  <div class="pct num">79%</div>
+                  <div class="wl num">42 – 11</div>
+                </li>
+                <li class="hm-clay">
+                  <div class="surface">Clay</div>
+                  <div class="pct num">73%</div>
+                  <div class="wl num">19 – 7</div>
+                </li>
+                <li class="hm-grass">
+                  <div class="surface">Grass</div>
+                  <div class="pct num">66%</div>
+                  <div class="wl num">8 – 4</div>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3>Ranking history</h3>
+              <div class="chart" style="margin-top: 10px;">
+                <div class="toggle" role="tablist">
+                  <button class="on" aria-pressed="true">rank</button>
+                  <button aria-pressed="false">points</button>
+                </div>
+                <svg viewBox="0 0 320 140" width="100%" height="140" role="img" aria-label="Ranking trajectory, last 52 weeks">
+                  <g class="grid">
+                    <line x1="0" x2="320" y1="28" y2="28" />
+                    <line x1="0" x2="320" y1="56" y2="56" />
+                    <line x1="0" x2="320" y1="84" y2="84" />
+                    <line x1="0" x2="320" y1="112" y2="112" />
+                  </g>
+                  <path class="area" d="M0,86 L24,84 L48,80 L72,72 L96,70 L120,60 L144,52 L168,40 L192,28 L216,22 L240,18 L264,14 L288,12 L320,10 L320,140 L0,140 Z"/>
+                  <path class="line" d="M0,86 L24,84 L48,80 L72,72 L96,70 L120,60 L144,52 L168,40 L192,28 L216,22 L240,18 L264,14 L288,12 L320,10"/>
+                  <g class="axis">
+                    <text x="0" y="135">Jun 25</text>
+                    <text x="120" y="135">Oct 25</text>
+                    <text x="240" y="135">Feb 26</text>
+                    <text x="296" y="135">May 26</text>
+                  </g>
+                </svg>
+                <p style="font-size: 12px; color: var(--muted-fg); margin: 6px 0 0;">
+                  Career-high <strong>#1</strong> · current <strong>#1</strong> · trajectory across the rolling 52-week window.
+                </p>
+              </div>
+
+              <h3 style="margin-top: 24px;">Sources</h3>
+              <ul style="font-size: 13px; padding-left: 18px; margin: 8px 0 0;">
+                <li><a class="up" style="text-decoration: underline;">Wikipedia (CC BY-SA)</a></li>
+                <li><a class="up" style="text-decoration: underline;">Official ATP profile</a></li>
+                <li><a class="up" style="text-decoration: underline;">Jeff Sackmann’s tennis_atp</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="legend">
+        <span>Dynamic OG card (Edge, @vercel/og)</span>
+        <span>Person JSON-LD</span>
+        <span>Wikimedia Commons photo path</span>
+        <span>Form widget: CB-safe (shape + colour + SR)</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- 5. Head-to-head -->
+  <section class="section" id="h2h">
+    <span class="section-label">05 · Head-to-head</span>
+    <div class="container">
+      <div class="frame">
+        <div class="frame-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">tennisrankings.example/players/jannik-sinner/h2h/carlos-alcaraz</span>
+        </div>
+        <div style="padding: 24px;">
+          <h2 style="font-size: 40px;">Jannik Sinner <span style="color: var(--muted-fg)">vs</span> Carlos Alcaraz</h2>
+
+          <div class="stat-row">
+            <div class="stat-card">
+              <div class="v up num">6</div>
+              <div class="l">Sinner wins</div>
+            </div>
+            <div class="stat-card">
+              <div class="v num">11</div>
+              <div class="l">Total matches</div>
+            </div>
+            <div class="stat-card">
+              <div class="v down num">5</div>
+              <div class="l">Alcaraz wins</div>
+            </div>
+          </div>
+
+          <h3 style="font-size: 22px;">By surface</h3>
+          <div class="tour-grid" style="margin-top: 8px;">
+            <div class="card">
+              <div class="label">Hard</div>
+              <div class="value num">5 – 2</div>
+            </div>
+            <div class="card">
+              <div class="label">Clay</div>
+              <div class="value num">1 – 3</div>
+            </div>
+            <div class="card">
+              <div class="label">Grass</div>
+              <div class="value num">0 – 0</div>
+            </div>
+          </div>
+
+          <h3 style="font-size: 22px; margin-top: 24px;">Recent matches</h3>
+          <table style="margin-top: 8px;">
+            <thead>
+              <tr><th>Date</th><th>Tournament</th><th>Surface</th><th>Round</th><th>Score</th><th>Winner</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="num">2026-05-08</td><td>Madrid Open</td><td>Clay</td><td>SF</td><td class="num">6-3, 4-6, 7-5</td><td class="up player-name">Sinner</td></tr>
+              <tr><td class="num">2026-03-14</td><td>Indian Wells</td><td>Hard</td><td>F</td><td class="num">6-2, 6-3</td><td class="up player-name">Sinner</td></tr>
+              <tr><td class="num">2025-09-07</td><td>US Open</td><td>Hard</td><td>F</td><td class="num">7-6, 7-6, 6-4</td><td class="up player-name">Sinner</td></tr>
+              <tr><td class="num">2025-06-09</td><td>Roland-Garros</td><td>Clay</td><td>F</td><td class="num">4-6, 6-7, 6-4, 7-6, 7-6</td><td class="down player-name">Alcaraz</td></tr>
+              <tr><td class="num">2025-04-13</td><td>Monte Carlo</td><td>Clay</td><td>F</td><td class="num">6-3, 1-6, 6-3</td><td class="down player-name">Alcaraz</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="legend">
+        <span>Programmatic (1500² player pairs)</span>
+        <span>Per-surface stats from match history</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- 6. Tournament page -->
+  <section class="section" id="tournament">
+    <span class="section-label">06 · Tournament</span>
+    <div class="container">
+      <div class="frame">
+        <div class="frame-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">tennisrankings.example/tournaments/roland-garros</span>
+        </div>
+        <div style="padding: 24px;">
+          <p style="font-size: 11px; color: var(--muted-fg); text-transform: uppercase; letter-spacing: 0.16em;">Grand Slam · Clay · ATP &amp; WTA</p>
+          <h2 style="font-size: 48px; margin-top: 6px;">Roland-Garros</h2>
+          <p style="color: var(--muted-fg); margin-top: 4px;">Paris, FRA · Draw 128 · Winner takes 2,000 points</p>
+
+          <div class="tour-grid" style="margin-top: 24px;">
+            <div class="card">
+              <div class="label">Prize money</div>
+              <div class="value num">$2,700,000</div>
+            </div>
+            <div class="card">
+              <div class="label">Surface</div>
+              <div class="value">Clay</div>
+            </div>
+            <div class="card">
+              <div class="label">Category</div>
+              <div class="value">Grand Slam</div>
+            </div>
+          </div>
+
+          <h3 style="font-size: 22px; margin-top: 24px;">Past editions</h3>
+          <p style="margin-top: 6px;">
+            <a class="chip">2025 — C. Alcaraz</a>
+            <a class="chip">2024 — C. Alcaraz</a>
+            <a class="chip">2023 — N. Djokovic</a>
+            <a class="chip">2022 — R. Nadal</a>
+          </p>
+        </div>
+      </div>
+      <p class="legend">
+        <span>SportsEvent JSON-LD</span>
+        <span>BreadcrumbList</span>
+        <span>Daily ISR</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- 7. Search dialog overlay -->
+  <section class="section" id="search">
+    <span class="section-label">07 · Search dialog</span>
+    <div class="container">
+      <div class="frame">
+        <div class="frame-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">tennisrankings.example/rankings/atp</span>
+        </div>
+        <div class="search-demo">
+          <div style="opacity: 0.55;">
+            <h3 style="font-size: 22px;">ATP Live Ranking</h3>
+            <p style="color: var(--muted-fg); margin-top: 6px;">Week of 18 May 2026</p>
+          </div>
+
+          <div class="search-backdrop" role="dialog" aria-modal="true" aria-label="Search players">
+            <div class="search-dialog">
+              <input type="search" value="alca" placeholder="Search players…" />
+              <ul>
+                <li><a><span><span class="player-name">Carlos Alcaraz</span><span class="player-country">ESP</span></span><span class="meta">ATP #2</span></a></li>
+                <li><a><span><span class="player-name">Sebastian Báez</span><span class="player-country">ARG</span></span><span class="meta">ATP #19</span></a></li>
+                <li><a><span><span class="player-name">Roman Albot</span><span class="player-country">MDA</span></span><span class="meta">ATP #243</span></a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="legend">
+        <span>"/" shortcut</span>
+        <span>Postgres pg_trgm</span>
+        <span>30s edge cache on hits, no-store on short queries</span>
+        <span>AbortController on stale queries</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- 8. Cookie consent banner -->
+  <section class="section" id="consent">
+    <span class="section-label">08 · Cookie consent (Klaro stub)</span>
+    <div class="container">
+      <div class="frame">
+        <div class="frame-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">tennisrankings.example/</span>
+        </div>
+        <div class="consent-demo">
+          <p style="color: var(--muted-fg);">Analytics + ad scripts gated until consent is granted.<br>Verified by Playwright: <code>Plausible never loads pre-consent</code>.</p>
+          <div class="consent-bar" role="dialog" aria-label="Cookie consent">
+            <p>We use a small set of cookies for analytics and (later) ads. No tracking happens until you choose. See our <a class="up" style="text-decoration: underline;">cookie policy</a>.</p>
+            <div class="consent-actions">
+              <button class="btn">Reject all</button>
+              <button class="btn primary">Accept</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="legend">
+        <span>GDPR-compliant</span>
+        <span>TCF v2.2 ready</span>
+        <span>localStorage + custom "tr:consent" event</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- 9. Mobile preview -->
+  <section class="section" id="mobile">
+    <span class="section-label">09 · Mobile</span>
+    <div class="container">
+      <div class="mobile-grid">
+        <div class="phone-frame">
+          <div class="phone-inner">
+            <header class="site-header" style="padding: 10px 14px; gap: 10px;">
+              <div class="brand" style="font-size: 16px;">TennisRankings</div>
+              <div class="right" style="margin-left:auto;">
+                <span class="search-trigger" style="padding: 4px 8px;">🔍</span>
+                <button class="theme-btn" style="width:28px;height:28px;">☾</button>
+              </div>
+            </header>
+            <div style="padding: 14px 14px 22px;">
+              <div class="eyebrow" style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--muted-fg);">Week of 18 May 2026</div>
+              <h2 style="font-size: 28px; margin-top: 4px;">ATP — Top 10</h2>
+              <table style="margin-top: 12px; font-size: 12px;">
+                <thead>
+                  <tr><th class="col-num">#</th><th></th><th>Player</th><th class="col-num">Pts</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td class="col-num num">1</td><td class="delta hold">–</td><td><span class="player-name">J. Sinner</span><span class="player-country">ITA</span></td><td class="col-num num">11,830</td></tr>
+                  <tr><td class="col-num num">2</td><td class="delta hold">–</td><td><span class="player-name">C. Alcaraz</span><span class="player-country">ESP</span></td><td class="col-num num">8,390</td></tr>
+                  <tr><td class="col-num num">3</td><td class="delta up">▲ 1</td><td><span class="player-name">A. Zverev</span><span class="player-country">GER</span></td><td class="col-num num">7,915</td></tr>
+                  <tr><td class="col-num num">4</td><td class="delta down">▼ 1</td><td><span class="player-name">D. Medvedev</span><span class="player-country">—</span></td><td class="col-num num">6,230</td></tr>
+                  <tr><td class="col-num num">5</td><td class="delta hold">–</td><td><span class="player-name">N. Djokovic</span><span class="player-country">SRB</span></td><td class="col-num num">5,560</td></tr>
+                  <tr><td class="col-num num">6</td><td class="delta up">▲ 1</td><td><span class="player-name">T. Fritz</span><span class="player-country">USA</span></td><td class="col-num num">4,810</td></tr>
+                  <tr><td class="col-num num">7</td><td class="delta down">▼ 1</td><td><span class="player-name">C. Ruud</span><span class="player-country">NOR</span></td><td class="col-num num">4,500</td></tr>
+                  <tr><td class="col-num num">8</td><td class="delta hold">–</td><td><span class="player-name">A. Rublev</span><span class="player-country">—</span></td><td class="col-num num">4,275</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="font-size: 26px;">Mobile-first</h3>
+          <p style="color: var(--muted-fg); margin-top: 8px;">
+            74% of live-tennis.eu's traffic is mobile. Every component collapses gracefully: rankings table drops the "Played" column &lt; 768px, search becomes a full-screen sheet, the sticky header keeps the brand and the search trigger only.
+          </p>
+          <ul style="font-size: 14px; color: var(--muted-fg); padding-left: 18px; margin-top: 12px;">
+            <li>Touch-friendly 44px tap targets</li>
+            <li><code>prefers-reduced-motion</code> respected globally</li>
+            <li>Skeletons not spinners on async sections</li>
+            <li>Font-display: swap (no FOIT)</li>
+            <li>OG cards generated at the Edge for share previews</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. Accessibility & SEO summary -->
+  <section class="section" id="qa">
+    <span class="section-label">10 · A11y + SEO + perf budget</span>
+    <div class="container" style="display: grid; gap: 18px; grid-template-columns: 1fr;">
+      <div class="frame">
+        <div class="frame-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="url">CI on every PR — typecheck · lint · vitest · Playwright + axe · Lighthouse CI</span>
+        </div>
+        <div style="padding: 24px;">
+          <div class="tour-grid">
+            <div class="card">
+              <div class="label">Performance</div>
+              <div class="value num">≥ 95</div>
+              <p style="font-size: 12px; color: var(--muted-fg); margin: 6px 0 0;">LCP &lt; 1.5s mobile · CLS = 0 · INP &lt; 100ms.</p>
+            </div>
+            <div class="card">
+              <div class="label">Accessibility</div>
+              <div class="value num">≥ 95</div>
+              <p style="font-size: 12px; color: var(--muted-fg); margin: 6px 0 0;">axe-core: zero serious WCAG 2.2 AA violations on top 5 page types.</p>
+            </div>
+            <div class="card">
+              <div class="label">SEO</div>
+              <div class="value num">≥ 95</div>
+              <p style="font-size: 12px; color: var(--muted-fg); margin: 6px 0 0;">JSON-LD: Person · SportsEvent · BreadcrumbList · ItemList · WebSite · Organization. Sitemap + robots.</p>
+            </div>
+          </div>
+
+          <h3 style="font-size: 22px; margin-top: 24px;">Quality bars enforced in CI</h3>
+          <ul style="font-size: 14px; padding-left: 18px; margin-top: 10px;">
+            <li>~150 vitest assertions across libs, components, API routes, scraper.</li>
+            <li>Playwright smoke + a11y + SEO surface (sitemap, robots, canonical, OG) + API contract + consent-gating.</li>
+            <li>Lighthouse CI on the homepage, ATP, WTA — fails the PR below the budgets above.</li>
+            <li>Scraper contract tests against frozen fixtures so an atptour.com redesign breaks CI, not production.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="preview-footer">
+    Static design preview · Generated from <a class="up" style="text-decoration: underline;" href="https://github.com/marco-marchesi/TennisRankings/blob/claude/improve-rankings-plan-U3zu2/PLAN.md">PLAN.md</a> · No JS frameworks, no dependencies.
+  </footer>
+
+  <script>
+    const root = document.documentElement;
+    const button = document.getElementById('themeToggle');
+    if (window.matchMedia('(prefers-color-scheme: light)').matches) root.setAttribute('data-theme', 'light');
+    button?.addEventListener('click', () => {
+      root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+  </script>
+</body>
+</html>
