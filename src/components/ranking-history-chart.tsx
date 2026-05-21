@@ -10,8 +10,8 @@ import {
   ResponsiveContainer,
   CartesianGrid,
   Brush,
-  Legend,
 } from "recharts";
+import { formatDate } from "@/lib/utils";
 
 interface Row {
   weekOf: string | Date;
@@ -100,6 +100,10 @@ export function RankingHistoryChart({ data }: Props) {
 
   const brushStart = zoom?.start ?? 0;
   const brushEnd = zoom?.end ?? cleaned.length - 1;
+  const brushRangeLabel =
+    cleaned.length === 0
+      ? ""
+      : `${formatDate(cleaned[brushStart]?.weekOf ?? "")} → ${formatDate(cleaned[brushEnd]?.weekOf ?? "")}`;
 
   return (
     <div className="rounded-lg border p-4">
@@ -195,10 +199,14 @@ export function RankingHistoryChart({ data }: Props) {
               contentStyle={{
                 backgroundColor: "var(--background)",
                 border: "1px solid var(--border)",
+                borderRadius: 6,
                 fontSize: 12,
               }}
+              labelStyle={{ fontWeight: 600 }}
             />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
+            {/* No <Legend /> — the toggle buttons above the chart double as
+                a legend (colored dots + active state). Adding a legend here
+                duplicates info and crowds the bottom of the chart. */}
             {effectiveRank && (
               <Line
                 yAxisId="rank"
@@ -225,8 +233,9 @@ export function RankingHistoryChart({ data }: Props) {
             )}
             <Brush
               dataKey="weekOf"
-              height={22}
-              stroke="var(--muted-foreground)"
+              height={28}
+              stroke="var(--border)"
+              fill="transparent"
               startIndex={brushStart}
               endIndex={brushEnd}
               onChange={(range) => {
@@ -236,15 +245,75 @@ export function RankingHistoryChart({ data }: Props) {
                   setZoom({ start: startIndex, end: endIndex });
                 }
               }}
-              travellerWidth={8}
+              travellerWidth={12}
+              traveller={<BrushTraveller />}
+              y={undefined}
+              tickFormatter={() => ""}
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <p className="mt-2 text-xs text-[color:var(--muted-foreground)]">
-        Drag the handles on the bar below the chart to zoom into a date range,
-        or use +/− to step. Toggle Rank/Points to show one or both series.
-      </p>
+      <div className="mt-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-xs text-[color:var(--muted-foreground)]">
+        <p>
+          Drag the handles below the chart to zoom, or use +/− to step. Toggle
+          Rank/Points to show one or both series.
+        </p>
+        <p className="num tabular-nums" aria-live="polite">
+          {brushRangeLabel}
+        </p>
+      </div>
     </div>
+  );
+}
+
+// Custom brush handle. We render a slim rounded pill in the foreground
+// colour with two horizontal grip lines inside — visually closer to a
+// real range-slider thumb than the default Recharts grey rectangle.
+interface TravellerProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+}
+function BrushTraveller({ x = 0, y = 0, width = 12, height = 28 }: TravellerProps) {
+  const pillWidth = 8;
+  const pillX = x + (width - pillWidth) / 2;
+  const gripY1 = y + height / 2 - 3;
+  const gripY2 = y + height / 2 + 3;
+  return (
+    <g style={{ cursor: "ew-resize" }}>
+      {/* Wider invisible hit area for easier grabbing on touch / small screens */}
+      <rect x={x - 4} y={y} width={width + 8} height={height} fill="transparent" />
+      {/* The visible thumb */}
+      <rect
+        x={pillX}
+        y={y + 2}
+        width={pillWidth}
+        height={height - 4}
+        rx={3}
+        ry={3}
+        fill="var(--foreground)"
+        opacity={0.85}
+      />
+      {/* Two thin grip lines so the thumb reads as a draggable handle */}
+      <line
+        x1={pillX + 2}
+        x2={pillX + pillWidth - 2}
+        y1={gripY1}
+        y2={gripY1}
+        stroke="var(--background)"
+        strokeWidth={1}
+        strokeLinecap="round"
+      />
+      <line
+        x1={pillX + 2}
+        x2={pillX + pillWidth - 2}
+        y1={gripY2}
+        y2={gripY2}
+        stroke="var(--background)"
+        strokeWidth={1}
+        strokeLinecap="round"
+      />
+    </g>
   );
 }
