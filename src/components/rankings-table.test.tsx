@@ -32,11 +32,27 @@ describe("<RankingsTable />", () => {
     expect(html).toMatch(/<caption[^>]*>ATP top 5/);
   });
 
-  it("hides the Δ pts column when showPointsDelta=false", () => {
-    const rows = mockTopRanked("atp", 3);
-    const html = renderToString(
-      <RankingsTable rows={rows} showPointsDelta={false} />,
-    );
-    expect(html).not.toContain("Δ pts");
+  it("hides the projection columns when no rows have a projection", () => {
+    const rows = mockTopRanked("atp", 3); // mock data has projection: null
+    const html = renderToString(<RankingsTable rows={rows} />);
+    expect(html).not.toContain(">+/-<");
+    expect(html).not.toContain(">Next<");
+    expect(html).not.toContain(">Max<");
+  });
+
+  it("renders inline column filters for Age and Ctry", () => {
+    const rows = mockTopRanked("atp", 5);
+    const html = renderToString(<RankingsTable rows={rows} />);
+    expect(html).toContain('aria-label="Filter by age"');
+    expect(html).toContain('aria-label="Filter by country code"');
+  });
+
+  it("marks sortable headers with aria-sort=none initially except the active default", () => {
+    const rows = mockTopRanked("atp", 5);
+    const html = renderToString(<RankingsTable rows={rows} />);
+    // rank is the default sort, so its header has aria-sort=ascending
+    expect(html).toMatch(/aria-sort="ascending"/);
+    // CH, Age, Ctry, +/- start as none
+    expect(html).toMatch(/aria-sort="none"/);
   });
 });

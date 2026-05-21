@@ -6,8 +6,10 @@ import { SearchTrigger } from "./search-dialog";
 const nav = [
   { href: "/rankings/atp", label: "ATP" },
   { href: "/rankings/wta", label: "WTA" },
-  { href: "/rankings/projection", label: "Projection" },
-  { href: "/race/atp", label: "Race" },
+  { href: "/race/atp", label: "ATP Race" },
+  { href: "/race/wta", label: "WTA Race" },
+  { href: "/leaderboards/atp", label: "ATP Leaders" },
+  { href: "/leaderboards/wta", label: "WTA Leaders" },
   { href: "/explainers/atp-points", label: "Explainers" },
 ];
 

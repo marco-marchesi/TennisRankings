@@ -20,7 +20,6 @@ export function SiteFooter() {
           <ul className="space-y-2">
             <li><Link href="/rankings/atp">ATP</Link></li>
             <li><Link href="/rankings/wta">WTA</Link></li>
-            <li><Link href="/rankings/projection">Projection</Link></li>
             <li><Link href="/race/atp">Race to Finals</Link></li>
           </ul>
         </div>
@@ -32,7 +31,6 @@ export function SiteFooter() {
           <ul className="space-y-2">
             <li><Link href="/explainers/atp-points">How ATP points work</Link></li>
             <li><Link href="/explainers/points-expiry">Why points expire</Link></li>
-            <li><Link href="/explainers/projection">Reading the projection</Link></li>
           </ul>
         </div>
 

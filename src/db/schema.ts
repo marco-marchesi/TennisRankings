@@ -1,5 +1,6 @@
 import {
   pgTable,
+  pgView,
   serial,
   text,
   integer,
@@ -12,7 +13,7 @@ import {
   pgEnum,
   jsonb,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 
 export const tour = pgEnum("tour", ["atp", "wta", "challenger", "itf"]);
 export const surface = pgEnum("surface", ["hard", "clay", "grass", "carpet", "indoor_hard"]);
@@ -44,10 +45,14 @@ export const players = pgTable(
     dateOfBirth: date("date_of_birth"),
     height_cm: integer("height_cm"),
     plays: hand("plays").default("unknown"),
+    /** "one-handed" | "two-handed" — scraped from Wikipedia infobox. */
+    backhand: text("backhand"),
     turnedPro: integer("turned_pro"),
     photoUrl: text("photo_url"),
     photoAttribution: text("photo_attribution"),
     wikipediaUrl: text("wikipedia_url"),
+    /** Wikidata QID (e.g. "Q12421867") — bridge to wiki + photo lookups. */
+    wikidataId: text("wikidata_id"),
     bio: text("bio"),
     tour: tour("tour").notNull(),
     active: boolean("active").default(true).notNull(),
@@ -92,6 +97,29 @@ export const rankingsSnapshots = pgTable(
     tournamentsPlayed: integer("tournaments_played"),
     prevRank: integer("prev_rank"),
     prevPoints: integer("prev_points"),
+    /**
+     * Points published in the "+/-" column on atptour.com — net change from
+     * the previous week's published total. Captured verbatim so the UI can
+     * cross-check our own computed delta against the ATP-published value.
+     */
+    pointsMove: integer("points_move"),
+    /**
+     * Points published in the "Dropping" column — the count that will roll
+     * off the 52-week window on the NEXT Monday publish. This is the
+     * authoritative input to the projection calculator's `pointsBeingDefended`
+     * — much more reliable than trying to derive it from prior-year match
+     * results, since ATP's rolling-window rule has edge cases (best-18, Slam
+     * waiver, etc.) that the published number already accounts for.
+     */
+    dropPoints: integer("drop_points"),
+    /**
+     * "Next Best" — the highest non-countable result that would become
+     * countable if a player adds nothing this week. Drives a more accurate
+     * projection (a player who has a 250-pt non-countable can't actually lose
+     * a full 1000 even if their Masters result rolls off). Captured here for
+     * future use; not yet wired into the calculator.
+     */
+    nextBestPoints: integer("next_best_points"),
     scrapeRunId: integer("scrape_run_id").references(() => scrapeRuns.id),
     isRace: boolean("is_race").default(false).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -159,6 +187,85 @@ export const matches = pgTable(
   (t) => ({
     editionIdx: index("matches_edition_idx").on(t.editionId),
     pairIdx: index("matches_pair_idx").on(t.playerAId, t.playerBId),
+  }),
+);
+
+// Per-player current-tournament projection. One row per player, rewritten on
+// every projections-run so this table is always a "current state" snapshot.
+// Players NOT currently playing have no row here — the UI treats absence as
+// "no projection", matching how live-tennis.eu blanks the Next/Max columns
+// for inactive players.
+//
+// Statuses:
+//   in_progress     — player has won their latest match and has more rounds
+//                     to play. nextPoints + maxPossiblePoints both filled.
+//   eliminated      — player lost their latest match this week. Per the
+//                     user's UX spec: nextPoints reverts to currentPoints
+//                     (a.k.a. "official ranking"), maxPossiblePoints is null.
+//   won_tournament  — player won the final. nextPoints == maxPossiblePoints
+//                     == projected total with the winner reward.
+export const liveProjections = pgTable(
+  "live_projections",
+  {
+    playerId: integer("player_id")
+      .primaryKey()
+      .references(() => players.id, { onDelete: "cascade" }),
+    /** "in_progress" | "eliminated" | "won_tournament" */
+    status: text("status").notNull(),
+    /** Tournament name verbatim from the match record. */
+    tournamentName: text("tournament_name").notNull(),
+    /** Inferred category enum string — used by the points-table lookup. */
+    tournamentCategory: text("tournament_category").notNull(),
+    /** Round whose points are secured (see calculator semantics). */
+    roundReached: text("round_reached").notNull(),
+    /** Dropping points pulled from rankings_snapshots.drop_points. */
+    pointsBeingDefended: integer("points_being_defended").notNull().default(0),
+    /** Net points change vs current total at next Monday publish. */
+    pointsDelta: integer("points_delta").notNull(),
+    /** Projected new points total. NULL when status == eliminated per spec. */
+    nextPoints: integer("next_points"),
+    /** Max possible total if the player wins out. NULL when not in-progress. */
+    maxPossiblePoints: integer("max_possible_points"),
+    nextRank: integer("next_rank"),
+    maxPossibleRank: integer("max_possible_rank"),
+    computedAt: timestamp("computed_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+);
+
+// Denormalized recent-results store powering the player-profile last-N-matches
+// widget. Sourced from Tennis Abstract's per-year atp_matches_YYYY.csv and
+// wta_matches_YYYY.csv. We bake the tournament + opponent identifiers into
+// strings here rather than FK'ing to `matches`/`tournaments` because (a) we
+// don't need the full match-graph normalization for this view and (b) many
+// opponents won't exist in our `players` table (lower-ranked players we
+// haven't backfilled).
+export const playerRecentMatches = pgTable(
+  "player_recent_matches",
+  {
+    playerId: integer("player_id")
+      .notNull()
+      .references(() => players.id, { onDelete: "cascade" }),
+    /** Tennis Abstract tournament identifier — e.g. "2024-580" for RG 2024. */
+    taTourneyId: text("ta_tourney_id").notNull(),
+    /** Match number within the tournament, used as part of the unique key. */
+    taMatchNum: integer("ta_match_num").notNull(),
+    playedOn: date("played_on").notNull(),
+    tournamentName: text("tournament_name").notNull(),
+    /** TA tournament level: "G"=Grand Slam, "M"=Masters 1000, "A"=ATP/WTA tour, "C"=Challenger, "F"=Finals, "D"=Davis Cup. */
+    tournamentLevel: text("tournament_level"),
+    /** "Hard" | "Clay" | "Grass" | "Carpet" — verbatim from TA. */
+    surface: text("surface"),
+    /** Round code: R128 / R64 / R32 / R16 / QF / SF / F. */
+    round: text("round").notNull(),
+    opponentName: text("opponent_name").notNull(),
+    opponentCountry: text("opponent_country"),
+    won: boolean("won").notNull(),
+    score: text("score"),
+    matchMinutes: integer("match_minutes"),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.playerId, t.taTourneyId, t.taMatchNum] }),
+    playerDateIdx: index("player_recent_matches_player_date_idx").on(t.playerId, t.playedOn),
   }),
 );
 
@@ -263,7 +370,131 @@ export const tournamentsRelations = relations(tournaments, ({ many }) => ({
   editions: many(tournamentEditions),
 }));
 
+// ─── MCP Leaderboards ─────────────────────────────────────────────────────
+// Match Charting Project leaderboards — sourced from Tennis Abstract's
+// pre-computed "Last 52" reports (4 categories × 2 tours = 8 source URLs).
+// Stats payload is jsonb since the per-category column shape differs and we
+// don't want to fight a wide-table layout. The (tour, category, window, rank)
+// PK lets us atomically replace a category on each scraper run.
+export const leaderboards = pgTable(
+  "leaderboards",
+  {
+    tour: text("tour").notNull(),
+    category: text("category").notNull(), // serve | return | rally | winners_errors
+    windowKey: text("window_key").notNull().default("last_52"),
+    rank: integer("rank").notNull(),
+    playerName: text("player_name").notNull(),
+    /** Best-effort match to our players.slug — null when no DB row found. */
+    playerSlug: text("player_slug"),
+    /** Tennis Abstract's player identifier from `?p=...` in their URLs. */
+    taPlayerId: text("ta_player_id"),
+    countryCode: text("country_code"),
+    matches: integer("matches"),
+    stats: jsonb("stats").notNull(),
+    scrapedAt: timestamp("scraped_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.tour, t.category, t.windowKey, t.rank] }),
+    playerIdx: index("leaderboards_player_idx").on(t.playerSlug),
+  }),
+);
+
 export type Player = typeof players.$inferSelect;
 export type RankingSnapshot = typeof rankingsSnapshots.$inferSelect;
 export type Tournament = typeof tournaments.$inferSelect;
 export type Match = typeof matches.$inferSelect;
+
+// ─── Race views ───────────────────────────────────────────────────────────
+//
+// Convenience views over the latest race-rankings snapshot for each tour.
+// The view encapsulates three things:
+//   1. The "current week" subquery (latest week_of for the relevant tour+race),
+//   2. The join to players (so all denormalized profile fields come along),
+//   3. The Played-YTD fallback (race HTML doesn't publish a Played column,
+//      so we count distinct tournaments per player from player_recent_matches
+//      since January 1).
+//
+// Now any consumer — page, SQL exploration, BI tool, ad-hoc psql — can just
+// `select * from atp_race` without re-implementing the week-detection or
+// fallback logic.
+
+const raceViewColumns = {
+  rank: integer("rank"),
+  points: integer("points"),
+  weekOf: date("week_of"),
+  playerId: integer("player_id"),
+  slug: text("slug"),
+  fullName: text("full_name"),
+  countryCode: text("country_code"),
+  dateOfBirth: date("date_of_birth"),
+  heightCm: integer("height_cm"),
+  plays: text("plays"),
+  photoUrl: text("photo_url"),
+  tournamentsPlayed: integer("tournaments_played"),
+};
+
+export const atpRaceView = pgView("atp_race", raceViewColumns).as(sql`
+  select
+    rs.rank,
+    rs.points,
+    rs.week_of,
+    p.id as player_id,
+    p.slug,
+    p.full_name,
+    p.country_code,
+    p.date_of_birth,
+    p.height_cm,
+    p.plays::text as plays,
+    p.photo_url,
+    coalesce(
+      rs.tournaments_played,
+      (
+        select count(distinct prm.tournament_name)::int
+        from player_recent_matches prm
+        where prm.player_id = p.id
+          and prm.played_on >= date_trunc('year', current_date)
+      )
+    ) as tournaments_played
+  from rankings_snapshots rs
+  join players p on p.id = rs.player_id
+  where rs.tour = 'atp'
+    and rs.is_race = true
+    and rs.week_of = (
+      select max(week_of) from rankings_snapshots
+      where tour = 'atp' and is_race = true
+    )
+  order by rs.rank
+`);
+
+export const wtaRaceView = pgView("wta_race", raceViewColumns).as(sql`
+  select
+    rs.rank,
+    rs.points,
+    rs.week_of,
+    p.id as player_id,
+    p.slug,
+    p.full_name,
+    p.country_code,
+    p.date_of_birth,
+    p.height_cm,
+    p.plays::text as plays,
+    p.photo_url,
+    coalesce(
+      rs.tournaments_played,
+      (
+        select count(distinct prm.tournament_name)::int
+        from player_recent_matches prm
+        where prm.player_id = p.id
+          and prm.played_on >= date_trunc('year', current_date)
+      )
+    ) as tournaments_played
+  from rankings_snapshots rs
+  join players p on p.id = rs.player_id
+  where rs.tour = 'wta'
+    and rs.is_race = true
+    and rs.week_of = (
+      select max(week_of) from rankings_snapshots
+      where tour = 'wta' and is_race = true
+    )
+  order by rs.rank
+`);

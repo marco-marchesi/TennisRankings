@@ -1,7 +1,7 @@
 import type { Tour } from "./constants";
 import type { RankingRow } from "./rankings";
 
-const ATP_TOP: Array<Omit<RankingRow, "rank" | "weekOf">> = [
+const ATP_TOP: Array<Omit<RankingRow, "rank" | "weekOf" | "nationalRank" | "careerHighRank" | "projection" | "projectedRank" | "projectedPoints">> = [
   { player: m(1, "jannik-sinner", "Jannik Sinner", "ITA", "right"), points: 11830, prevRank: 1, prevPoints: 11830, tournamentsPlayed: 19 },
   { player: m(2, "carlos-alcaraz", "Carlos Alcaraz", "ESP", "right"), points: 8390, prevRank: 2, prevPoints: 8420, tournamentsPlayed: 20 },
   { player: m(3, "alexander-zverev", "Alexander Zverev", "GER", "right"), points: 7915, prevRank: 4, prevPoints: 7475, tournamentsPlayed: 22 },
@@ -14,7 +14,7 @@ const ATP_TOP: Array<Omit<RankingRow, "rank" | "weekOf">> = [
   { player: m(10, "grigor-dimitrov", "Grigor Dimitrov", "BUL", "right"), points: 3775, prevRank: 10, prevPoints: 3800, tournamentsPlayed: 22 },
 ];
 
-const WTA_TOP: Array<Omit<RankingRow, "rank" | "weekOf">> = [
+const WTA_TOP: Array<Omit<RankingRow, "rank" | "weekOf" | "nationalRank" | "careerHighRank" | "projection" | "projectedRank" | "projectedPoints">> = [
   { player: m(101, "iga-swiatek", "Iga Świątek", "POL", "right"), points: 10715, prevRank: 1, prevPoints: 10715, tournamentsPlayed: 18 },
   { player: m(102, "aryna-sabalenka", "Aryna Sabalenka", "—", "right"), points: 8725, prevRank: 2, prevPoints: 8725, tournamentsPlayed: 19 },
   { player: m(103, "coco-gauff", "Coco Gauff", "USA", "right"), points: 7150, prevRank: 3, prevPoints: 7150, tournamentsPlayed: 22 },
@@ -34,17 +34,34 @@ function m(
   countryCode: string,
   plays: "right" | "left",
 ): RankingRow["player"] {
-  return { id, slug, fullName, countryCode, photoUrl: null, plays };
+  return { id, slug, fullName, countryCode, photoUrl: null, plays, dateOfBirth: null };
 }
 
 export function mockTopRanked(tour: Tour, limit: number): RankingRow[] {
   const week = mostRecentMonday();
   const rows = tour === "atp" ? ATP_TOP : WTA_TOP;
-  return rows.slice(0, limit).map((row, i) => ({
-    rank: i + 1,
-    weekOf: week,
-    ...row,
-  }));
+  // Compute mock national rank by streaming through the list and counting
+  // appearances per country.
+  const countryCount = new Map<string, number>();
+  return rows.slice(0, limit).map((row, i) => {
+    const cc = row.player.countryCode ?? null;
+    let nationalRank: number | null = null;
+    if (cc) {
+      const n = (countryCount.get(cc) ?? 0) + 1;
+      countryCount.set(cc, n);
+      nationalRank = n;
+    }
+    return {
+      rank: i + 1,
+      weekOf: week,
+      nationalRank,
+      careerHighRank: i + 1, // mock: current rank is also career high
+      projectedRank: i + 1,
+      projectedPoints: row.points,
+      projection: null,
+      ...row,
+    };
+  });
 }
 
 export function mostRecentMonday(d = new Date()): string {

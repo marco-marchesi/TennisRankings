@@ -35,3 +35,11 @@ drizzle/meta/
 
 # scraper artefacts
 scraper/.cache/
+scraper/__debug__/
+
+# claude code session state
+.claude/
+
+# typescript incremental build cache
+tsconfig.tsbuildinfo
+next-env.d.ts

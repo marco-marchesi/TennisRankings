@@ -23,7 +23,7 @@ export default async function HomePage() {
     <div className="mx-auto max-w-7xl px-4 py-10">
       <section className="mb-12">
         <p className="text-xs uppercase tracking-wider text-[color:var(--muted-foreground)]">
-          Rankings · Projections · Points-expiry · Head-to-head
+          Rankings · Live points · Race to Finals · Head-to-head
         </p>
         <h1 className="mt-2 font-serif text-4xl leading-tight md:text-6xl">
           {SITE_TAGLINE}
@@ -34,10 +34,10 @@ export default async function HomePage() {
         </p>
         <div className="mt-6 flex gap-3">
           <Link
-            href="/rankings/projection"
+            href="/rankings/atp"
             className="rounded-md bg-[color:var(--foreground)] px-4 py-2 text-sm text-[color:var(--background)]"
           >
-            See the projection →
+            See the live ranking →
           </Link>
           <Link
             href="/explainers/atp-points"

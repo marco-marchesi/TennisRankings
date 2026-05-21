@@ -36,7 +36,7 @@ export default async function RacePage({ params }: Params) {
         qualify for the year-end Finals.
       </p>
       <div className="mt-6">
-        <RankingsTable rows={rows} caption={`${tour.toUpperCase()} Race ranking`} />
+        <RankingsTable rows={rows} caption={`${tour.toUpperCase()} Race ranking`} isRace />
       </div>
     </div>
   );

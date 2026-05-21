@@ -26,6 +26,18 @@ export function rankDelta(prev: number | null | undefined, current: number) {
   return { dir: "hold" as const, delta: 0 };
 }
 
+/** Integer age from an ISO date string. Null when input is missing/invalid. */
+export function ageFromDob(dob: string | null): number | null {
+  if (!dob) return null;
+  const birth = new Date(dob);
+  if (Number.isNaN(birth.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const m = now.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+  return age;
+}
+
 export function slugify(input: string) {
   return input
     .normalize("NFKD")
