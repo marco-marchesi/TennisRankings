@@ -220,7 +220,11 @@ async function main() {
   const args = process.argv.slice(2);
   const tourArg = args.find((a) => a === "atp" || a === "wta") as Tour | undefined;
   const topIdx = args.indexOf("--top");
-  const topN = topIdx >= 0 && args[topIdx + 1] ? Number(args[topIdx + 1]) : 50;
+  // Default 100 — matches backfill-history. Match-CSV download is the same
+  // bulk cost regardless of topN, so widening is essentially free at this
+  // scale (50 → 100 doubles per-player insert volume but stays well under
+  // a minute total).
+  const topN = topIdx >= 0 && args[topIdx + 1] ? Number(args[topIdx + 1]) : 100;
 
   console.log(`[backfill-matches] tours: ${tourArg ?? "atp+wta"}  topN: ${topN}`);
   const results = await backfillMatches({ tour: tourArg, topN });

@@ -207,7 +207,9 @@ async function main() {
   const args = process.argv.slice(2);
   const tourArg = args.find((a) => a === "atp" || a === "wta") as Tour | undefined;
   const topIdx = args.indexOf("--top");
-  const topN = topIdx >= 0 && args[topIdx + 1] ? Number(args[topIdx + 1]) : 50;
+  // Default 100 — covers everyone who's been in the official top-100 of
+  // either tour. Bump higher to widen the historical-data net.
+  const topN = topIdx >= 0 && args[topIdx + 1] ? Number(args[topIdx + 1]) : 100;
   const force = args.includes("--force");
 
   console.log(`[backfill] tours: ${tourArg ?? "atp+wta"}  topN: ${topN}  force: ${force}`);

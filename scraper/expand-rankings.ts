@@ -112,7 +112,7 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
 
     if (playerId === undefined) {
       // First time seeing this player. Insert a minimal players row.
-      const dobFromTa = ta.dateOfBirth; // already YYYY-MM-DD or null
+      const dobFromTa = ta.dateOfBirth;
       const inserted = await db
         .insert(schema.players)
         .values({
@@ -131,7 +131,20 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
         })
         .onConflictDoUpdate({
           target: schema.players.slug,
-          set: { lastSeenInRankingsAt: now, updatedAt: now },
+          // Fill in any TA-sourced metadata that's still null on the existing
+          // row. Players first inserted by `scraper:refresh` (ATP/WTA HTML)
+          // arrive without wikidata_id / height / hand — without this fill
+          // they'd be invisible to `enrich-players`, which keys off wikidata_id.
+          // `coalesce(existing, new)` keeps existing data when present.
+          set: {
+            wikidataId: sql`coalesce(${schema.players.wikidataId}, ${ta.wikidataId ?? null})`,
+            height_cm: sql`coalesce(${schema.players.height_cm}, ${ta.heightCm ?? null})`,
+            plays: sql`case when ${schema.players.plays} is null or ${schema.players.plays} = 'unknown' then ${ta.hand}::hand else ${schema.players.plays} end`,
+            dateOfBirth: sql`coalesce(${schema.players.dateOfBirth}, ${ta.dateOfBirth ?? null}::date)`,
+            countryCode: sql`coalesce(${schema.players.countryCode}, ${ta.countryCode ?? null})`,
+            lastSeenInRankingsAt: now,
+            updatedAt: now,
+          },
         })
         .returning({ id: schema.players.id });
       playerId = inserted[0]?.id;
@@ -141,6 +154,24 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
       } else {
         continue;
       }
+    } else {
+      // Existing player matched by slug. Same metadata-fill logic — players
+      // first seen via ATP/WTA HTML lacked TA's fields, so we patch them in
+      // when present without overwriting real data.
+      const taPlays =
+        ta.hand !== "unknown" ? sql`${ta.hand}::hand` : sql`null::hand`;
+      await db
+        .update(schema.players)
+        .set({
+          wikidataId: sql`coalesce(${schema.players.wikidataId}, ${ta.wikidataId ?? null})`,
+          height_cm: sql`coalesce(${schema.players.height_cm}, ${ta.heightCm ?? null})`,
+          plays: sql`case when ${schema.players.plays} is null or ${schema.players.plays} = 'unknown' then ${taPlays} else ${schema.players.plays} end`,
+          dateOfBirth: sql`coalesce(${schema.players.dateOfBirth}, ${ta.dateOfBirth ?? null}::date)`,
+          countryCode: sql`coalesce(${schema.players.countryCode}, ${ta.countryCode ?? null})`,
+          lastSeenInRankingsAt: now,
+          updatedAt: now,
+        })
+        .where(eq(schema.players.id, playerId));
     }
 
     touchedPlayerIds.push(playerId);
