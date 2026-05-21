@@ -44,7 +44,7 @@ describe("breadcrumbLd", () => {
   it("produces absolute URLs", () => {
     const ld = breadcrumbLd([{ name: "Home", path: "/" }]);
     const list = (ld as any).itemListElement as Array<{ item: string }>;
-    expect(list[0].item).toMatch(/^https:\/\//);
+    expect(list[0]!.item).toMatch(/^https:\/\//);
   });
 });
 

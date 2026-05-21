@@ -31,13 +31,13 @@ describe("mockTopRanked", () => {
   it("returns ATP rows for tour=atp", () => {
     const rows = mockTopRanked("atp", 5);
     expect(rows).toHaveLength(5);
-    expect(rows[0].player.fullName).toBe("Jannik Sinner");
+    expect(rows[0]!.player.fullName).toBe("Jannik Sinner");
   });
 
   it("returns WTA rows for tour=wta", () => {
     const rows = mockTopRanked("wta", 5);
     expect(rows).toHaveLength(5);
-    expect(rows[0].player.fullName).toMatch(/Świątek/);
+    expect(rows[0]!.player.fullName).toMatch(/Świątek/);
   });
 
   it("assigns ranks 1..N in order", () => {
