@@ -54,11 +54,15 @@ export async function enrichPlayers(opts: EnrichOptions = {}): Promise<EnrichRes
     failures: [],
   };
 
-  // Eligibility: "ever in top 100" unless allPlayers is set.
+  // Eligibility: "ever in top 100" unless allPlayers is set. We no longer
+  // filter on wikidata_id here — players without one go through a Wikidata
+  // name-search inside the loop. That's the only way to enrich players
+  // Tennis Abstract's player file doesn't carry a QID for (Darderi etc.).
   const candidates = await db.execute<{
     id: number;
     slug: string;
     full_name: string;
+    country_code: string | null;
     wikidata_id: string | null;
     wikipedia_url: string | null;
     backhand: string | null;
@@ -66,11 +70,11 @@ export async function enrichPlayers(opts: EnrichOptions = {}): Promise<EnrichRes
     photo_attempt_at: string | null;
   }>(sql`
     select
-      p.id, p.slug, p.full_name, p.wikidata_id, p.wikipedia_url, p.backhand,
+      p.id, p.slug, p.full_name, p.country_code, p.wikidata_id, p.wikipedia_url, p.backhand,
       p.photo_fetched_at::text as photo_fetched_at,
       p.photo_attempt_at::text as photo_attempt_at
     from players p
-    where p.wikidata_id is not null
+    where 1=1
       ${opts.allPlayers
         ? sql``
         : sql`and exists (
@@ -83,11 +87,12 @@ export async function enrichPlayers(opts: EnrichOptions = {}): Promise<EnrichRes
             p.photo_fetched_at is null
             or p.photo_fetched_at < now() - interval '${sql.raw(String(PHOTO_REFRESH_DAYS))} days'
             or p.backhand is null
+            or p.wikidata_id is null
           )
           and (
             p.photo_attempt_at is null
             or p.photo_attempt_at < now() - interval '${sql.raw(String(PHOTO_RETRY_DAYS))} days'
-            or p.photo_fetched_at is null  -- never-fetched players bypass the retry-throttle once
+            or p.photo_fetched_at is null
           )`}
     order by p.id;
   `);
@@ -100,12 +105,33 @@ export async function enrichPlayers(opts: EnrichOptions = {}): Promise<EnrichRes
   for (const r of rows) {
     const id = Number(r.id);
     const slug = String(r.slug);
-    const wikidataId = r.wikidata_id as string;
+    let wikidataId = r.wikidata_id as string | null;
+    const fullName = String(r.full_name);
+    const countryCode = r.country_code as string | null;
     const existingBackhand = r.backhand as string | null;
     const updates: Record<string, unknown> = {};
     let needsAttemptStamp = false;
 
     try {
+      // If Tennis Abstract didn't carry a wikidata_id for this player, try
+      // to discover one by searching Wikidata by name. We verify candidates
+      // are tennis players via P641 to avoid grabbing the wrong Luciano.
+      if (!wikidataId) {
+        const discovered = await searchWikidataForTennisPlayer(fullName, countryCode);
+        if (discovered) {
+          wikidataId = discovered;
+          updates.wikidataId = discovered;
+          console.log(`[enrich] ${slug}: discovered wikidata_id ${discovered} via search`);
+        } else {
+          // Found nothing — stamp the attempt and move on.
+          updates.photoAttemptAt = new Date();
+          updates.updatedAt = new Date();
+          await db.update(schema.players).set(updates).where(eq(schema.players.id, id));
+          result.photoNotFound++;
+          continue;
+        }
+      }
+
       const wd = await fetchWikidataEntity(wikidataId);
 
       if (wd.imageFile) {
@@ -161,6 +187,67 @@ export async function enrichPlayers(opts: EnrichOptions = {}): Promise<EnrichRes
 interface WdEntityResult {
   imageFile: string | null;
   enwikiTitle: string | null;
+}
+
+/**
+ * Searches Wikidata by a player's full name and returns the QID of the
+ * first match that looks like a tennis player. Strategy:
+ *   1. wbsearchentities returns up to 10 candidates with short descriptions.
+ *   2. Prefer candidates whose description literally contains "tennis" —
+ *      this catches 90% of cases in one cheap call.
+ *   3. For any remaining candidates, fetch claims and check P641 (sport)
+ *      = Q847 (tennis). Up to two verifies per player to keep cost bounded.
+ * Returns null when no plausible match exists.
+ */
+async function searchWikidataForTennisPlayer(
+  fullName: string,
+  _countryCode: string | null,
+): Promise<string | null> {
+  const searchUrl = new URL(WIKIDATA_API);
+  searchUrl.searchParams.set("action", "wbsearchentities");
+  searchUrl.searchParams.set("search", fullName);
+  searchUrl.searchParams.set("language", "en");
+  searchUrl.searchParams.set("format", "json");
+  searchUrl.searchParams.set("type", "item");
+  searchUrl.searchParams.set("limit", "10");
+  searchUrl.searchParams.set("origin", "*");
+  const json = (await politeJson(searchUrl.toString())) as {
+    search?: Array<{ id?: string; description?: string }>;
+  };
+  const hits = json.search ?? [];
+  if (hits.length === 0) return null;
+
+  // Fast path: any hit whose description mentions "tennis" is almost
+  // certainly the right person.
+  for (const h of hits) {
+    const desc = (h.description ?? "").toLowerCase();
+    if (h.id && desc.includes("tennis")) return h.id;
+  }
+
+  // Slow path: verify the top two hits by claim. Cap at two to keep request
+  // count predictable — a name with no tennis-mentioning description usually
+  // means we'd grab the wrong person anyway.
+  for (let i = 0; i < Math.min(2, hits.length); i++) {
+    const id = hits[i]?.id;
+    if (!id) continue;
+    const verifyUrl = new URL(WIKIDATA_API);
+    verifyUrl.searchParams.set("action", "wbgetentities");
+    verifyUrl.searchParams.set("ids", id);
+    verifyUrl.searchParams.set("props", "claims");
+    verifyUrl.searchParams.set("format", "json");
+    verifyUrl.searchParams.set("origin", "*");
+    const verifyJson = (await politeJson(verifyUrl.toString())) as {
+      entities?: Record<string, {
+        claims?: Record<string, Array<{ mainsnak?: { datavalue?: { value?: { id?: string } } } }>>;
+      }>;
+    };
+    const entity = verifyJson.entities?.[id];
+    // P641 = sport. Q847 = tennis.
+    const sport = entity?.claims?.P641?.[0]?.mainsnak?.datavalue?.value?.id;
+    if (sport === "Q847") return id;
+  }
+
+  return null;
 }
 
 async function fetchWikidataEntity(qid: string): Promise<WdEntityResult> {
