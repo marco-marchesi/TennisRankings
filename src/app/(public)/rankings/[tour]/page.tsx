@@ -32,7 +32,7 @@ export default async function RankingsPage({ params }: Params) {
   const { tour } = await params;
   if (!TOURS.includes(tour as Tour)) notFound();
 
-  const rows = await getTopRanked({ tour: tour as Tour, limit: 100 });
+  const rows = await getTopRanked({ tour: tour as Tour, limit: 800 });
   const week = rows[0]?.weekOf;
 
   return (

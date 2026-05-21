@@ -27,6 +27,7 @@
     "scraper:backfill-matches": "tsx scraper/backfill-matches.ts",
     "scraper:enrich-players": "tsx scraper/enrich-players.ts",
     "scraper:leaderboards": "tsx scraper/leaderboards.ts",
+    "scraper:expand-rankings": "tsx scraper/expand-rankings.ts",
     "format": "prettier --write ."
   },
   "dependencies": {

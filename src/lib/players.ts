@@ -16,6 +16,8 @@ export interface PlayerDetail {
   turnedPro: number | null;
   photoUrl: string | null;
   photoAttribution: string | null;
+  /** Truthy when /api/player-photo/[slug] will serve a real image. */
+  hasCachedPhoto: boolean;
   wikipediaUrl: string | null;
   bio: string | null;
   tour: "atp" | "wta" | "challenger" | "itf";
@@ -202,6 +204,7 @@ export async function getPlayerBySlug(slug: string): Promise<PlayerDetail | null
       turned_pro: number | null;
       photo_url: string | null;
       photo_attribution: string | null;
+      has_cached_photo: boolean;
       wikipedia_url: string | null;
       bio: string | null;
       tour: "atp" | "wta" | "challenger" | "itf";
@@ -251,6 +254,7 @@ export async function getPlayerBySlug(slug: string): Promise<PlayerDetail | null
       select
         t.id, t.slug, t.full_name, t.country_code, t.date_of_birth::text as date_of_birth,
         t.height_cm, t.plays, t.backhand, t.turned_pro, t.photo_url, t.photo_attribution,
+        (t.photo_bytes is not null) as has_cached_photo,
         t.wikipedia_url, t.bio, t.tour,
         (select rank from latest) as current_rank,
         (select points from latest) as current_points,
@@ -276,6 +280,7 @@ export async function getPlayerBySlug(slug: string): Promise<PlayerDetail | null
       turnedPro: r.turned_pro == null ? null : Number(r.turned_pro),
       photoUrl: (r.photo_url as string | null) ?? null,
       photoAttribution: (r.photo_attribution as string | null) ?? null,
+      hasCachedPhoto: Boolean(r.has_cached_photo),
       wikipediaUrl: (r.wikipedia_url as string | null) ?? null,
       bio: (r.bio as string | null) ?? null,
       tour: (r.tour as PlayerDetail["tour"]),
@@ -361,6 +366,7 @@ function mockPlayer(slug: string): PlayerDetail | null {
     turnedPro: null,
     photoUrl: null,
     photoAttribution: null,
+    hasCachedPhoto: false,
     wikipediaUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.player.fullName)}`,
     bio: null,
     tour: hit.player.id < 100 ? "atp" : "wta",

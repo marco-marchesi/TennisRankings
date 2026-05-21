@@ -47,19 +47,36 @@ export default async function PlayerPage({ params }: Params) {
 
       <header className="mt-3 flex items-start gap-6">
         <div className="hidden h-24 w-24 shrink-0 overflow-hidden rounded-full border bg-[color:var(--muted)] md:block">
-          {p.photoUrl ? (
-            <Image
-              src={p.photoUrl}
-              alt={`${p.fullName}, ${p.countryCode ?? "tennis player"}`}
-              width={96}
-              height={96}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-2xl font-serif text-[color:var(--muted-foreground)]">
-              {p.fullName.split(" ").map((s) => s[0]).join("").slice(0, 2)}
-            </div>
-          )}
+          {(() => {
+            // Photo source fallback chain:
+            //   1. Cached bytes in DB (served via /api/player-photo/[slug])
+            //   2. Remote photoUrl (Wikimedia Commons) — only if no cache
+            //   3. Initials — for players we've never enriched
+            const photoSrc = p.hasCachedPhoto
+              ? `/api/player-photo/${p.slug}`
+              : p.photoUrl;
+            if (photoSrc) {
+              return (
+                <Image
+                  src={photoSrc}
+                  alt={`${p.fullName}, ${p.countryCode ?? "tennis player"}`}
+                  width={96}
+                  height={96}
+                  unoptimized={p.hasCachedPhoto}
+                  className="h-full w-full object-cover"
+                />
+              );
+            }
+            return (
+              <div className="flex h-full w-full items-center justify-center text-2xl font-serif text-[color:var(--muted-foreground)]">
+                {p.fullName
+                  .split(" ")
+                  .map((s) => s[0])
+                  .join("")
+                  .slice(0, 2)}
+              </div>
+            );
+          })()}
         </div>
         <div className="flex-1">
           <p className="text-xs uppercase tracking-wider text-[color:var(--muted-foreground)]">
@@ -163,6 +180,18 @@ export default async function PlayerPage({ params }: Params) {
           </p>
         )}
       </section>
+
+      {/* Data-depth note: only shown when the player has minimal profile
+          enrichment. Avoids dropping a "no data collected" banner on every
+          page just because one field is missing. */}
+      {!p.hasCachedPhoto && !p.bio && !p.wikipediaUrl && (
+        <section className="mt-8 rounded-lg border border-dashed bg-[color:var(--muted)]/20 p-4 text-sm text-[color:var(--muted-foreground)]">
+          Detailed profile data (photo, backhand style, biography, Wikipedia
+          link) is collected for players who have reached the top 100 at some
+          point. This player is still building that history — basic ranking,
+          country, and any match data we have is shown above.
+        </section>
+      )}
 
       <section className="mt-8 rounded-lg border p-4">
         <h2 className="text-sm font-medium uppercase tracking-wide text-[color:var(--muted-foreground)]">

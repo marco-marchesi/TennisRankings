@@ -83,20 +83,21 @@ function Invoke-Step {
     }
 }
 
-Invoke-Step "1/6 Refresh ATP+WTA+race rankings"  "pnpm scraper:refresh --no-backfill"
+Invoke-Step "1/7 Refresh ATP+WTA+race rankings"  "pnpm scraper:refresh --no-backfill"
+Invoke-Step "2/7 Expand to top-800 via Tennis Abstract" "pnpm scraper:expand-rankings"
 if (-not $SkipBackfill) {
-    Invoke-Step "2/6 Backfill historical rankings (Tennis Abstract)" "pnpm scraper:backfill-history"
-    Invoke-Step "3/6 Backfill recent matches (Tennis Abstract)"      "pnpm scraper:backfill-matches"
+    Invoke-Step "3/7 Backfill historical rankings (Tennis Abstract)" "pnpm scraper:backfill-history"
+    Invoke-Step "4/7 Backfill recent matches (Tennis Abstract)"      "pnpm scraper:backfill-matches"
 } else {
-    Write-Host ""; Write-Host ">>> 2-3/6 Backfill steps SKIPPED" -ForegroundColor Yellow
+    Write-Host ""; Write-Host ">>> 3-4/7 Backfill steps SKIPPED" -ForegroundColor Yellow
 }
-Invoke-Step "4/6 Refresh MCP leaderboards"     "pnpm scraper:leaderboards"
+Invoke-Step "5/7 Refresh MCP leaderboards"     "pnpm scraper:leaderboards"
 if (-not $SkipEnrich) {
-    Invoke-Step "5/6 Wikidata + Wikipedia enrichment" "pnpm scraper:enrich-players"
+    Invoke-Step "6/7 Wikidata + Wikipedia enrichment + photo download" "pnpm scraper:enrich-players"
 } else {
-    Write-Host ""; Write-Host ">>> 5/6 Enrichment SKIPPED" -ForegroundColor Yellow
+    Write-Host ""; Write-Host ">>> 6/7 Enrichment SKIPPED" -ForegroundColor Yellow
 }
-Invoke-Step "6/6 Compute live projections"     "pnpm scraper:projections"
+Invoke-Step "7/7 Compute live projections"     "pnpm scraper:projections"
 
 Write-Host ""
 Write-Host "===========================================================" -ForegroundColor Cyan

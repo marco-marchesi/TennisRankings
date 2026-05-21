@@ -12,7 +12,16 @@ import {
   primaryKey,
   pgEnum,
   jsonb,
+  customType,
 } from "drizzle-orm/pg-core";
+
+// Drizzle has no built-in bytea type; this custom type plays nicely with
+// node-postgres's Buffer-by-default behavior for binary columns.
+const bytea = customType<{ data: Buffer; default: false }>({
+  dataType() {
+    return "bytea";
+  },
+});
 import { relations, sql } from "drizzle-orm";
 
 export const tour = pgEnum("tour", ["atp", "wta", "challenger", "itf"]);
@@ -50,12 +59,33 @@ export const players = pgTable(
     turnedPro: integer("turned_pro"),
     photoUrl: text("photo_url"),
     photoAttribution: text("photo_attribution"),
+    /** Downloaded image binary. Served via /api/player-photo/[slug]. */
+    photoBytes: bytea("photo_bytes"),
+    /** MIME type of `photoBytes` — "image/jpeg" / "image/png" etc. */
+    photoContentType: text("photo_content_type"),
+    /** When `photoBytes` was last successfully populated. NULL = never. */
+    photoFetchedAt: timestamp("photo_fetched_at", { withTimezone: true }),
+    /**
+     * When we last ATTEMPTED to fetch a photo, success or 404. Used to rate-
+     * limit retries for players who legitimately don't have a Wikipedia image
+     * — without this we'd hammer Wikimedia every weekly run.
+     */
+    photoAttemptAt: timestamp("photo_attempt_at", { withTimezone: true }),
     wikipediaUrl: text("wikipedia_url"),
     /** Wikidata QID (e.g. "Q12421867") — bridge to wiki + photo lookups. */
     wikidataId: text("wikidata_id"),
     bio: text("bio"),
     tour: tour("tour").notNull(),
     active: boolean("active").default(true).notNull(),
+    /** When `slug` was first locked in. Slug is never overwritten after this. */
+    slugStableAt: timestamp("slug_stable_at", { withTimezone: true }),
+    /**
+     * Last time we saw this player in any official ranking snapshot. Players
+     * who drop off the rankings list keep their data forever; this column
+     * lets a future cleanup job find truly inactive rows without losing
+     * recent retirees.
+     */
+    lastSeenInRankingsAt: timestamp("last_seen_in_rankings_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
