@@ -46,8 +46,10 @@ export default async function PlayerPage({ params }: Params) {
         <span aria-current="page">{p.fullName}</span>
       </nav>
 
-      <header className="mt-3 flex items-start gap-6">
-        <div className="hidden h-24 w-24 shrink-0 overflow-hidden rounded-full border bg-[color:var(--muted)] md:block">
+      <header className="mt-3 flex items-start gap-4 md:gap-6">
+        {/* Photo — visible on every viewport now. Smaller frame on mobile
+            (64px) so the name column keeps enough room for long names. */}
+        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full border bg-[color:var(--muted)] md:h-24 md:w-24">
           {(() => {
             // Photo source fallback chain:
             //   1. Cached bytes in DB (served via /api/player-photo/[slug])
@@ -73,7 +75,7 @@ export default async function PlayerPage({ params }: Params) {
               );
             }
             return (
-              <div className="flex h-full w-full items-center justify-center text-2xl font-serif text-[color:var(--muted-foreground)]">
+              <div className="flex h-full w-full items-center justify-center font-serif text-xl text-[color:var(--muted-foreground)] md:text-2xl">
                 {p.fullName
                   .split(" ")
                   .map((s) => s[0])
