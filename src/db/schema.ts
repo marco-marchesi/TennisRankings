@@ -134,6 +134,11 @@ export const rankingsSnapshots = pgTable(
      */
     pointsMove: integer("points_move"),
     /**
+     * Net rank change from the previous published week. Sourced from
+     * TennisExplorer's "Move" column. Negative = moved up the list.
+     */
+    rankMove: integer("rank_move"),
+    /**
      * Points published in the "Dropping" column — the count that will roll
      * off the 52-week window on the NEXT Monday publish. This is the
      * authoritative input to the projection calculator's `pointsBeingDefended`

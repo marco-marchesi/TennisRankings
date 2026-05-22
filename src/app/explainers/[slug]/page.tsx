@@ -1,6 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { notFound } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { buildMetadata } from "@/lib/seo";
 
 interface Params { params: Promise<{ slug: string }> }
@@ -84,9 +86,7 @@ export default async function ExplainerPage({ params }: Params) {
       <p className="text-xs text-[color:var(--muted-foreground)]">
         By {post.author} · Published {post.publishedAt} · Updated {post.updatedAt}
       </p>
-      <pre className="whitespace-pre-wrap font-sans not-prose leading-relaxed">
-        {post.body}
-      </pre>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.body}</ReactMarkdown>
     </article>
   );
 }

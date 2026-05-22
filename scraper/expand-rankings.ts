@@ -1,23 +1,26 @@
-// Fills out ranks 101–800 from Tennis Abstract's current-rankings CSV.
+// Fills out ranks 101–800 from TennisExplorer's weekly ranking page.
 //
-// Why split paths? ATP/WTA's HTML rankings only render top 100, and they're
-// the only place that publishes the "Dropping" column we need for live
-// projections. Ranks 101–800 don't get projection treatment; they're just
-// the rolling snapshot for searching, discovery, and (eventually) historical
-// movement charts of players who pop in and out of the top 100.
+// We use TE (not Tennis Abstract) for this because TE exposes the "Move"
+// column — the per-row rank change from the previous published week —
+// which TA's CSV doesn't. Capturing the move lets the rankings UI draw
+// up/down arrows without re-deriving from a prior snapshot.
+//
+// What we DON'T get from TE: player metadata (DOB, height, hand,
+// wikidata_id). New players from TE land with minimal info. They'll be
+// filled in later by `enrich-players` (Wikidata search by name) or by
+// `backfill-history` (which pulls TA's metadata for ranked players).
 //
 // Guarantees:
-//   - SLUG STABILITY: existing players are matched by Tennis Abstract's
-//     numeric player_id (stored on the row at first encounter). Once a slug
-//     is set, this script never overwrites it — even if TA changes the
-//     person's listed name.
-//   - SOFT RETIREMENT: we bump `last_seen_in_rankings_at` on every player we
-//     touch. Players who fall out of the top 800 are NOT deleted; they're
-//     just stale.
+//   - SLUG STABILITY: existing players are matched by `players.slug`
+//     (with suffix-based fuzzy matching for TE's "lastname-id" form).
+//     Once a slug is set, this script never overwrites it.
+//   - SOFT RETIREMENT: every touched player gets a fresh
+//     `last_seen_in_rankings_at`. Players who fall off the top 800 are
+//     not deleted, just stale.
 
 import { db, schema } from "@/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { fetchPlayers, fetchRankings, type Tour, type TAPlayer } from "./sources/tennis-abstract";
+import { fetchRanking, type Tour } from "./sources/tennis-explorer-rankings";
 import { slugify } from "@/lib/utils";
 
 const TOP_N = 800;
@@ -27,9 +30,10 @@ interface RunSummary {
   weekOf: string | null;
   rowsTouched: number;
   playersInserted: number;
-  playersMatchedByTaId: number;
+  playersMatchedBySlug: number;
   playersMatchedByName: number;
   snapshotsInserted: number;
+  rankMovesCaptured: number;
 }
 
 export async function expandRankings(tour: Tour): Promise<RunSummary> {
@@ -38,146 +42,70 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
     weekOf: null,
     rowsTouched: 0,
     playersInserted: 0,
-    playersMatchedByTaId: 0,
+    playersMatchedBySlug: 0,
     playersMatchedByName: 0,
     snapshotsInserted: 0,
+    rankMovesCaptured: 0,
   };
 
-  // 1. Pull the latest weekly slice from TA's CSV.
-  const rankings = await fetchRankings(tour, ["current"]);
-  if (rankings.length === 0) return summary;
-  const taLatest = rankings.reduce(
-    (acc, r) => (r.rankingDate > acc ? r.rankingDate : acc),
-    rankings[0]!.rankingDate,
-  );
-  const thisWeek = rankings.filter((r) => r.rankingDate === taLatest && r.rank <= TOP_N);
-  summary.rowsTouched = thisWeek.length;
+  // 1. Pull the full top-N from TE (16 pages × 50 rows for top-800).
+  const teRows = await fetchRanking(tour, TOP_N);
+  if (teRows.length === 0) return summary;
+  summary.rowsTouched = teRows.length;
 
-  // 2. Decide which week_of to write under. We anchor to the most recent
-  //    ATP/WTA-scraped week so all top-800 rows live in the same `week_of`
-  //    bucket — that lets the UI query "this week's rankings" without
-  //    UNIONing across two date columns. If no ATP/WTA scrape exists yet,
-  //    fall back to TA's own date.
+  // 2. Anchor to the most-recently-scraped ATP/WTA week so top-800 rows
+  //    share a `week_of` bucket with the top-100 official rows. Lets the UI
+  //    query "this week's rankings" with no UNION.
   const anchorRow = await db
     .select({ w: sql<string>`max(${schema.rankingsSnapshots.weekOf})` })
     .from(schema.rankingsSnapshots)
     .where(
       and(eq(schema.rankingsSnapshots.tour, tour), eq(schema.rankingsSnapshots.isRace, false)),
     );
-  const writeWeek = anchorRow[0]?.w ?? taLatest;
+  const writeWeek = anchorRow[0]?.w ?? new Date().toISOString().slice(0, 10);
   summary.weekOf = writeWeek;
 
-  if (thisWeek.length === 0) return summary;
-
-  // 2. Pull the player metadata file so we have names/countries/DOBs.
-  const taPlayers = await fetchPlayers(tour);
-  const taById = new Map(taPlayers.map((p) => [p.playerId, p]));
-
-  // 3. Build the slug→existingPlayerId map for the players we already have.
-  //    Two lookup paths:
-  //      a) Slug match — strongest, used for first-time imports during the
-  //         Tennis Abstract backfill.
-  //      b) (TA player_id, name) match if we ever add a column for TA id.
-  //    For now we use slug only; future-proofing TODO if we start writing
-  //    `ta_player_id` on the players row.
+  // 3. Build lookup maps (slug, slug-suffix, normalized-name) for the players
+  //    we already have in this tour.
   const existingPlayers = await db
     .select({ id: schema.players.id, slug: schema.players.slug, fullName: schema.players.fullName })
     .from(schema.players)
     .where(eq(schema.players.tour, tour));
-  const slugToId = new Map(existingPlayers.map((p) => [p.slug, p.id]));
-  const nameToId = new Map(
-    existingPlayers.map((p) => [normalizeName(p.fullName), p.id]),
-  );
+  const slugToId = new Map<string, number>();
+  const suffixSlugToId = new Map<string, number[]>();
+  const nameToId = new Map<string, number>();
+  for (const p of existingPlayers) {
+    slugToId.set(p.slug, p.id);
+    nameToId.set(normalizeName(p.fullName), p.id);
+    // Index by progressively-shorter slug suffixes (last 1-3 segments) so
+    // we can match TE's "sinner-8b8e8" against our "jannik-sinner".
+    const seg = p.slug.split("-");
+    for (let i = 1; i <= Math.min(3, seg.length); i++) {
+      const suf = seg.slice(-i).join("-");
+      if (suf.length < 3) continue;
+      const list = suffixSlugToId.get(suf) ?? [];
+      list.push(p.id);
+      suffixSlugToId.set(suf, list);
+    }
+  }
 
-  // 4. For each ranking row, resolve to a `players.id` (creating new rows as
-  //    needed), then insert the snapshot.
   const now = new Date();
   const touchedPlayerIds: number[] = [];
 
-  for (const r of thisWeek) {
-    const ta = taById.get(r.playerId);
-    if (!ta) continue; // No metadata → can't construct a sensible player row.
-
-    const candidateSlug = slugify(`${ta.firstName} ${ta.lastName}`);
-    let playerId: number | undefined = slugToId.get(candidateSlug);
-    if (playerId !== undefined) {
-      summary.playersMatchedByTaId++;
-    } else {
-      const altMatch = nameToId.get(normalizeName(`${ta.firstName} ${ta.lastName}`));
-      if (altMatch) {
-        playerId = altMatch;
-        summary.playersMatchedByName++;
-      }
-    }
-
-    if (playerId === undefined) {
-      // First time seeing this player. Insert a minimal players row.
-      const dobFromTa = ta.dateOfBirth;
-      const inserted = await db
-        .insert(schema.players)
-        .values({
-          slug: candidateSlug,
-          fullName: `${ta.firstName} ${ta.lastName}`,
-          firstName: ta.firstName,
-          lastName: ta.lastName,
-          countryCode: ta.countryCode,
-          dateOfBirth: dobFromTa,
-          height_cm: ta.heightCm,
-          plays: ta.hand,
-          wikidataId: ta.wikidataId,
-          tour,
-          slugStableAt: now,
-          lastSeenInRankingsAt: now,
-        })
-        .onConflictDoUpdate({
-          target: schema.players.slug,
-          // Fill in any TA-sourced metadata that's still null on the existing
-          // row. Players first inserted by `scraper:refresh` (ATP/WTA HTML)
-          // arrive without wikidata_id / height / hand — without this fill
-          // they'd be invisible to `enrich-players`, which keys off wikidata_id.
-          // `coalesce(existing, new)` keeps existing data when present.
-          set: {
-            wikidataId: sql`coalesce(${schema.players.wikidataId}, ${ta.wikidataId ?? null})`,
-            height_cm: sql`coalesce(${schema.players.height_cm}, ${ta.heightCm ?? null})`,
-            plays: sql`case when ${schema.players.plays} is null or ${schema.players.plays} = 'unknown' then ${ta.hand}::hand else ${schema.players.plays} end`,
-            dateOfBirth: sql`coalesce(${schema.players.dateOfBirth}, ${ta.dateOfBirth ?? null}::date)`,
-            countryCode: sql`coalesce(${schema.players.countryCode}, ${ta.countryCode ?? null})`,
-            lastSeenInRankingsAt: now,
-            updatedAt: now,
-          },
-        })
-        .returning({ id: schema.players.id });
-      playerId = inserted[0]?.id;
-      if (playerId !== undefined) {
-        slugToId.set(candidateSlug, playerId);
-        summary.playersInserted++;
-      } else {
-        continue;
-      }
-    } else {
-      // Existing player matched by slug. Same metadata-fill logic — players
-      // first seen via ATP/WTA HTML lacked TA's fields, so we patch them in
-      // when present without overwriting real data.
-      const taPlays =
-        ta.hand !== "unknown" ? sql`${ta.hand}::hand` : sql`null::hand`;
-      await db
-        .update(schema.players)
-        .set({
-          wikidataId: sql`coalesce(${schema.players.wikidataId}, ${ta.wikidataId ?? null})`,
-          height_cm: sql`coalesce(${schema.players.height_cm}, ${ta.heightCm ?? null})`,
-          plays: sql`case when ${schema.players.plays} is null or ${schema.players.plays} = 'unknown' then ${taPlays} else ${schema.players.plays} end`,
-          dateOfBirth: sql`coalesce(${schema.players.dateOfBirth}, ${ta.dateOfBirth ?? null}::date)`,
-          countryCode: sql`coalesce(${schema.players.countryCode}, ${ta.countryCode ?? null})`,
-          lastSeenInRankingsAt: now,
-          updatedAt: now,
-        })
-        .where(eq(schema.players.id, playerId));
-    }
-
+  for (const r of teRows) {
+    const playerId = await resolveOrCreatePlayer(r, tour, {
+      slugToId,
+      suffixSlugToId,
+      nameToId,
+      now,
+      summary,
+    });
+    if (playerId == null) continue;
     touchedPlayerIds.push(playerId);
 
-    // Insert the rankings_snapshot. Use onConflictDoNothing — if the row
-    // already exists (e.g. backfilled previously) we leave it alone.
+    // Insert (or update) the snapshot. Never clobber top-100 rows that came
+    // from the authoritative ATP/WTA scrape — they own dropPoints/nextBest
+    // and our TE-derived row doesn't have those.
     await db
       .insert(schema.rankingsSnapshots)
       .values({
@@ -185,7 +113,8 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
         weekOf: writeWeek,
         playerId,
         rank: r.rank,
-        points: r.points ?? 0,
+        points: r.points,
+        rankMove: r.rankMove,
         isRace: false,
       })
       .onConflictDoUpdate({
@@ -195,19 +124,18 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
           schema.rankingsSnapshots.playerId,
           schema.rankingsSnapshots.isRace,
         ],
-        // Only fill in if the existing row had no rank — meaning the ATP/WTA
-        // scrape didn't cover this player. Never clobber an authoritative
-        // top-100 row with a TA-derived 101+ rank.
         set: {
           rank: sql`case when ${schema.rankingsSnapshots.rank} > 100 or ${schema.rankingsSnapshots.rank} is null then excluded.rank else ${schema.rankingsSnapshots.rank} end`,
           points: sql`case when ${schema.rankingsSnapshots.rank} > 100 or ${schema.rankingsSnapshots.rank} is null then excluded.points else ${schema.rankingsSnapshots.points} end`,
+          // Always overwrite rank_move — TE is the only source for it,
+          // so a fresh scrape's value is always more current.
+          rankMove: sql`excluded.rank_move`,
         },
       });
     summary.snapshotsInserted++;
+    if (r.rankMove != null) summary.rankMovesCaptured++;
   }
 
-  // 5. Bump last_seen_in_rankings_at for every player we touched. Done in a
-  //    single statement after the loop for efficiency.
   if (touchedPlayerIds.length > 0) {
     await db
       .update(schema.players)
@@ -216,6 +144,95 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
   }
 
   return summary;
+}
+
+interface ResolveCtx {
+  slugToId: Map<string, number>;
+  suffixSlugToId: Map<string, number[]>;
+  nameToId: Map<string, number>;
+  now: Date;
+  summary: RunSummary;
+}
+
+async function resolveOrCreatePlayer(
+  r: { teSlug: string; fullName: string; countryCode: string | null },
+  tour: Tour,
+  ctx: ResolveCtx,
+): Promise<number | null> {
+  // 1. Direct slug match — strongest, used when TE's slug already matches.
+  const direct = ctx.slugToId.get(r.teSlug);
+  if (direct != null) {
+    ctx.summary.playersMatchedBySlug++;
+    return direct;
+  }
+
+  // 2. Slug-suffix match — TE's "sinner-8b8e8" → our "jannik-sinner". Strip
+  //    TE's id-suffix ("8b8e8") then look up by the cleaned remainder.
+  const cleaned = stripIdSuffix(r.teSlug);
+  if (cleaned !== r.teSlug) {
+    const direct2 = ctx.slugToId.get(cleaned);
+    if (direct2 != null) {
+      ctx.summary.playersMatchedBySlug++;
+      return direct2;
+    }
+    const candidates = ctx.suffixSlugToId.get(cleaned);
+    if (candidates && candidates.length === 1) {
+      ctx.summary.playersMatchedBySlug++;
+      return candidates[0]!;
+    }
+  }
+
+  // 3. Normalized-name match.
+  const nameKey = normalizeName(r.fullName);
+  const byName = ctx.nameToId.get(nameKey);
+  if (byName != null) {
+    ctx.summary.playersMatchedByName++;
+    return byName;
+  }
+
+  // 4. Insert a minimal player row. No DOB/height/hand/wikidata — those get
+  //    filled later by `enrich-players` (Wikidata search) or
+  //    `backfill-history` (TA metadata file).
+  const newSlug = slugify(r.fullName);
+  if (!newSlug) return null;
+  const inserted = await db
+    .insert(schema.players)
+    .values({
+      slug: newSlug,
+      fullName: r.fullName,
+      firstName: r.fullName.split(/\s+/)[0]!,
+      lastName: r.fullName.split(/\s+/).slice(1).join(" ") || r.fullName,
+      countryCode: null, // TE flag class is 2-letter; our DB is 3-letter ISO
+      tour,
+      slugStableAt: ctx.now,
+      lastSeenInRankingsAt: ctx.now,
+    })
+    .onConflictDoUpdate({
+      target: schema.players.slug,
+      set: {
+        lastSeenInRankingsAt: ctx.now,
+        updatedAt: ctx.now,
+      },
+    })
+    .returning({ id: schema.players.id });
+  const id = inserted[0]?.id;
+  if (id == null) return null;
+  ctx.slugToId.set(newSlug, id);
+  ctx.summary.playersInserted++;
+  return id;
+}
+
+/**
+ * TE attaches alphanumeric id-suffixes to disambiguate name collisions
+ * ("humbert-e2553"). Strip the last segment when it's 4+ chars and
+ * contains a digit — same heuristic as scrape-daily-matches.ts.
+ */
+function stripIdSuffix(slug: string): string {
+  const parts = slug.split("-");
+  if (parts.length < 2) return slug;
+  const last = parts[parts.length - 1]!;
+  if (last.length >= 4 && /\d/.test(last)) return parts.slice(0, -1).join("-");
+  return slug;
 }
 
 function normalizeName(s: string): string {
@@ -237,8 +254,9 @@ async function main() {
     const s = await expandRankings(t);
     console.log(
       `[expand-rankings] ${t.toUpperCase()}: week=${s.weekOf}  rows=${s.rowsTouched}  ` +
-        `inserted=${s.playersInserted}  matchedBySlug=${s.playersMatchedByTaId}  ` +
-        `matchedByName=${s.playersMatchedByName}  snapshots+=${s.snapshotsInserted}`,
+        `inserted=${s.playersInserted}  matchedBySlug=${s.playersMatchedBySlug}  ` +
+        `matchedByName=${s.playersMatchedByName}  snapshots+=${s.snapshotsInserted}  ` +
+        `rankMoves=${s.rankMovesCaptured}`,
     );
   }
 }
