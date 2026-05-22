@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTopRanked } from "@/lib/rankings";
 import { RankingsTable } from "@/components/rankings-table";
@@ -38,8 +39,8 @@ export default async function RankingsPage({ params }: Params) {
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <nav aria-label="Breadcrumb" className="mb-2 text-xs text-[color:var(--muted-foreground)]">
-        <a href="/">Home</a> ›{" "}
-        <a href="/rankings/atp">Rankings</a> ›{" "}
+        <Link href="/">Home</Link> ›{" "}
+        <Link href="/rankings/atp">Rankings</Link> ›{" "}
         <span aria-current="page">{tour.toUpperCase()}</span>
       </nav>
       <h1 className="font-serif text-4xl md:text-5xl">
