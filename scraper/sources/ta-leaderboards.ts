@@ -165,7 +165,7 @@ export function parseLeaderboard(html: string, tour: Tour, category: Category): 
     result.push({
       tour,
       category,
-      rank: result.length + 1,
+      rank: 0, // assigned after re-sort below
       playerName,
       taPlayerId,
       countryCode,
@@ -173,7 +173,45 @@ export function parseLeaderboard(html: string, tour: Tour, category: Category): 
       stats,
     });
   });
+
+  // TA's reports default-sort by a key that's not specific to the displayed
+  // category (e.g. the Rally page lists players in serve-impact order, not
+  // rally-aggregate order). Re-rank here by a sensible per-category headline
+  // metric so each tab shows a meaningful leader.
+  result.sort((a, b) => categorySortScore(category, b) - categorySortScore(category, a));
+  for (let i = 0; i < result.length; i++) {
+    result[i]!.rank = i + 1;
+  }
   return result;
+}
+
+/**
+ * Per-category aggregate "score" used to rank a row. Picked to be the metric
+ * most readers would expect when they open that tab — never just the first
+ * column, since TA's column ordering isn't tied to relevance.
+ */
+function categorySortScore(category: Category, row: LeaderboardRow): number {
+  const s = row.stats;
+  const num = (v: number | null | undefined) => (typeof v === "number" ? v : 0);
+  if (category === "serve") {
+    // serve_impact already aggregates 1st+2nd serve effectiveness.
+    return num(s.serve_impact);
+  }
+  if (category === "return") {
+    // Return Depth Index isn't in our captured fields, so we proxy with the
+    // composite of 1st + 2nd serve return-won %, weighted equally.
+    return num(s.first_return_won_pct) + num(s.second_return_won_pct);
+  }
+  if (category === "rally") {
+    // Average of short/mid/long win % gives a meaningful "rally winner".
+    return (
+      num(s.short_rally_won_pct) +
+      num(s.mid_rally_won_pct) +
+      num(s.long_rally_won_pct)
+    );
+  }
+  // winners_errors: ratio is the canonical headline metric.
+  return num(s.winner_ufe_ratio);
 }
 
 /**

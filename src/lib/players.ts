@@ -68,15 +68,22 @@ export interface SurfaceSplit {
  */
 export async function getSurfaceSplits(slug: string): Promise<SurfaceSplit[]> {
   try {
-    const matches = await db
-      .select({
-        surface: schema.playerRecentMatches.surface,
-        won: schema.playerRecentMatches.won,
-        score: schema.playerRecentMatches.score,
-      })
-      .from(schema.playerRecentMatches)
-      .innerJoin(schema.players, eq(schema.players.id, schema.playerRecentMatches.playerId))
-      .where(eq(schema.players.slug, slug));
+    // DISTINCT ON dedups the same logical match when both TA and TE rows
+    // exist for it — preferring the TE row via the source-ordering trick
+    // (TE alphabetises after TA → 0 wins the DISTINCT ON pick).
+    const rows = await db.execute<{ surface: string | null; won: boolean; score: string | null }>(sql`
+      select distinct on (prm.player_id, prm.played_on, lower(prm.opponent_name))
+        prm.surface, prm.won, prm.score
+      from player_recent_matches prm
+      join players p on p.id = prm.player_id
+      where p.slug = ${slug}
+      order by prm.player_id, prm.played_on, lower(prm.opponent_name),
+               case prm.source when 'tennis_explorer' then 0 else 1 end
+    `);
+    const matches =
+      (rows as unknown as { rows: Array<{ surface: string | null; won: boolean; score: string | null }> })
+        .rows ??
+      (rows as unknown as Array<{ surface: string | null; won: boolean; score: string | null }>);
 
     const accum = new Map<SurfaceSplit["surface"], SurfaceSplit>();
     for (const m of matches) {
@@ -164,29 +171,102 @@ function parseScore(
 
 export async function getRecentMatches(slug: string, limit = 10): Promise<RecentMatchRow[]> {
   try {
-    const rows = await db
-      .select({
-        playedOn: schema.playerRecentMatches.playedOn,
-        tournamentName: schema.playerRecentMatches.tournamentName,
-        tournamentLevel: schema.playerRecentMatches.tournamentLevel,
-        surface: schema.playerRecentMatches.surface,
-        round: schema.playerRecentMatches.round,
-        opponentName: schema.playerRecentMatches.opponentName,
-        opponentCountry: schema.playerRecentMatches.opponentCountry,
-        won: schema.playerRecentMatches.won,
-        score: schema.playerRecentMatches.score,
-      })
-      .from(schema.playerRecentMatches)
-      .innerJoin(schema.players, eq(schema.players.id, schema.playerRecentMatches.playerId))
-      .where(eq(schema.players.slug, slug))
-      .orderBy(sql`${schema.playerRecentMatches.playedOn} desc`)
-      .limit(limit);
+    // Two-step dedup: pick one row per (date, opponent) preferring the
+    // tennis_explorer source via the source-CASE ordering, then re-sort
+    // chronologically and apply the row limit.
+    const raw = await db.execute<{
+      played_on: string;
+      tournament_name: string;
+      tournament_level: string | null;
+      surface: string | null;
+      round: string;
+      opponent_name: string;
+      opponent_country: string | null;
+      won: boolean;
+      score: string | null;
+    }>(sql`
+      with deduped as (
+        select distinct on (prm.player_id, prm.played_on, lower(prm.opponent_name))
+          prm.played_on, prm.tournament_name, prm.tournament_level,
+          prm.surface, prm.round, prm.opponent_name, prm.opponent_country,
+          prm.won, prm.score
+        from player_recent_matches prm
+        join players p on p.id = prm.player_id
+        where p.slug = ${slug}
+        order by prm.player_id, prm.played_on, lower(prm.opponent_name),
+                 case prm.source when 'tennis_explorer' then 0 else 1 end
+      )
+      select * from deduped order by played_on desc limit ${limit};
+    `);
+    const rows =
+      (raw as unknown as { rows: Array<Record<string, unknown>> }).rows ??
+      (raw as unknown as Array<Record<string, unknown>>);
     return rows.map((r) => ({
-      ...r,
-      playedOn: String(r.playedOn),
+      playedOn: String(r.played_on),
+      tournamentName: String(r.tournament_name),
+      tournamentLevel: (r.tournament_level as string | null) ?? null,
+      surface: (r.surface as string | null) ?? null,
+      round: String(r.round),
+      opponentName: String(r.opponent_name),
+      opponentCountry: (r.opponent_country as string | null) ?? null,
+      won: Boolean(r.won),
+      score: (r.score as string | null) ?? null,
     }));
   } catch {
     return [];
+  }
+}
+
+export interface ActiveTournament {
+  tournamentName: string;
+  tournamentLevel: string | null;
+  scheduledDate: string;
+  scheduledTime: string | null;
+  opponentName: string;
+  opponentCountry: string | null;
+}
+
+/**
+ * Returns the player's next scheduled match if one exists in the upcoming
+ * window we've scraped from TennisExplorer. Used to render the "Active
+ * tournament" card on the player profile. Returns null when the player
+ * isn't scheduled to play next — the card is hidden in that case.
+ */
+export async function getActiveTournament(slug: string): Promise<ActiveTournament | null> {
+  try {
+    const raw = await db.execute<{
+      tournament_name: string;
+      tournament_level: string | null;
+      scheduled_date: string;
+      scheduled_time: string | null;
+      opponent_name: string;
+      opponent_country: string | null;
+    }>(sql`
+      select pum.tournament_name, pum.tournament_level,
+             pum.scheduled_date, pum.scheduled_time,
+             pum.opponent_name, pum.opponent_country
+      from player_upcoming_matches pum
+      join players p on p.id = pum.player_id
+      where p.slug = ${slug}
+        and pum.scheduled_date >= current_date
+      order by pum.scheduled_date asc, coalesce(pum.scheduled_time, '99:99') asc
+      limit 1;
+    `);
+    const rows =
+      (raw as unknown as { rows: Array<Record<string, unknown>> }).rows ??
+      (raw as unknown as Array<Record<string, unknown>>);
+    if (rows.length === 0) return null;
+    const r = rows[0]!;
+    return {
+      tournamentName: String(r.tournament_name),
+      tournamentLevel: (r.tournament_level as string | null) ?? null,
+      scheduledDate: String(r.scheduled_date),
+      scheduledTime: (r.scheduled_time as string | null) ?? null,
+      opponentName: String(r.opponent_name),
+      opponentCountry: (r.opponent_country as string | null) ?? null,
+    };
+  } catch {
+    return null;
   }
 }
 
@@ -301,23 +381,41 @@ export async function getPlayerBySlug(slug: string): Promise<PlayerDetail | null
 export async function searchPlayers(q: string, limit = 8) {
   if (!q || q.length < 2) return [];
   try {
-    const rows = await db
-      .select({
-        slug: schema.players.slug,
-        fullName: schema.players.fullName,
-        countryCode: schema.players.countryCode,
-        tour: schema.players.tour,
-        rank: sql<number | null>`(
-          SELECT rank FROM ${schema.rankingsSnapshots} rs
-          WHERE rs.player_id = ${schema.players.id}
-            AND rs.is_race = false
-          ORDER BY rs.week_of DESC LIMIT 1
-        )`,
-      })
-      .from(schema.players)
-      .where(ilike(schema.players.fullName, `%${q}%`))
-      .limit(limit);
-    if (rows.length > 0) return rows;
+    // Raw SQL — Drizzle's nested-${tableRef} interpolation produces a
+    // subquery that returns the wrong rank (rank-of-rank, not the row).
+    // Hand-written CTE keeps the lateral lookup unambiguous.
+    const raw = await db.execute<{
+      slug: string;
+      full_name: string;
+      country_code: string | null;
+      tour: "atp" | "wta" | "challenger" | "itf";
+      rank: number | null;
+    }>(sql`
+      select p.slug, p.full_name, p.country_code, p.tour,
+             (
+               select rs.rank
+               from rankings_snapshots rs
+               where rs.player_id = p.id
+                 and rs.is_race = false
+               order by rs.week_of desc
+               limit 1
+             ) as rank
+      from players p
+      where p.full_name ilike ${`%${q}%`}
+      limit ${limit};
+    `);
+    const rs =
+      (raw as unknown as { rows: Array<Record<string, unknown>> }).rows ??
+      (raw as unknown as Array<Record<string, unknown>>);
+    if (rs.length > 0) {
+      return rs.map((r) => ({
+        slug: String(r.slug),
+        fullName: String(r.full_name),
+        countryCode: (r.country_code as string | null) ?? null,
+        tour: r.tour as "atp" | "wta" | "challenger" | "itf",
+        rank: r.rank == null ? null : Number(r.rank),
+      }));
+    }
   } catch {
     /* fall through to mock */
   }

@@ -19,6 +19,28 @@ const WTA_500_TOURNAMENTS = new Set([
   "Tokyo", "Beijing", "Adelaide",
 ]);
 
+// Used when the upstream feed doesn't supply a tier code (TennisExplorer
+// gives us tournament name only — no "G"/"M"/"A"). We pin down Grand Slams
+// and Masters 1000s / WTA 1000s by name before falling through to the 500
+// list.
+const GRAND_SLAMS = new Set([
+  "Australian Open", "Roland Garros", "French Open", "Wimbledon", "US Open",
+]);
+const MASTERS_1000_TOURNAMENTS = new Set([
+  "Indian Wells", "Miami", "Monte Carlo", "Madrid Masters", "Rome Masters",
+  "Madrid", "Rome", "Canada", "Toronto", "Montreal", "Cincinnati",
+  "Shanghai", "Paris Masters", "Paris", "Bercy",
+]);
+const WTA_1000_TOURNAMENTS = new Set([
+  "Indian Wells", "Miami", "Madrid", "Rome", "Canada", "Toronto", "Montreal",
+  "Cincinnati", "Wuhan", "Beijing", "Doha", "Dubai", "Guadalajara",
+]);
+
+function matchesAny(name: string, set: Set<string>): boolean {
+  for (const t of set) if (name.includes(t)) return true;
+  return false;
+}
+
 export function inferCategory(
   tour: "atp" | "wta",
   tournamentName: string,
@@ -30,29 +52,33 @@ export function inferCategory(
   if (level === "D") return "davis_cup";
   if (level === "O") return "olympics";
 
+  // Name-based pre-check: catches the case where the feed didn't supply a
+  // tier code (TennisExplorer gives us tournament name only). We pin down
+  // Slams + 1000s by name before falling through to the tier-letter logic.
+  if (matchesAny(tournamentName, GRAND_SLAMS)) return "grand_slam";
+
   if (tour === "atp") {
-    // ATP Tennis Abstract levels: A=tour, M=Masters, C=Challenger.
     if (level === "M") return "masters_1000";
-    if (level === "C") return "ch_125"; // TODO: distinguish tiers when draw_size is captured
+    if (level === "C") return "ch_125";
     if (level === "A") {
-      return [...ATP_500_TOURNAMENTS].some((t) => tournamentName.includes(t))
-        ? "atp_500"
-        : "atp_250";
+      return matchesAny(tournamentName, ATP_500_TOURNAMENTS) ? "atp_500" : "atp_250";
     }
+    // No tier letter — match by name. Masters 1000 → 500 → 250 priority.
+    if (matchesAny(tournamentName, MASTERS_1000_TOURNAMENTS)) return "masters_1000";
+    if (matchesAny(tournamentName, ATP_500_TOURNAMENTS)) return "atp_500";
     return "atp_250";
   }
 
-  // WTA Tennis Abstract levels: PM=Premier Mandatory (1000), P=Premier
-  // (500/700), I=International (250), C=Challenger, W=some legacy mini-tier.
   if (level === "PM") return "wta_1000";
-  if (level === "M") return "wta_1000"; // some files use "M" interchangeably
+  if (level === "M") return "wta_1000";
   if (level === "P") {
-    return [...WTA_500_TOURNAMENTS].some((t) => tournamentName.includes(t))
-      ? "wta_500"
-      : "wta_250";
+    return matchesAny(tournamentName, WTA_500_TOURNAMENTS) ? "wta_500" : "wta_250";
   }
   if (level === "I") return "wta_250";
   if (level === "C") return "ch_125";
-  if (level === "W") return "wta_250"; // legacy WTA "international plus" — treat as 250
+  if (level === "W") return "wta_250";
+  // No tier letter — match by name. 1000 → 500 → 250 priority.
+  if (matchesAny(tournamentName, WTA_1000_TOURNAMENTS)) return "wta_1000";
+  if (matchesAny(tournamentName, WTA_500_TOURNAMENTS)) return "wta_500";
   return "wta_250";
 }

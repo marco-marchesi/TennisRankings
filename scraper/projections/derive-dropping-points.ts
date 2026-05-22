@@ -17,8 +17,8 @@
 //   - Tournament category inference falls back to a default tier when level
 //     code is ambiguous — see category-inference.ts for the rules.
 
-import { db, schema } from "@/db";
-import { and, gte, inArray, lte, sql } from "drizzle-orm";
+import { db } from "@/db";
+import { sql } from "drizzle-orm";
 import { ROUNDS_IN_ORDER, pointsForRound, type Round } from "../config/points-table";
 import { inferCategory } from "./category-inference";
 
@@ -42,23 +42,39 @@ export async function deriveDroppingPoints(opts: Options): Promise<Map<number, n
   const hi = isoDate(addDays(today, -357));
   const lo = isoDate(addDays(today, -371));
 
-  const rows = await db
-    .select({
-      playerId: schema.playerRecentMatches.playerId,
-      tournamentName: schema.playerRecentMatches.tournamentName,
-      tournamentLevel: schema.playerRecentMatches.tournamentLevel,
-      round: schema.playerRecentMatches.round,
-      won: schema.playerRecentMatches.won,
-      playedOn: schema.playerRecentMatches.playedOn,
-    })
-    .from(schema.playerRecentMatches)
-    .where(
-      and(
-        inArray(schema.playerRecentMatches.playerId, opts.playerIds),
-        gte(schema.playerRecentMatches.playedOn, lo),
-        lte(schema.playerRecentMatches.playedOn, hi),
-      ),
-    );
+  // DISTINCT ON dedups the same logical match if both TA and TE wrote rows
+  // for it — preferring TE via the source-CASE tiebreak. Without this, a
+  // player's same match would be double-counted in the "earned at this
+  // tournament" tally.
+  const raw = await db.execute<{
+    player_id: number;
+    tournament_name: string;
+    tournament_level: string | null;
+    round: string;
+    won: boolean;
+    played_on: string;
+  }>(sql`
+    select distinct on (prm.player_id, prm.played_on, lower(prm.opponent_name))
+      prm.player_id, prm.tournament_name, prm.tournament_level,
+      prm.round, prm.won, prm.played_on
+    from player_recent_matches prm
+    where prm.player_id = any(array[${sql.join(opts.playerIds.map((id) => sql`${id}`), sql`, `)}]::int[])
+      and prm.played_on >= ${lo}
+      and prm.played_on <= ${hi}
+    order by prm.player_id, prm.played_on, lower(prm.opponent_name),
+             case prm.source when 'tennis_explorer' then 0 else 1 end
+  `);
+  const rawRows =
+    (raw as unknown as { rows: Array<Record<string, unknown>> }).rows ??
+    (raw as unknown as Array<Record<string, unknown>>);
+  const rows = rawRows.map((r) => ({
+    playerId: Number(r.player_id),
+    tournamentName: String(r.tournament_name),
+    tournamentLevel: (r.tournament_level as string | null) ?? null,
+    round: String(r.round),
+    won: Boolean(r.won),
+    playedOn: String(r.played_on),
+  }));
 
   // Group by (player, tournament_name). Each group is the player's matches at
   // that tournament. The deepest match tells us how many points they earned.

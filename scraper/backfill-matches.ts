@@ -136,8 +136,9 @@ async function backfillOne(tour: Tour, topN: number): Promise<MatchesResult> {
       const isWinner = m.winnerId === taId;
       return {
         playerId: p.id,
-        taTourneyId: m.taTourneyId,
-        taMatchNum: m.taMatchNum,
+        source: "tennis_abstract",
+        externalTourneyId: m.taTourneyId,
+        externalMatchNum: m.taMatchNum,
         playedOn: m.playedOn,
         tournamentName: m.tournamentName,
         tournamentLevel: m.tournamentLevel,
@@ -157,8 +158,9 @@ async function backfillOne(tour: Tour, topN: number): Promise<MatchesResult> {
       .onConflictDoUpdate({
         target: [
           schema.playerRecentMatches.playerId,
-          schema.playerRecentMatches.taTourneyId,
-          schema.playerRecentMatches.taMatchNum,
+          schema.playerRecentMatches.source,
+          schema.playerRecentMatches.externalTourneyId,
+          schema.playerRecentMatches.externalMatchNum,
         ],
         set: {
           // Reset the mutable fields in case a previous entry had stale data.

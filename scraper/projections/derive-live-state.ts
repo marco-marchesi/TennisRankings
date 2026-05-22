@@ -94,11 +94,15 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
         and ft.tournament_name is null
     ),
     latest_match as (
+      -- Tie-break on source so when both TA and TE recorded the same date,
+      -- the fresher TennisExplorer row wins. Plain ordering would pick
+      -- whichever the planner happened to return first.
       select distinct on (ipm.player_id)
         ipm.player_id, ipm.played_on, ipm.tournament_name, ipm.tournament_level,
         ipm.round, ipm.won
       from in_progress_matches ipm
-      order by ipm.player_id, ipm.played_on desc
+      order by ipm.player_id, ipm.played_on desc,
+               case ipm.source when 'tennis_explorer' then 0 else 1 end
     )
     select
       tp.player_id,

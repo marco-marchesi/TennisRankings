@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { getPlayerBySlug, getRecentMatches, getSurfaceSplits } from "@/lib/players";
+import { getActiveTournament, getPlayerBySlug, getRecentMatches, getSurfaceSplits } from "@/lib/players";
 import { getPlayerRankingHistory } from "@/lib/rankings";
 import { buildMetadata } from "@/lib/seo";
 import { breadcrumbLd, personLd } from "@/lib/schema-org";
@@ -31,10 +31,11 @@ export default async function PlayerPage({ params }: Params) {
   const { slug } = await params;
   const p = await getPlayerBySlug(slug);
   if (!p) notFound();
-  const [history, recentMatches, surfaceSplits] = await Promise.all([
+  const [history, recentMatches, surfaceSplits, activeTournament] = await Promise.all([
     getPlayerRankingHistory(slug),
     getRecentMatches(slug, 10),
     getSurfaceSplits(slug),
+    getActiveTournament(slug),
   ]);
 
   return (
@@ -152,6 +153,40 @@ export default async function PlayerPage({ params }: Params) {
           </div>
         )}
       </section>
+
+      {activeTournament && (
+        <section className="mt-8">
+          <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-[color:var(--muted-foreground)]">
+            Active tournament
+          </h2>
+          <div className="rounded-lg border border-[color:var(--border)] bg-gradient-to-br from-[color:var(--accent)]/40 to-transparent p-4">
+            <div className="flex items-baseline justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-[color:var(--muted-foreground)]">
+                  {activeTournament.tournamentName}
+                </p>
+                <p className="mt-1 font-serif text-xl">
+                  Next: {activeTournament.opponentName}
+                  {activeTournament.opponentCountry && (
+                    <span className="ml-2 text-sm text-[color:var(--muted-foreground)]">
+                      ({activeTournament.opponentCountry})
+                    </span>
+                  )}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs uppercase tracking-wide text-[color:var(--muted-foreground)]">When</p>
+                <p className="mt-1 font-mono text-sm">
+                  {formatDate(activeTournament.scheduledDate)}
+                  {activeTournament.scheduledTime && (
+                    <span className="ml-2">{activeTournament.scheduledTime}</span>
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="mt-8">
         <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-[color:var(--muted-foreground)]">

@@ -28,6 +28,7 @@
     "scraper:enrich-players": "tsx scraper/enrich-players.ts",
     "scraper:leaderboards": "tsx scraper/leaderboards.ts",
     "scraper:expand-rankings": "tsx scraper/expand-rankings.ts",
+    "scraper:daily-matches": "tsx scraper/scrape-daily-matches.ts",
     "format": "prettier --write ."
   },
   "dependencies": {

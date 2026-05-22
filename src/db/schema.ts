@@ -275,15 +275,26 @@ export const playerRecentMatches = pgTable(
     playerId: integer("player_id")
       .notNull()
       .references(() => players.id, { onDelete: "cascade" }),
-    /** Tennis Abstract tournament identifier — e.g. "2024-580" for RG 2024. */
-    taTourneyId: text("ta_tourney_id").notNull(),
-    /** Match number within the tournament, used as part of the unique key. */
-    taMatchNum: integer("ta_match_num").notNull(),
+    /**
+     * Source feed for this row. Determines how `external_tourney_id` and
+     * `external_match_num` are interpreted, and used as a tie-breaker when
+     * the same logical match exists in multiple sources (TennisExplorer
+     * preferred — fresher than Tennis Abstract by 1-3 weeks).
+     */
+    source: text("source").notNull().default("tennis_abstract"),
+    /**
+     * Source-specific tournament identifier. For Tennis Abstract: "2024-580"
+     * style. For Tennis Explorer: a tournament URL slug like "hamburg-2026".
+     * Combined with `source` it uniquely identifies a tournament edition.
+     */
+    externalTourneyId: text("external_tourney_id").notNull(),
+    /** Source-specific match number within the tournament. */
+    externalMatchNum: integer("external_match_num").notNull(),
     playedOn: date("played_on").notNull(),
     tournamentName: text("tournament_name").notNull(),
-    /** TA tournament level: "G"=Grand Slam, "M"=Masters 1000, "A"=ATP/WTA tour, "C"=Challenger, "F"=Finals, "D"=Davis Cup. */
+    /** Tournament-level code. TA uses "G"/"M"/"A"/"C"/"F"/"D"; TennisExplorer maps to the same letters at insert time. */
     tournamentLevel: text("tournament_level"),
-    /** "Hard" | "Clay" | "Grass" | "Carpet" — verbatim from TA. */
+    /** "Hard" | "Clay" | "Grass" | "Carpet" — capitalized to match TA. */
     surface: text("surface"),
     /** Round code: R128 / R64 / R32 / R16 / QF / SF / F. */
     round: text("round").notNull(),
@@ -294,8 +305,39 @@ export const playerRecentMatches = pgTable(
     matchMinutes: integer("match_minutes"),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.playerId, t.taTourneyId, t.taMatchNum] }),
+    pk: primaryKey({ columns: [t.playerId, t.source, t.externalTourneyId, t.externalMatchNum] }),
     playerDateIdx: index("player_recent_matches_player_date_idx").on(t.playerId, t.playedOn),
+  }),
+);
+
+// Scheduled (not-yet-played) matches we know about from TennisExplorer.
+// Refreshed on every hourly scrape — wiped+rewritten rather than upserted,
+// because schedules change rapidly (postponed matches, order shuffles).
+//
+// Only used to power the "Active tournament" card on the player profile —
+// the projections runner does NOT key off this table.
+export const playerUpcomingMatches = pgTable(
+  "player_upcoming_matches",
+  {
+    playerId: integer("player_id")
+      .notNull()
+      .references(() => players.id, { onDelete: "cascade" }),
+    source: text("source").notNull().default("tennis_explorer"),
+    /** TennisExplorer match id ("3210567"). Unique per source. */
+    teMatchId: text("te_match_id").notNull(),
+    scheduledDate: date("scheduled_date").notNull(),
+    /** "HH:MM" local-to-TE if the listing showed one. */
+    scheduledTime: text("scheduled_time"),
+    tournamentSlug: text("tournament_slug"),
+    tournamentName: text("tournament_name").notNull(),
+    tournamentLevel: text("tournament_level"),
+    opponentName: text("opponent_name").notNull(),
+    opponentCountry: text("opponent_country"),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.playerId, t.source, t.teMatchId] }),
+    playerDateIdx: index("player_upcoming_player_date_idx").on(t.playerId, t.scheduledDate),
   }),
 );
 
