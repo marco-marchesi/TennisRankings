@@ -60,10 +60,14 @@ if (-not $env:DATABASE_URL) {
     }
 }
 
-$state = docker inspect --format "{{.State.Status}}" tennisrankings-db 2>$null
-if ($state -ne "running") {
-    Write-Host "Database container is not running. Skipping hourly update." -ForegroundColor Yellow
-    exit 0
+# Only check the local Docker container when DATABASE_URL is local. When
+# pointing at Neon (or any remote), the local container is irrelevant.
+if ($env:DATABASE_URL -match "@localhost|@127\.0\.0\.1") {
+    $state = docker inspect --format "{{.State.Status}}" tennisrankings-db 2>$null
+    if ($state -ne "running") {
+        Write-Host "Database container is not running. Skipping hourly update." -ForegroundColor Yellow
+        exit 0
+    }
 }
 
 $failures = 0

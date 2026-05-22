@@ -57,11 +57,19 @@ if (-not $env:DATABASE_URL) {
     }
 }
 
-# Confirm DB is reachable before doing anything
-$state = docker inspect --format "{{.State.Status}}" tennisrankings-db 2>$null
-if ($state -ne "running") {
-    Write-Host "Database container is not running. Start it with: .\scripts\Start-Dev.ps1" -ForegroundColor Red
-    exit 1
+# Confirm DB is reachable before doing anything. We only check the local
+# Docker container when DATABASE_URL points at localhost — when it points
+# at Neon (or any remote host), the local container is irrelevant.
+if ($env:DATABASE_URL -match "@localhost|@127\.0\.0\.1") {
+    $state = docker inspect --format "{{.State.Status}}" tennisrankings-db 2>$null
+    if ($state -ne "running") {
+        Write-Host "Database container is not running. Start it with: .\scripts\Start-Dev.ps1" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "Target: local Docker container" -ForegroundColor DarkGray
+} else {
+    $maskedUrl = $env:DATABASE_URL -replace ':[^@]+@', ':****@'
+    Write-Host "Target: $maskedUrl" -ForegroundColor DarkGray
 }
 
 $failures = 0
