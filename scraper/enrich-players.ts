@@ -28,7 +28,10 @@ const HOST_INTERVAL_MS = 1100;
 const lastHit = new Map<string, number>();
 
 const PHOTO_RETRY_DAYS = 14; // Don't re-check an "attempted but failed" player for this long.
-const PHOTO_REFRESH_DAYS = 90; // Re-download photos every ~quarter even if present.
+const PHOTO_REFRESH_DAYS = 730; // Re-download photos every ~2 years even if present —
+                                // pro players' headshots rarely change inside that window,
+                                // and refreshing too often burns Wikimedia bandwidth without
+                                // visible benefit.
 
 interface EnrichOptions {
   /** Skip the "ever top-100" filter and enrich everything with a wikidata_id. */
@@ -182,7 +185,7 @@ export async function enrichPlayers(opts: EnrichOptions = {}): Promise<EnrichRes
   return result;
 }
 
-// ─── Wikidata ─────────────────────────────────────────────────────────────
+// ─── Wikidata ──────────────────────────────────────────────────────
 
 interface WdEntityResult {
   imageFile: string | null;
@@ -271,7 +274,7 @@ async function fetchWikidataEntity(qid: string): Promise<WdEntityResult> {
   return { imageFile: imageClaim ?? null, enwikiTitle };
 }
 
-// ─── Wikipedia ────────────────────────────────────────────────────────────
+// ─── Wikipedia ───────────────────────────────────────────────────
 
 async function fetchWikipediaBackhand(title: string): Promise<string | null> {
   const url = `${WIKIPEDIA_REST}/page/html/${encodeURIComponent(title.replace(/ /g, "_"))}`;
@@ -284,7 +287,7 @@ async function fetchWikipediaBackhand(title: string): Promise<string | null> {
   return null;
 }
 
-// ─── Image binary fetch ───────────────────────────────────────────────────
+// ─── Image binary fetch ─────────────────────────────────────────────
 
 async function fetchImageBinary(url: string): Promise<{ bytes: Buffer; contentType: string }> {
   await throttle(url);
@@ -298,7 +301,7 @@ async function fetchImageBinary(url: string): Promise<{ bytes: Buffer; contentTy
   return { bytes: Buffer.from(arrayBuffer), contentType };
 }
 
-// ─── transport ────────────────────────────────────────────────────────────
+// ─── transport ───────────────────────────────────────────────────
 
 async function politeText(url: string): Promise<string> {
   await throttle(url);
