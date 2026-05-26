@@ -13,6 +13,7 @@ import { and, eq, inArray, sql } from "drizzle-orm";
 import { computeProjection } from "./calculator";
 import { deriveLiveStates } from "./derive-live-state";
 import { deriveDroppingPoints } from "./derive-dropping-points";
+import { deriveLivePoints } from "./derive-live-points";
 
 export interface ProjectionRunResult {
   tour: "atp" | "wta";
@@ -184,6 +185,28 @@ export async function runProjections(opts: RunOptions): Promise<ProjectionRunRes
     from players p
     where lp.player_id = p.id and p.tour = ${opts.tour};
   `);
+
+  // 6. Live points / rank (and race equivalents). This is independent of
+  //    the projection math above — it's a pure restatement of what the
+  //    settled snapshot WOULD be if today's in-week match points were
+  //    already published. Matches the semantics of live-tennis.eu's
+  //    /en/atp-live-ranking page. Persisted to the same live_projections
+  //    row via UPDATE since we only need to add columns to existing rows.
+  const livePointsRows = await deriveLivePoints({
+    tour: opts.tour,
+    topN: Math.max(opts.topN, 200),
+  });
+  for (const r of livePointsRows) {
+    await db.execute(sql`
+      update live_projections set
+        live_points = ${r.livePoints},
+        live_rank = ${r.liveRank},
+        live_race_points = ${r.liveRacePoints},
+        live_race_rank = ${r.liveRaceRank},
+        live_rank_change = ${r.liveRankChange}
+      where player_id = ${r.playerId}
+    `);
+  }
 
   return result;
 }

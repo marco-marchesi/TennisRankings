@@ -263,6 +263,25 @@ export const liveProjections = pgTable(
     maxPossiblePoints: integer("max_possible_points"),
     nextRank: integer("next_rank"),
     maxPossibleRank: integer("max_possible_rank"),
+    /**
+     * "Live" totals — settled Monday points PLUS week-to-date points won
+     * (per round, per category) from matches in player_recent_matches.
+     * Matches the semantics of live-tennis.eu's `/en/atp-live-ranking`
+     * page: each finished match in the current ranking week contributes
+     * its points immediately. Mirror columns exist for race.
+     *
+     * Null when no in-week play has happened for the player — UI then
+     * falls back to the settled rank/points on rankings_snapshots.
+     */
+    livePoints: integer("live_points"),
+    liveRank: integer("live_rank"),
+    liveRacePoints: integer("live_race_points"),
+    liveRaceRank: integer("live_race_rank"),
+    /**
+     * Positions gained (positive) or lost (negative) vs the settled
+     * Monday rank for the same player. = settled_rank − live_rank.
+     */
+    liveRankChange: integer("live_rank_change"),
     computedAt: timestamp("computed_at", { withTimezone: true }).defaultNow().notNull(),
   },
 );

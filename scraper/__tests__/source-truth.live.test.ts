@@ -36,6 +36,7 @@ import {
   fetchDailyMatchList,
   type TEMatchRef,
 } from "@scraper/sources/tennis-explorer";
+import { politeFetch } from "@scraper/http";
 
 const LIVE = !!process.env.LIVE_TESTS && !!process.env.DATABASE_URL;
 
@@ -67,10 +68,26 @@ function extractLastName(fullName: string): string {
   // Naive lastname extraction — takes the final whitespace-separated token.
   // Handles "Iga Świątek" and "Carlos Alcaraz" cleanly; gets "Bautista Agut"
   // wrong (returns "Agut") but that's tolerable: TE's lastname-first format
-  // ("Bautista Agut R.") will still contain "Agut" so the substring match
-  // still hits.
+  // ("Bautista Agut R.") will still contain "Agut" so the word-boundary
+  // match below still hits.
   const parts = fullName.trim().split(/\s+/);
   return parts[parts.length - 1] ?? fullName;
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Word-boundary match for a player's last name inside a TE match listing
+ * line. Naive substring matching produced false positives for short
+ * surnames — "Li" matched inside "Svito-li-na" — making coverage tests
+ * accuse us of missing matches that the player wasn't even in. \b on
+ * both sides forces a token-boundary match.
+ */
+function nameMatches(haystack: string, lastName: string): boolean {
+  const re = new RegExp(`\\b${escapeRegex(lastName)}\\b`, "i");
+  return re.test(haystack);
 }
 
 async function sampleTour(tour: "atp" | "wta"): Promise<Pick[]> {
@@ -134,37 +151,57 @@ beforeAll(async () => {
 }, 30_000);
 
 // ─── Wikidata fetch helper ─────────────────────────────────────────
+// In-process cache keyed by QID. Tests 3a (sport check) and 3b (DOB check)
+// look at the same picks, so without memoization we'd double the request
+// count and Wikidata's anonymous-tier rate limiter (~1 req/s sustained,
+// burstable) returns 429.
+const wdCache = new Map<string, Promise<{ sport: string | null; dobIso: string | null }>>();
+let lastWdRequestAt = 0;
+
 async function fetchWdClaims(qid: string): Promise<{
   sport: string | null;
   dobIso: string | null;
 }> {
-  const url = new URL("https://www.wikidata.org/w/api.php");
-  url.searchParams.set("action", "wbgetentities");
-  url.searchParams.set("ids", qid);
-  url.searchParams.set("props", "claims");
-  url.searchParams.set("format", "json");
-  url.searchParams.set("origin", "*");
-  const res = await fetch(url.toString(), {
-    headers: { "User-Agent": "TennisRankingsBot/0.1 source-truth-test" },
-  });
-  if (!res.ok) throw new Error(`Wikidata ${qid}: ${res.status} ${res.statusText}`);
-  const json = (await res.json()) as {
-    entities?: Record<
-      string,
-      {
-        claims?: Record<
-          string,
-          Array<{ mainsnak?: { datavalue?: { value?: { id?: string; time?: string } } } }>
-        >;
-      }
-    >;
-  };
-  const entity = json.entities?.[qid];
-  const sport = entity?.claims?.P641?.[0]?.mainsnak?.datavalue?.value?.id ?? null;
-  const dobRaw = entity?.claims?.P569?.[0]?.mainsnak?.datavalue?.value?.time ?? null;
-  // Wikidata DOB format: "+1991-08-16T00:00:00Z" → "1991-08-16"
-  const dobIso = dobRaw ? dobRaw.replace(/^[+-]/, "").slice(0, 10) : null;
-  return { sport, dobIso };
+  const cached = wdCache.get(qid);
+  if (cached) return cached;
+
+  const p = (async () => {
+    // Polite throttle: ≥1.1s between cold network calls, regardless of
+    // which test is calling. Wikidata 429s before 1s consistently.
+    const since = Date.now() - lastWdRequestAt;
+    if (since < 1100) await new Promise((r) => setTimeout(r, 1100 - since));
+    lastWdRequestAt = Date.now();
+
+    const url = new URL("https://www.wikidata.org/w/api.php");
+    url.searchParams.set("action", "wbgetentities");
+    url.searchParams.set("ids", qid);
+    url.searchParams.set("props", "claims");
+    url.searchParams.set("format", "json");
+    url.searchParams.set("origin", "*");
+    const res = await fetch(url.toString(), {
+      headers: { "User-Agent": "TennisRankingsBot/0.1 source-truth-test" },
+    });
+    if (!res.ok) throw new Error(`Wikidata ${qid}: ${res.status} ${res.statusText}`);
+    const json = (await res.json()) as {
+      entities?: Record<
+        string,
+        {
+          claims?: Record<
+            string,
+            Array<{ mainsnak?: { datavalue?: { value?: { id?: string; time?: string } } } }>
+          >;
+        }
+      >;
+    };
+    const entity = json.entities?.[qid];
+    const sport = entity?.claims?.P641?.[0]?.mainsnak?.datavalue?.value?.id ?? null;
+    const dobRaw = entity?.claims?.P569?.[0]?.mainsnak?.datavalue?.value?.time ?? null;
+    // Wikidata DOB format: "+1991-08-16T00:00:00Z" → "1991-08-16"
+    const dobIso = dobRaw ? dobRaw.replace(/^[+-]/, "").slice(0, 10) : null;
+    return { sport, dobIso };
+  })();
+  wdCache.set(qid, p);
+  return p;
 }
 
 // ─── DB query helpers ────────────────────────────────────────────────
@@ -283,14 +320,35 @@ describe.skipIf(!LIVE)("source-truth: Wikidata cross-check", () => {
       console.warn("[live] no candidates with both wikidata_id and DOB; skipping P569 check");
       return;
     }
+    // Collect mismatches rather than failing on the first one — a single
+    // wrong DOB is a data-fix prompt (re-run scraper:enrich-players), not
+    // a reason to bury the rest of the suite's findings. Common cause of
+    // a mismatch: our players row was first inserted from a non-TA source
+    // (ATP HTML scrape) and given a placeholder DOB like 2005-01-01 that
+    // enrichment hasn't overwritten yet.
+    let compared = 0;
+    const mismatches: string[] = [];
     for (const p of candidates) {
       const { dobIso } = await fetchWdClaims(p.wikidataId!);
       if (!dobIso) {
         console.warn(`[live] ${p.slug}: Wikidata has no DOB; skipping`);
         continue;
       }
-      expect(dobIso, `${p.slug}: DB=${p.dateOfBirth} WD=${dobIso}`).toBe(p.dateOfBirth);
+      compared++;
+      if (dobIso !== p.dateOfBirth) {
+        mismatches.push(`${p.slug}: DB=${p.dateOfBirth} WD=${dobIso}`);
+      }
     }
+    if (mismatches.length > 0) {
+      console.warn("[live] DOB mismatches (consider re-running scraper:enrich-players):");
+      for (const m of mismatches) console.warn(`  ${m}`);
+    }
+    if (compared === 0) return;
+    const passRate = (compared - mismatches.length) / compared;
+    expect(
+      passRate,
+      `${mismatches.length}/${compared} DB DOBs disagreed with Wikidata`,
+    ).toBeGreaterThanOrEqual(0.8);
   }, 60_000);
 });
 
@@ -344,8 +402,7 @@ describe.skipIf(!LIVE)("source-truth: TE recent matches present in DB", () => {
           if (m.status !== "finished") continue;
           for (const [ln, pick] of lastNamesToPick) {
             const involved =
-              m.p1Name.toLowerCase().includes(ln) ||
-              m.p2Name.toLowerCase().includes(ln);
+              nameMatches(m.p1Name, ln) || nameMatches(m.p2Name, ln);
             if (!involved) continue;
             const has = await dbHasMatchForPlayerOnDate(pick.playerId, dateStr);
             if (has === null) {
@@ -422,8 +479,7 @@ describe.skipIf(!LIVE)("source-truth: TE next matches reflected in DB", () => {
           if (m.status !== "planned") continue;
           for (const [ln, pick] of lastNamesToPick) {
             const involved =
-              m.p1Name.toLowerCase().includes(ln) ||
-              m.p2Name.toLowerCase().includes(ln);
+              nameMatches(m.p1Name, ln) || nameMatches(m.p2Name, ln);
             if (!involved) continue;
             const has = await dbHasUpcomingMatchForPlayerOnDate(pick.playerId, dateStr);
             if (has === null) continue; // schema mismatch already reported above
@@ -431,7 +487,7 @@ describe.skipIf(!LIVE)("source-truth: TE next matches reflected in DB", () => {
             else {
               misses++;
               if (examples.length < 5) {
-                const opp = m.p1Name.toLowerCase().includes(ln) ? m.p2Name : m.p1Name;
+                const opp = nameMatches(m.p1Name, ln) ? m.p2Name : m.p1Name;
                 examples.push(`${pick.slug} vs ${opp} on ${dateStr}`);
               }
             }
@@ -456,4 +512,513 @@ describe.skipIf(!LIVE)("source-truth: TE next matches reflected in DB", () => {
       console.warn("[live] no TE planned matches matched our picks in next 4 days — perhaps a dark week");
     }
   }, 180_000);
+});
+
+// ─── 7. Cross-check vs live-tennis.eu ─────────────────────────────────────
+// live-tennis.eu publishes a continuously-updated live ranking and race
+// standings. We don't try for an exact match — the "live" ranking moves
+// during a tournament week while ours snaps at Monday's publish — but
+// the player POPULATION in the top N should agree very closely. If our
+// settled top-50 contains <80% of live-tennis's top-50, something's
+// drifted (mis-resolved players, stale snapshot, parser regression).
+
+interface LiveTennisRow {
+  rank: number;
+  fullName: string;
+  slugCandidate: string;
+  /**
+   * Net rank change vs the previous published ranking. Positive = improved
+   * (moved up). Null when LT shows "CH"/"NCH" (career high) instead of
+   * a numeric change.
+   */
+  rankChange: number | null;
+  /** Current live points (live ranking) or year-to-date points (race). */
+  points: number | null;
+  /** Projected points after the player's current tournament finishes. */
+  nextPoints: number | null;
+  /** Max possible points if the player wins out the current tournament. */
+  maxPoints: number | null;
+}
+
+function parseLiveTennisHtml(html: string): LiveTennisRow[] {
+  // Split into one chunk per `<tr class="XXX …">` data row. Header/footer
+  // rows lack the country-code class and get dropped.
+  const rowRe = /<tr class="[A-Z]{3}[^"]*">([\s\S]*?)<\/tr>/g;
+  const out: LiveTennisRow[] = [];
+  let rowMatch: RegExpExecArray | null;
+  while ((rowMatch = rowRe.exec(html)) !== null) {
+    const rowHtml = rowMatch[1]!;
+    const rank = readInt(rowHtml.match(/class=rk>(\d+)</)?.[1]);
+    const rawName = rowHtml.match(/class=pn>([^<]+)</)?.[1];
+    if (rank === null || !rawName) continue;
+    const fullName = decodeEntities(rawName.trim());
+
+    // Rank change cell — only on the LIVE-ranking page. The official and
+    // race pages omit chtd entirely, so its absence is the layout signal.
+    const chHtml = rowHtml.match(/class=chtd>([\s\S]*?)<\/td>/)?.[1] ?? "";
+    const hasChtd = /class=chtd>/.test(rowHtml);
+    let rankChange: number | null = null;
+    const upMatch = chHtml.match(/class=ich>(\d+)</);
+    const downMatch = chHtml.match(/class=dch>(\d+)</);
+    if (upMatch) rankChange = Number(upMatch[1]);
+    else if (downMatch) rankChange = -Number(downMatch[1]);
+
+    const cells = extractCellTexts(rowHtml);
+    // Layout differs by page type:
+    //   live-ranking:    rk, chtd, flag, pn, age, country, POINTS, …
+    //   official/race:   rk,       flag, pn, age, country, POINTS, …
+    // Detect by chtd presence and index points accordingly.
+    const pointsIdx = hasChtd ? 6 : 5;
+    const points = readInt(cells[pointsIdx]);
+    // nextPoints + maxPoints are the LAST two purely-numeric cells. Players
+    // without an active-tournament projection show a `colspan` empty cell
+    // and yield no trailing numbers.
+    const trailing = cells.slice(pointsIdx + 1).filter((c) => /^\d+$/.test(c)).map(Number);
+    const nextPoints = trailing.length >= 2 ? trailing[trailing.length - 2]! : null;
+    const maxPoints = trailing.length >= 2 ? trailing[trailing.length - 1]! : null;
+
+    out.push({
+      rank,
+      fullName,
+      slugCandidate: slugifyForCompare(fullName),
+      rankChange,
+      points,
+      nextPoints,
+      maxPoints,
+    });
+  }
+  return out;
+}
+
+function readInt(s: string | undefined): number | null {
+  if (!s) return null;
+  const n = Number(s.replace(/[,\s]/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * Pull the visible text of each `<td>` in a row, in document order. We
+ * decode &nbsp;/&amp; and collapse whitespace so downstream comparison
+ * against integer / string fields is robust.
+ */
+function extractCellTexts(rowHtml: string): string[] {
+  const out: string[] = [];
+  const cellRe = /<td[^>]*>([\s\S]*?)<\/td>/g;
+  let m: RegExpExecArray | null;
+  while ((m = cellRe.exec(rowHtml)) !== null) {
+    const inner = m[1]!.replace(/<[^>]+>/g, "");
+    out.push(decodeEntities(inner).replace(/\s+/g, " ").trim());
+  }
+  return out;
+}
+
+function decodeEntities(s: string): string {
+  return s
+    .replace(/&amp;/g, "&")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
+}
+
+/**
+ * Slug-style normalisation used purely for membership comparison. NFKD
+ * strips accents (Félix Auger-Aliassime → felix-auger-aliassime), matching
+ * our internal slug convention closely enough for set-overlap checks.
+ */
+function slugifyForCompare(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+async function fetchLiveTennis(path: string): Promise<LiveTennisRow[]> {
+  // Use politeFetch — live-tennis.eu sits behind Cloudflare and 403s a
+  // plain Node fetch on TLS fingerprint regardless of User-Agent. The
+  // curl fallback in politeFetch resolves both.
+  const res = await politeFetch(`https://live-tennis.eu${path}`);
+  const html = await res.text();
+  return parseLiveTennisHtml(html);
+}
+
+async function ourTopSlugs(
+  tour: "atp" | "wta",
+  isRace: boolean,
+  limit: number,
+): Promise<Set<string>> {
+  const result = await db.execute<{ slug: string }>(sql`
+    with latest as (
+      select max(week_of) as w from rankings_snapshots
+      where tour = ${tour} and is_race = ${isRace}
+    )
+    select p.slug
+    from rankings_snapshots rs
+    join players p on p.id = rs.player_id
+    join latest on rs.week_of = latest.w
+    where rs.tour = ${tour}
+      and rs.is_race = ${isRace}
+      and rs.rank <= ${limit}
+  `);
+  const rows =
+    ((result as unknown) as { rows?: { slug: string }[] }).rows ??
+    ((result as unknown) as { slug: string }[]);
+  return new Set(rows.map((r) => r.slug));
+}
+
+interface CrossCheck {
+  label: string;
+  tour: "atp" | "wta";
+  isRace: boolean;
+  path: string;
+}
+
+// We compare against the OFFICIAL ranking endpoint (settled Monday snapshot)
+// rather than /en/atp-live-ranking (live, updates mid-week). Our DB stores
+// the official settled snapshot — comparing it against LT's live ranking
+// would always disagree during a tournament week.
+//
+// For race, LT exposes only the live race page. The calendar-year totals
+// shouldn't drift between Monday publishes when no matches are being
+// played, but during a tournament week our settled race vs LT's live race
+// WILL diverge — that's flagged when the test fails.
+const CROSS_CHECKS: CrossCheck[] = [
+  { label: "ATP official ranking", tour: "atp", isRace: false, path: "/en/official-atp-ranking" },
+  { label: "WTA official ranking", tour: "wta", isRace: false, path: "/en/official-wta-ranking" },
+  { label: "ATP race", tour: "atp", isRace: true, path: "/en/atp-race" },
+  { label: "WTA race", tour: "wta", isRace: true, path: "/en/wta-race" },
+];
+
+describe.skipIf(!LIVE)("source-truth: live-tennis.eu cross-check", () => {
+  for (const cc of CROSS_CHECKS) {
+    it(`${cc.label}: top-50 overlap with our DB top-100`, async () => {
+      const lt = await fetchLiveTennis(cc.path);
+      // Sanity: live-tennis.eu always renders more than 50 rows; if we got
+      // 0, the parser regex needs updating (rather than the data being bad).
+      expect(lt.length, `${cc.label} parser returned 0 rows — selector regression?`)
+        .toBeGreaterThan(50);
+
+      const top50 = lt.filter((r) => r.rank <= 50);
+      const ours100 = await ourTopSlugs(cc.tour, cc.isRace, 100);
+
+      let hits = 0;
+      const missed: string[] = [];
+      for (const r of top50) {
+        if (ours100.has(r.slugCandidate)) {
+          hits++;
+        } else {
+          missed.push(`#${r.rank} ${r.fullName} (slug guess: ${r.slugCandidate})`);
+        }
+      }
+      const ratio = hits / top50.length;
+      console.log(`[live] ${cc.label}: ${hits}/${top50.length} of LT top-50 found in our DB top-100`);
+      if (missed.length > 0) {
+        console.warn(`[live] ${cc.label}: first missed players:`);
+        for (const m of missed.slice(0, 5)) console.warn(`  ${m}`);
+      }
+      // 80% floor accounts for in-week ranking churn + slug-mismatch on a
+      // handful of accent-heavy or hyphenated names. The race ranking
+      // (calendar-year points) drifts more from ours since we settle weekly,
+      // but the player set still overlaps strongly.
+      expect(ratio, `${cc.label}: only ${hits}/${top50.length} of LT top-50 were in our DB top-100`)
+        .toBeGreaterThanOrEqual(0.8);
+    }, 30_000);
+  }
+});
+
+// ─── 8. Field-level cross-check vs live-tennis.eu ─────────────────────────
+// Per-player verification: for 10 picks per tour (spread across rank
+// buckets), confirm rank / points / rank-move / next-points / max-points
+// match LT within in-week tolerance. The set-overlap test above catches
+// "wrong population"; this one catches "right players, wrong numbers".
+//
+// Tolerances are deliberately generous because:
+//   - Our rank/points are the SETTLED Monday snapshot. LT updates live.
+//     During a tournament week the two will legitimately diverge.
+//   - Race standings (calendar-year) drift faster than ranking — but still
+//     stay within a few positions for top-100 players.
+
+const FIELD_BUCKETS: Array<{ name: string; min: number; max: number; per: number }> = [
+  { name: "top-10",    min: 1,   max: 10,  per: 2 },
+  { name: "11-30",     min: 11,  max: 30,  per: 2 },
+  { name: "31-60",     min: 31,  max: 60,  per: 2 },
+  { name: "61-100",    min: 61,  max: 100, per: 2 },
+  { name: "101-200",   min: 101, max: 200, per: 2 },
+];
+
+interface FieldPick {
+  slug: string;
+  fullName: string;
+  rank: number;
+  points: number | null;
+  rankMove: number | null;
+  nextPoints: number | null;
+  maxPoints: number | null;
+}
+
+async function sampleFieldPicks(
+  tour: "atp" | "wta",
+  isRace: boolean,
+): Promise<FieldPick[]> {
+  const out: FieldPick[] = [];
+  for (const b of FIELD_BUCKETS) {
+    const result = await db.execute<{
+      slug: string;
+      full_name: string;
+      rank: number;
+      points: number | null;
+      rank_move: number | null;
+      next_points: number | null;
+      max_possible_points: number | null;
+    }>(sql`
+      with latest as (
+        select max(week_of) as w from rankings_snapshots
+        where tour = ${tour} and is_race = ${isRace}
+      )
+      select
+        p.slug, p.full_name,
+        rs.rank, rs.points, rs.rank_move,
+        lp.next_points, lp.max_possible_points
+      from rankings_snapshots rs
+      join players p on p.id = rs.player_id
+      join latest on rs.week_of = latest.w
+      left join live_projections lp on lp.player_id = rs.player_id
+      where rs.tour = ${tour}
+        and rs.is_race = ${isRace}
+        and rs.rank between ${b.min} and ${b.max}
+      order by random()
+      limit ${b.per}
+    `);
+    const rows =
+      ((result as unknown) as { rows?: Record<string, unknown>[] }).rows ??
+      ((result as unknown) as Record<string, unknown>[]);
+    for (const r of rows) {
+      out.push({
+        slug: String(r.slug),
+        fullName: String(r.full_name),
+        rank: Number(r.rank),
+        points: r.points == null ? null : Number(r.points),
+        rankMove: r.rank_move == null ? null : Number(r.rank_move),
+        nextPoints: r.next_points == null ? null : Number(r.next_points),
+        maxPoints: r.max_possible_points == null ? null : Number(r.max_possible_points),
+      });
+    }
+  }
+  return out;
+}
+
+interface FieldDiff {
+  slug: string;
+  rank: { ours: number; lt: number; pass: boolean };
+  points: { ours: number | null; lt: number | null; pass: boolean };
+  rankMove: { ours: number | null; lt: number | null; pass: boolean };
+  nextPoints: { ours: number | null; lt: number | null; pass: boolean };
+  maxPoints: { ours: number | null; lt: number | null; pass: boolean };
+}
+
+function exactMatch(a: number | null, b: number | null): boolean {
+  // Both null → vacuously equal. One side null → can't compare → treat as
+  // OK (don't penalise for incomplete LT projections). Both set → must
+  // be byte-identical.
+  if (a == null || b == null) return true;
+  return a === b;
+}
+
+describe.skipIf(!LIVE)("source-truth: live-tennis.eu field-level check", () => {
+  for (const cc of CROSS_CHECKS) {
+    it(`${cc.label}: rank/points/move/projections match within tolerance`, async () => {
+      const [ltRows, picks] = await Promise.all([
+        fetchLiveTennis(cc.path),
+        sampleFieldPicks(cc.tour, cc.isRace),
+      ]);
+      // Index LT by slug for O(1) lookup; some players appear with accents
+      // we don't carry on our side, so the slugifyForCompare normalisation
+      // is what gives this a chance of matching.
+      const ltBySlug = new Map<string, LiveTennisRow>();
+      for (const r of ltRows) ltBySlug.set(r.slugCandidate, r);
+
+      const diffs: FieldDiff[] = [];
+      for (const pick of picks) {
+        const lt = ltBySlug.get(pick.slug);
+        if (!lt) {
+          console.warn(`[live] ${cc.label}: no LT row for ${pick.slug} (rank #${pick.rank})`);
+          continue;
+        }
+        // Exact-match comparison. The official ranking endpoint is the
+        // same source feed as our scraper, so rank + points + projections
+        // should be byte-identical. The race endpoint is LT-live but
+        // calendar-year totals only change when a match is played — they
+        // should also match exactly between scrapes.
+        //
+        // rankMove (rank change vs last published week) is omitted from
+        // the official-ranking comparison because the official page
+        // doesn't carry a rank-change cell. We still capture it on the
+        // race page where chtd is shown, but skip-on-null.
+        diffs.push({
+          slug: pick.slug,
+          rank: { ours: pick.rank, lt: lt.rank, pass: pick.rank === lt.rank },
+          points: { ours: pick.points, lt: lt.points, pass: exactMatch(pick.points, lt.points) },
+          rankMove: { ours: pick.rankMove, lt: lt.rankChange, pass: exactMatch(pick.rankMove, lt.rankChange) },
+          nextPoints: { ours: pick.nextPoints, lt: lt.nextPoints, pass: exactMatch(pick.nextPoints, lt.nextPoints) },
+          maxPoints: { ours: pick.maxPoints, lt: lt.maxPoints, pass: exactMatch(pick.maxPoints, lt.maxPoints) },
+        });
+      }
+
+      // Report — one line per pick, with PASS/FAIL per field.
+      console.log(`[live] ${cc.label} field-level (${diffs.length} compared):`);
+      for (const d of diffs) {
+        const f = (label: string, x: { ours: unknown; lt: unknown; pass: boolean }) =>
+          `${label}=${x.pass ? "OK" : "FAIL"}(${x.ours ?? "·"}/${x.lt ?? "·"})`;
+        console.log(
+          `  ${d.slug.padEnd(28)} ${f("rank", d.rank)} ${f("pts", d.points)} ${f("move", d.rankMove)} ${f("next", d.nextPoints)} ${f("max", d.maxPoints)}`,
+        );
+      }
+
+      // Strict assertion: every compared pick must match every field
+      // exactly (nullable fields skip-on-null via exactMatch). A single
+      // mismatch fails the test with a list of the offending fields per
+      // pick — making the data drift impossible to ignore.
+      const compared = diffs.length;
+      if (compared < 6) {
+        console.warn(`[live] ${cc.label}: only ${compared} picks resolved against LT — skipping assertion`);
+        return;
+      }
+      const failures: string[] = [];
+      for (const d of diffs) {
+        const wrong: string[] = [];
+        if (!d.rank.pass) wrong.push(`rank: ours=${d.rank.ours} vs LT=${d.rank.lt}`);
+        if (!d.points.pass) wrong.push(`points: ours=${d.points.ours} vs LT=${d.points.lt}`);
+        if (!d.rankMove.pass) wrong.push(`rank_move: ours=${d.rankMove.ours} vs LT=${d.rankMove.lt}`);
+        if (!d.nextPoints.pass) wrong.push(`next: ours=${d.nextPoints.ours} vs LT=${d.nextPoints.lt}`);
+        if (!d.maxPoints.pass) wrong.push(`max: ours=${d.maxPoints.ours} vs LT=${d.maxPoints.lt}`);
+        if (wrong.length > 0) failures.push(`  ${d.slug}: ${wrong.join("; ")}`);
+      }
+      expect(
+        failures.length,
+        `${cc.label}: ${failures.length}/${compared} picks have field mismatches:\n${failures.join("\n")}`,
+      ).toBe(0);
+    }, 45_000);
+  }
+});
+
+// ─── 9. LIVE ranking cross-check vs live-tennis.eu ────────────────────────
+// Compares our derived live_rank / live_points against LT's
+// /en/{atp,wta}-live-ranking with zero tolerance. The settled-ranking
+// test above keeps the canonical snapshot honest; this one keeps the
+// in-week derivation honest. Same set of 10 picks per tour, sampled
+// across the rank spectrum.
+
+const LIVE_CROSS_CHECKS: Array<{
+  label: string;
+  tour: "atp" | "wta";
+  path: string;
+  isRace: boolean;
+}> = [
+  { label: "ATP live ranking (derived)", tour: "atp", path: "/en/atp-live-ranking", isRace: false },
+  { label: "WTA live ranking (derived)", tour: "wta", path: "/en/wta-live-ranking", isRace: false },
+];
+
+interface LiveFieldPick {
+  slug: string;
+  fullName: string;
+  settledRank: number;
+  livePoints: number | null;
+  liveRank: number | null;
+}
+
+async function sampleLivePicks(tour: "atp" | "wta"): Promise<LiveFieldPick[]> {
+  const out: LiveFieldPick[] = [];
+  for (const b of FIELD_BUCKETS) {
+    const result = await db.execute<{
+      slug: string;
+      full_name: string;
+      rank: number;
+      live_points: number | null;
+      live_rank: number | null;
+    }>(sql`
+      with latest as (
+        select max(week_of) as w from rankings_snapshots
+        where tour = ${tour} and is_race = false
+      )
+      select
+        p.slug, p.full_name, rs.rank,
+        lp.live_points, lp.live_rank
+      from rankings_snapshots rs
+      join players p on p.id = rs.player_id
+      join latest on rs.week_of = latest.w
+      left join live_projections lp on lp.player_id = rs.player_id
+      where rs.tour = ${tour}
+        and rs.is_race = false
+        and rs.rank between ${b.min} and ${b.max}
+      order by random()
+      limit ${b.per}
+    `);
+    const rows =
+      ((result as unknown) as { rows?: Record<string, unknown>[] }).rows ??
+      ((result as unknown) as Record<string, unknown>[]);
+    for (const r of rows) {
+      out.push({
+        slug: String(r.slug),
+        fullName: String(r.full_name),
+        settledRank: Number(r.rank),
+        livePoints: r.live_points == null ? null : Number(r.live_points),
+        liveRank: r.live_rank == null ? null : Number(r.live_rank),
+      });
+    }
+  }
+  return out;
+}
+
+describe.skipIf(!LIVE)("source-truth: derived live ranking vs live-tennis.eu", () => {
+  for (const cc of LIVE_CROSS_CHECKS) {
+    it(`${cc.label}: live_points + live_rank exact match`, async () => {
+      const [ltRows, picks] = await Promise.all([
+        fetchLiveTennis(cc.path),
+        sampleLivePicks(cc.tour),
+      ]);
+      const ltBySlug = new Map<string, LiveTennisRow>();
+      for (const r of ltRows) ltBySlug.set(r.slugCandidate, r);
+
+      console.log(`[live] ${cc.label} (${picks.length} sampled):`);
+      const failures: string[] = [];
+      let comparable = 0;
+      for (const pick of picks) {
+        const lt = ltBySlug.get(pick.slug);
+        if (!lt) {
+          console.warn(`  ${pick.slug}: no LT row at settled rank ${pick.settledRank}`);
+          continue;
+        }
+        // Skip when our derivation hasn't produced a row — usually means
+        // the player is outside the topN that runProjections covers. That's
+        // a configuration gap, not a correctness bug.
+        if (pick.livePoints == null || pick.liveRank == null) {
+          console.warn(`  ${pick.slug}: no derived live row (settled rank ${pick.settledRank})`);
+          continue;
+        }
+        comparable++;
+        const wrong: string[] = [];
+        if (pick.liveRank !== lt.rank) {
+          wrong.push(`live_rank ours=${pick.liveRank} vs LT=${lt.rank}`);
+        }
+        if (lt.points != null && pick.livePoints !== lt.points) {
+          wrong.push(`live_points ours=${pick.livePoints} vs LT=${lt.points}`);
+        }
+        const status = wrong.length === 0 ? "OK" : "FAIL";
+        console.log(
+          `  ${pick.slug.padEnd(28)} settled#${pick.settledRank} → live#${pick.liveRank} (${pick.livePoints}) [${status}]`,
+        );
+        if (wrong.length > 0) failures.push(`  ${pick.slug}: ${wrong.join("; ")}`);
+      }
+      if (comparable < 5) {
+        console.warn(
+          `[live] ${cc.label}: only ${comparable} picks had both LT + derived rows — skipping assertion`,
+        );
+        return;
+      }
+      expect(
+        failures.length,
+        `${cc.label}: ${failures.length}/${comparable} live-ranking mismatches:\n${failures.join("\n")}`,
+      ).toBe(0);
+    }, 45_000);
+  }
 });

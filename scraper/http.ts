@@ -95,7 +95,14 @@ async function fetchViaCurl(url: string, headers: Record<string, string>): Promi
     // Without it, our Accept-Encoding header asks the server to gzip the
     // body and the parser sees binary garbage.
     const args = ["-sSL", "--compressed", "--max-time", "30"];
-    for (const [k, v] of Object.entries(headers)) {
+    // Windows-bundled libcurl (Git for Windows) doesn't ship brotli
+    // support — when a server like live-tennis.eu obeys our Accept-Encoding
+    // and returns br, curl errors 61 "Unrecognized content encoding type".
+    // Force gzip+deflate only for the curl path so we always get a body
+    // we can decode.
+    const safeHeaders: Record<string, string> = { ...headers };
+    safeHeaders["Accept-Encoding"] = "gzip, deflate";
+    for (const [k, v] of Object.entries(safeHeaders)) {
       args.push("-H", `${k}: ${v}`);
     }
     args.push(url);
