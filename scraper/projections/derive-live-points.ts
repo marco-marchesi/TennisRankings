@@ -186,9 +186,21 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
     for (const [tName, tMatches] of byTournament) {
       const last = tMatches[tMatches.length - 1]!;
       const category = inferCategory(tour, tName, last.tournament_level);
-      const reachedRound = reachedRoundForMatch(last, category);
-      if (!reachedRound) continue;
-      total += pointsForRound(category, reachedRound);
+      // Mirror live-tennis.eu's crediting rule:
+      //   - last match LOST → credit the round they lost in
+      //   - last match WON the final → champion credit
+      //   - last match WON a non-final round → still in progress → 0 credit
+      //     (next round must resolve before points are awarded)
+      const round = canonicalizeRound(last.round, category);
+      if (!round) continue;
+      if (!last.won) {
+        // Lost in `round` → credit the loss
+        total += pointsForRound(category, round);
+      } else if (round === "F") {
+        // Won the final → champion
+        total += pointsForRound(category, "W");
+      }
+      // else: won a non-final round → still in progress, no credit yet
     }
     return total;
   }

@@ -61,6 +61,9 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
     last_level: string | null;
     last_round: string | null;
     last_won: boolean | null;
+    next_scheduled_date: string | null;
+    next_tournament: string | null;
+    next_level: string | null;
   }>(sql`
     with top_players as (
       select rs.player_id, p.full_name, p.tour, rs.rank
@@ -104,6 +107,19 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
       order by ipm.player_id, ipm.played_on desc,
                case ipm.source when 'tennis_explorer' then 0 else 1 end
     )
+    next_upcoming as (
+      -- Earliest scheduled match per player from the upcoming table — used
+      -- when a player has been drawn into an event but their first match
+      -- hasn't been played yet. Without this, players like Sinner who are
+      -- scheduled later in the tournament week would show as "not_playing"
+      -- and miss the dropping subtraction.
+      select distinct on (pum.player_id)
+        pum.player_id, pum.scheduled_date::text as scheduled_date,
+        pum.tournament_name, pum.tournament_level
+      from player_upcoming_matches pum
+      where pum.scheduled_date >= current_date
+      order by pum.player_id, pum.scheduled_date asc
+    )
     select
       tp.player_id,
       tp.full_name,
@@ -111,9 +127,13 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
       lm.tournament_name as last_tournament,
       lm.tournament_level as last_level,
       lm.round as last_round,
-      lm.won as last_won
+      lm.won as last_won,
+      nu.scheduled_date as next_scheduled_date,
+      nu.tournament_name as next_tournament,
+      nu.tournament_level as next_level
     from top_players tp
-    left join latest_match lm on lm.player_id = tp.player_id;
+    left join latest_match lm on lm.player_id = tp.player_id
+    left join next_upcoming nu on nu.player_id = tp.player_id;
   `);
   const result = (rows as unknown as { rows: Array<Record<string, unknown>> }).rows ??
     (rows as unknown as Array<Record<string, unknown>>);
@@ -128,9 +148,31 @@ function deriveOne(tour: "atp" | "wta", r: Record<string, unknown>): LiveState {
   const level = r.last_level ? String(r.last_level) : null;
   const round = r.last_round ? String(r.last_round) : null;
   const won = r.last_won === true;
+  const nextDate = r.next_scheduled_date ? String(r.next_scheduled_date) : null;
+  const nextTournament = r.next_tournament ? String(r.next_tournament) : null;
+  const nextLevel = r.next_level ? String(r.next_level) : null;
 
-  // No recent match → player isn't participating in any tournament this week.
+  // No recent match → could still be entered in a tournament that hasn't
+  // started for them yet (e.g. Sinner before his French Open R1).
   if (!playedOn || !round || !tournamentName) {
+    if (nextTournament && nextDate) {
+      // Drawn into a tournament, awaiting first match. Treat as in_progress
+      // at the entry round for the category — points contribution is 0 but
+      // status + dropping subtraction in live_points still apply.
+      const entryCategory = inferCategory(tour, nextTournament, nextLevel);
+      const entryRound: Round =
+        entryCategory === "grand_slam" ? "R128"
+        : entryCategory === "masters_1000" || entryCategory === "wta_1000" ? "R64"
+        : "R32";
+      return {
+        playerId,
+        status: "in_progress",
+        tournamentName: nextTournament,
+        tournamentCategory: entryCategory,
+        roundReached: entryRound,
+        lastMatchDate: nextDate,
+      };
+    }
     return {
       playerId,
       status: "not_playing",
