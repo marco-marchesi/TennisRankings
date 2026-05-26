@@ -169,9 +169,11 @@ async function fetchWdClaims(qid: string): Promise<{
 
 // ─── DB query helpers ────────────────────────────────────────────────
 
-// matches-table column names have evolved between commits. Try the
-// documented column set; return null on schema mismatch so the calling
-// test can degrade gracefully instead of failing the whole suite.
+// Our match history lives in `player_recent_matches` — one row per
+// player perspective on a match (so a single match produces two rows,
+// one per side). Either row is sufficient evidence that we recorded
+// the match for `playerId`. Returns null on a schema mismatch so the
+// calling test can degrade gracefully instead of failing the suite.
 async function dbHasMatchForPlayerOnDate(
   playerId: number,
   dateStr: string,
@@ -179,9 +181,34 @@ async function dbHasMatchForPlayerOnDate(
   try {
     const res = await db.execute<{ count: number }>(sql`
       select count(*)::int as count
-      from matches m
-      where (m.player_a_id = ${playerId} or m.player_b_id = ${playerId})
-        and m.played_on::text = ${dateStr}
+      from player_recent_matches prm
+      where prm.player_id = ${playerId}
+        and prm.played_on::text = ${dateStr}
+    `);
+    const rows =
+      ((res as unknown) as { rows?: { count: number }[] }).rows ??
+      ((res as unknown) as { count: number }[]);
+    const count = Number(rows[0]?.count ?? 0);
+    return count > 0;
+  } catch {
+    return null;
+  }
+}
+
+// "Next match" coverage is checked against `player_upcoming_matches` —
+// a separate table the daily-matches scraper bulk-rewrites every run.
+// player_recent_matches only holds finished matches; planned ones would
+// always miss if we looked there.
+async function dbHasUpcomingMatchForPlayerOnDate(
+  playerId: number,
+  dateStr: string,
+): Promise<boolean | null> {
+  try {
+    const res = await db.execute<{ count: number }>(sql`
+      select count(*)::int as count
+      from player_upcoming_matches pum
+      where pum.player_id = ${playerId}
+        and pum.scheduled_date::text = ${dateStr}
     `);
     const rows =
       ((res as unknown) as { rows?: { count: number }[] }).rows ??
@@ -398,7 +425,7 @@ describe.skipIf(!LIVE)("source-truth: TE next matches reflected in DB", () => {
               m.p1Name.toLowerCase().includes(ln) ||
               m.p2Name.toLowerCase().includes(ln);
             if (!involved) continue;
-            const has = await dbHasMatchForPlayerOnDate(pick.playerId, dateStr);
+            const has = await dbHasUpcomingMatchForPlayerOnDate(pick.playerId, dateStr);
             if (has === null) continue; // schema mismatch already reported above
             if (has) wins++;
             else {
