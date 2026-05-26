@@ -16,7 +16,7 @@
 
 import { db, schema } from "@/db";
 import { and, desc, eq, gte, sql } from "drizzle-orm";
-import { ROUNDS_IN_ORDER, type Category, type Round } from "../config/points-table";
+import { canonicalizeRound, ROUNDS_IN_ORDER, type Category, type Round } from "../config/points-table";
 import type { ProjectionStatus } from "./calculator";
 import { inferCategory } from "./category-inference";
 
@@ -142,7 +142,22 @@ function deriveOne(tour: "atp" | "wta", r: Record<string, unknown>): LiveState {
   }
 
   const category = inferCategory(tour, tournamentName, level);
-  const matchRound = round as Round;
+  // The raw `round` string can be in any source format ("1R", "R128", "1st
+  // round", …). Canonicalize against the inferred category. If we can't
+  // make sense of it, treat as not_playing rather than silently producing
+  // a "W"-fallthrough bug downstream.
+  const canonical = canonicalizeRound(round, category);
+  if (!canonical) {
+    return {
+      playerId,
+      status: "not_playing",
+      tournamentName: null,
+      tournamentCategory: null,
+      roundReached: null,
+      lastMatchDate: null,
+    };
+  }
+  const matchRound: Round = canonical;
 
   if (won && matchRound === "F") {
     return {

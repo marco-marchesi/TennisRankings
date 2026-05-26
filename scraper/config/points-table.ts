@@ -227,3 +227,73 @@ export function pointsForRound(category: Category, round: Round): number {
 export function maxPointsForCategory(category: Category): number {
   return pointsForRound(category, "W");
 }
+
+/**
+ * Normalises various round labels into our canonical `Round` form. Different
+ * sources emit different conventions:
+ *   - TA CSVs and ATP/WTA HTML use draw-position labels: R128, R64, R32, R16
+ *   - TennisExplorer (and ATP commentary) use tour-style numbers: 1R, 2R, 3R
+ *   - Wikipedia / live-tennis.eu often writes "R1", "R2", etc.
+ *
+ * Tour-style numbers need the tournament category to disambiguate — "1R"
+ * at a Grand Slam is R128, at a Masters 1000 it's R64 (or R32 for 32-draw
+ * events), at an ATP 250 it's R32 (or R28 — we round up). The mapping
+ * tables below are deliberate over-simplifications: they pick the modal
+ * draw size for each category. Edge cases (a Masters 1000 in 56-draw
+ * format) will be off by one slot — fine for live-ranking math since
+ * the points table values at adjacent rounds are close.
+ *
+ * Returns null if the round cannot be parsed into anything canonical.
+ */
+export function canonicalizeRound(raw: string, category: Category): Round | null {
+  const r = raw.trim().toUpperCase();
+  if (!r) return null;
+  // Already canonical.
+  if ((ROUNDS_IN_ORDER as string[]).includes(r)) return r as Round;
+  // Word-form aliases that don't go through the per-category table.
+  if (r === "QUARTERFINAL" || r === "QUARTERFINALS") return "QF";
+  if (r === "SEMIFINAL" || r === "SEMIFINALS") return "SF";
+  if (r === "FINAL") return "F";
+  if (r === "WINNER" || r === "CHAMPION") return "W";
+  // Tour-style round number: "1R", "R1", "1ST ROUND", "ROUND 1", etc.
+  // Pull the leading integer; if found, map via category.
+  const num = r.match(/^(?:R(?:OUND)?)?\s*(\d{1,2})(?:R|ST|ND|RD|TH)?(?:\s*ROUND)?$/);
+  if (num) {
+    return drawPositionForRoundNumber(Number(num[1]), category);
+  }
+  return null;
+}
+
+/**
+ * "Player reached round N of the draw" → canonical Round for that
+ * category. Round N here is 1-indexed counting from the first match
+ * played in the main draw. For 128-draw Slams, round 1 = R128; for
+ * 64-draw Masters, round 1 = R64; etc.
+ */
+function drawPositionForRoundNumber(n: number, category: Category): Round | null {
+  if (n < 1) return null;
+  let ladder: Round[];
+  if (category === "grand_slam") {
+    ladder = ["R128", "R64", "R32", "R16", "QF", "SF", "F", "W"];
+  } else if (category === "masters_1000" || category === "wta_1000") {
+    // Most 1000s are 96-draw (top 32 seeds get a bye → first round for
+    // unseeded players is R64). We model from R64 down.
+    ladder = ["R64", "R32", "R16", "QF", "SF", "F", "W"];
+  } else if (category === "atp_500" || category === "wta_500") {
+    ladder = ["R32", "R16", "QF", "SF", "F", "W"];
+  } else if (category === "atp_250" || category === "wta_250") {
+    ladder = ["R32", "R16", "QF", "SF", "F", "W"];
+  } else if (category === "finals") {
+    // ATP/WTA Finals: round-robin then SF/F. Treat round 1-3 as SF (group
+    // points are mileage-based but live ranking doesn't add them mid-RR).
+    ladder = ["SF", "F", "W"];
+  } else if (category.startsWith("ch_")) {
+    // Challenger 32-draw default.
+    ladder = ["R32", "R16", "QF", "SF", "F", "W"];
+  } else {
+    // davis_cup / olympics / itf — fall back to a Slam-style ladder so
+    // mid-event rounds still produce *some* reasonable value.
+    ladder = ["R128", "R64", "R32", "R16", "QF", "SF", "F", "W"];
+  }
+  return ladder[n - 1] ?? null;
+}

@@ -25,6 +25,7 @@
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import {
+  canonicalizeRound,
   pointsForRound,
   ROUNDS_IN_ORDER,
   type Category,
@@ -71,10 +72,14 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
   const weekStart = mostRecentMondayUtc();
 
   // 1. Pull settled (Monday) ranking + race for the top-N players in one go.
+  //    Also drop_points — the dropping count we must SUBTRACT when computing
+  //    live points (those are last year's same-tournament points that are
+  //    no longer countable now that this year's edition has begun).
   const settled = await db.execute<{
     player_id: number;
     rank: number;
     points: number;
+    drop_points: number | null;
     is_race: boolean;
   }>(sql`
     with latest_official as (
@@ -85,7 +90,7 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
       select max(week_of) as w from rankings_snapshots
       where tour = ${opts.tour} and is_race = true
     )
-    select rs.player_id, rs.rank, rs.points, rs.is_race
+    select rs.player_id, rs.rank, rs.points, rs.drop_points, rs.is_race
     from rankings_snapshots rs
     where rs.tour = ${opts.tour}
       and (
@@ -97,13 +102,19 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
   const settledRows =
     ((settled as unknown) as { rows?: Array<Record<string, unknown>> }).rows ??
     ((settled as unknown) as Array<Record<string, unknown>>);
-  const officialByPlayer = new Map<number, { rank: number; points: number }>();
+  const officialByPlayer = new Map<number, { rank: number; points: number; dropping: number }>();
   const raceByPlayer = new Map<number, { rank: number; points: number }>();
   for (const r of settledRows) {
     const playerId = Number(r.player_id);
-    const entry = { rank: Number(r.rank), points: Number(r.points) };
-    if (r.is_race) raceByPlayer.set(playerId, entry);
-    else officialByPlayer.set(playerId, entry);
+    if (r.is_race) {
+      raceByPlayer.set(playerId, { rank: Number(r.rank), points: Number(r.points) });
+    } else {
+      officialByPlayer.set(playerId, {
+        rank: Number(r.rank),
+        points: Number(r.points),
+        dropping: r.drop_points == null ? 0 : Number(r.drop_points),
+      });
+    }
   }
 
   const allPlayerIds = Array.from(
@@ -175,7 +186,7 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
     for (const [tName, tMatches] of byTournament) {
       const last = tMatches[tMatches.length - 1]!;
       const category = inferCategory(tour, tName, last.tournament_level);
-      const reachedRound = reachedRoundForMatch(last);
+      const reachedRound = reachedRoundForMatch(last, category);
       if (!reachedRound) continue;
       total += pointsForRound(category, reachedRound);
     }
@@ -183,13 +194,22 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
   }
 
   // 4. Build the per-player live totals.
+  //
+  // Formula (matches live-tennis.eu and ATP/WTA's own live ranking logic):
+  //
+  //   live_points = settled_points
+  //               − dropping_points          (last year's same-tournament credit)
+  //               + earned_this_week         (this year's accumulated rounds)
+  //
+  // For RACE there is no dropping (race is calendar-year YTD), so:
+  //   live_race_points = settled_race_points + earned_this_week
   const rows: LivePointsRow[] = [];
   for (const playerId of allPlayerIds) {
     const official = officialByPlayer.get(playerId);
     const race = raceByPlayer.get(playerId);
     if (!official) continue; // need settled official to compute live ranking
     const earned = pointsEarnedThisWeek(playerId, opts.tour);
-    const livePoints = official.points + earned;
+    const livePoints = official.points - official.dropping + earned;
     const liveRacePoints = (race?.points ?? 0) + earned;
     rows.push({
       playerId,
@@ -233,10 +253,17 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
  * reached? Mirrors the calculator's roundReached convention:
  *   - won  → the NEXT round (they advanced)
  *   - lost → the round of the match (they fell out at this round)
+ *
+ * The raw round string comes from player_recent_matches.round, which can
+ * be in any of TA / TE / ATP formats. canonicalizeRound + category resolve
+ * this into our internal `Round` ladder.
  */
-function reachedRoundForMatch(m: { round: string; won: boolean }): Round | null {
-  const round = m.round as Round;
-  if (!ROUNDS_IN_ORDER.includes(round)) return null;
+function reachedRoundForMatch(
+  m: { round: string; won: boolean },
+  category: Category,
+): Round | null {
+  const round = canonicalizeRound(m.round, category);
+  if (!round) return null;
   if (!m.won) return round;
   // Advanced. If they won the final ("F"), the next round is "W".
   if (round === "F") return "W";
