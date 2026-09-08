@@ -199,7 +199,7 @@ async function reconcile(topN: number) {
       where prm.played_on >= (current_date - interval '52 weeks')
       order by prm.player_id, prm.tournament_name, prm.round,
                lower(prm.opponent_name),
-               case prm.source when 'atp_site' then 0 when 'tennis_explorer' then 1 else 2 end
+               case prm.source when 'atp_site' then 0 when 'wta_api' then 0 when 'tennis_explorer' then 1 else 2 end
     )
     select l.tour, l.player_id, l.full_name, l.rank,
            l.points as official_points,

@@ -6,28 +6,30 @@
 .DESCRIPTION
     Three steps, in this order for a reason:
 
-      1. atp-results     ATP results from atptour.com (the official source)
-      2. daily-matches   TennisExplorer, as a FALLBACK for events atptour
-                         does not cover (Challengers, ITF)
-      3. projections      recompute live points from those matches
-      4. compare-live     diff against live-tennis.eu and write the report
+      1. atp-results     ATP results from atptour.com (official)
+      2. wta-results     WTA results from api.wtatennis.com (official)
+      3. daily-matches   TennisExplorer, as a FALLBACK for events the two
+                         official sources do not cover (Challengers, ITF)
+      4. projections     recompute live points from those matches
+      5. compare-live    diff against live-tennis.eu and write the report
 
-    Step 1 is preferred over step 2 wherever both have a match: atptour.com
-    gives real per-match dates, an explicit winner and stable ATP player ids,
-    where TennisExplorer needs one request per match and supplies none of
-    those. The dedupe ordering in the derivers ranks atp_site first.
+    Steps 1 and 2 are preferred over step 3 wherever both have a match: the
+    official sources give real per-match dates, an explicit winner and stable
+    player ids, where TennisExplorer needs one request per match and supplies
+    none of those. The dedupe ordering in the derivers ranks atp_site and
+    wta_api first.
 
-    Step 2 is expected to FAIL while a proxy blocks tennisexplorer.com. That
-    is why it comes second and why its failure does not stop the run.
+    Step 3 is expected to FAIL while a proxy blocks tennisexplorer.com. That
+    is why it comes third and why its failure does not stop the run.
 
-    Skipping step 1 makes the report meaningless. live-tennis.eu updates as
+    Skipping steps 1 and 2 makes the report meaningless. live-tennis.eu updates as
     each match finishes; we only know what the last scrape stored. On
     2026-09-04 that produced a textbook false positive: we held only Zverev's
     1R win, so we credited him a reached-R64 (50) and showed 7,740, while LT
     had his R64 win too and showed 7,790. Identical rule, one match of lag.
 
-    Step 1 is cheap now that scrape-daily-matches skips the per-match detail
-    fetch for matches already stored, so a short lookback costs seconds.
+    Both official steps are cheap: one request per in-progress tournament,
+    not per match.
 
 .PARAMETER LookbackDays
     Days of finished matches to (re-)pull. Default 3 - enough to catch a
@@ -140,25 +142,32 @@ function Invoke-Step {
 }
 
 if (-not $SkipRefresh) {
-    # Official source first. One page per in-progress tournament.
-    Invoke-Step "1/4 ATP results from atptour.com" `
+    # Official sources first. One request per in-progress tournament.
+    Invoke-Step "1/5 ATP results from atptour.com" `
         "pnpm scraper:atp-results" | Out-Null
 
-    # TennisExplorer fallback: covers Challengers and ITF events that the ATP
-    # results pages do not. Currently blocked by the network, so a failure
-    # here is expected and must not stop the run.
+    # The WTA calendar endpoint returns any event overlapping the window, and
+    # each event is then fetched whole, so a short window still re-ingests the
+    # early rounds of an event that is still running.
+    $from = (Get-Date).AddDays(-$LookbackDays).ToString("yyyy-MM-dd")
+    Invoke-Step "2/5 WTA results from api.wtatennis.com (since $from)" `
+        "pnpm scraper:wta-results -- --from $from" | Out-Null
+
+    # TennisExplorer fallback: covers Challengers and ITF events the official
+    # sources do not. Currently blocked by the network, so a failure here is
+    # expected and must not stop the run.
     # --lookahead 1 keeps player_upcoming_matches populated for today without
     # spending requests on a week of provisional schedules.
-    Invoke-Step "2/4 TennisExplorer fallback (last $LookbackDays days)" `
+    Invoke-Step "3/5 TennisExplorer fallback (last $LookbackDays days)" `
         "pnpm scraper:daily-matches -- --lookback $LookbackDays --lookahead 1" -Optional | Out-Null
 
-    Invoke-Step "3/4 recompute projections (top $Top)" `
+    Invoke-Step "4/5 recompute projections (top $Top)" `
         "pnpm scraper:projections -- --top $Top" | Out-Null
 } else {
-    Write-Log ">>> 1-3/4 refresh SKIPPED (--SkipRefresh)"
+    Write-Log ">>> 1-4/5 refresh SKIPPED (--SkipRefresh)"
 }
 
-$compareExit = Invoke-Step "4/4 compare against live-tennis.eu" `
+$compareExit = Invoke-Step "5/5 compare against live-tennis.eu" `
     "pnpm scraper:compare-live -- --top $Top"
 
 Write-Log "=== Compare-Live finished: $failures failed step(s), $optionalFailures optional step(s) skipped/failed ==="

@@ -133,7 +133,7 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
     where prm.player_id = any(array[${sql.join(allPlayerIds.map((id) => sql`${id}`), sql`, `)}]::int[])
       and prm.played_on >= ${weekStart}
     order by prm.player_id, prm.played_on, lower(prm.opponent_name),
-             case prm.source when 'atp_site' then 0 when 'tennis_explorer' then 1 else 2 end
+             case prm.source when 'atp_site' then 0 when 'wta_api' then 0 when 'tennis_explorer' then 1 else 2 end
   `);
   const matchRows =
     ((matches as unknown) as { rows?: InWeekMatch[] }).rows ??

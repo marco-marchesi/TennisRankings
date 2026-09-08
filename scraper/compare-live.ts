@@ -109,6 +109,94 @@ async function ourTable(tour: Tour, kind: LtPageKind): Promise<OurRow[]> {
   }));
 }
 
+/* -------------------------------------------------------------------------- */
+/* Player-keyed comparison                                                    */
+/* -------------------------------------------------------------------------- */
+
+interface PlayerDiff {
+  name: string;
+  ourRank: number;
+  ltRank: number;
+  ourPoints: number;
+  ltPoints: number;
+  delta: number;
+  status: string | null;
+}
+
+interface PlayerResult {
+  matched: number;
+  exact: number;
+  within10: number;
+  within50: number;
+  diffs: PlayerDiff[];
+  unmatched: string[];
+}
+
+/**
+ * Compare OUR points against LT's FOR THE SAME PLAYER.
+ *
+ * The rank-keyed comparison above cannot see a points error whenever the
+ * player at that rank differs, and on a live table that is most of them: one
+ * player's points being wrong reorders everyone below, so the rank-keyed view
+ * reports 168 "wrong player" rows and only 14 points differences. That reads
+ * as an ordering bug when it is really a points bug, and it hides which
+ * players are actually wrong.
+ *
+ * Joining by player instead answers the question that matters: for each
+ * player, do we compute the same live total live-tennis.eu does? Ranks then
+ * follow from points, so this is the diagnosis and the rank view is the
+ * symptom.
+ */
+function comparePlayers(ours: OurRow[], theirs: LiveTennisRow[], topN: number): PlayerResult {
+  const cohort = theirs.filter((t) => t.rank <= topN && t.points != null);
+  const byName = new Map<string, OurRow>();
+  for (const o of ours) byName.set(o.fullName.toLowerCase(), o);
+
+  const result: PlayerResult = {
+    matched: 0,
+    exact: 0,
+    within10: 0,
+    within50: 0,
+    diffs: [],
+    unmatched: [],
+  };
+
+  for (const t of cohort) {
+    // Exact name first; fall back to the strict (non-fuzzy) matcher, which
+    // handles diacritics and ordering but refuses genuinely different people.
+    let mine = byName.get(t.fullName.toLowerCase());
+    if (!mine) {
+      const hits = ours.filter((o) => namesMatch(o.fullName, t.fullName, { fuzzy: false }));
+      if (hits.length === 1) mine = hits[0];
+    }
+    if (!mine) {
+      result.unmatched.push(`#${t.rank} ${t.fullName}`);
+      continue;
+    }
+    result.matched++;
+    const delta = mine.points - t.points!;
+    if (delta === 0) result.exact++;
+    if (Math.abs(delta) <= 10) result.within10++;
+    if (Math.abs(delta) <= 50) result.within50++;
+    if (delta !== 0) {
+      result.diffs.push({
+        name: t.fullName,
+        ourRank: mine.rank,
+        ltRank: t.rank,
+        ourPoints: mine.points,
+        ltPoints: t.points!,
+        delta,
+        status: mine.status,
+      });
+    }
+  }
+
+  // Largest absolute error first: that is where the engine is most wrong, and
+  // a single 300-point error moves far more ranks than thirty 10-point ones.
+  result.diffs.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+  return result;
+}
+
 function compare(
   label: string,
   tour: Tour,
@@ -282,6 +370,7 @@ async function main() {
   }
 
   const results: TableResult[] = [];
+  const players = new Map<string, PlayerResult>();
   for (const t of TABLES) {
     let theirs: LiveTennisRow[];
     try {
@@ -294,6 +383,7 @@ async function main() {
     const ours = await ourTable(t.tour, t.kind);
     const r = compare(t.label, t.tour, t.kind, ours, theirs, topN);
     results.push(r);
+    players.set(t.label, comparePlayers(ours, theirs, topN));
   }
 
   lines.push("SUMMARY");
@@ -303,6 +393,22 @@ async function main() {
   for (const r of results) {
     lines.push(
       `  ${pad(r.label, 14)}${padL(r.correct, 8)}${padL(r.within10, 7)}${padL(r.within50, 7)}${padL(r.rankCorrect, 9)}${padL(r.judged, 8)}${padL(r.duplicateRanks.length, 9)}`,
+    );
+  }
+  lines.push("");
+
+  // The summary above is keyed on RANK, so it cannot see a points error at any
+  // rank where the player differs - which on a live table is most of them.
+  // This one is keyed on PLAYER and is the number to work against.
+  lines.push("SUMMARY BY PLAYER (same player on both sides — the real accuracy)");
+  lines.push(
+    `  ${pad("table", 14)}${padL("exact", 8)}${padL("<=10", 7)}${padL("<=50", 7)}${padL("matched", 9)}${padL("no match", 10)}`,
+  );
+  for (const r of results) {
+    const pr = players.get(r.label);
+    if (!pr) continue;
+    lines.push(
+      `  ${pad(r.label, 14)}${padL(pr.exact, 8)}${padL(pr.within10, 7)}${padL(pr.within50, 7)}${padL(pr.matched, 9)}${padL(pr.unmatched.length, 10)}`,
     );
   }
   lines.push("");
@@ -344,6 +450,42 @@ async function main() {
     lines.push("");
   }
 
+  // Per-player detail, worst first. This is where a real engine bug shows up
+  // as a REPEATED delta: a column of exactly -10 is one missing rule, not
+  // thirty unrelated coincidences.
+  for (const r of results) {
+    const pr = players.get(r.label);
+    if (!pr || pr.diffs.length === 0) continue;
+    lines.push("-".repeat(78));
+    lines.push(
+      `${r.label} BY PLAYER: ${pr.exact}/${pr.matched} exact  ` +
+        `(${pr.diffs.length} player(s) differ, ${pr.unmatched.length} not matched by name)`,
+    );
+    const buckets = new Map<number, number>();
+    for (const d of pr.diffs) buckets.set(d.delta, (buckets.get(d.delta) ?? 0) + 1);
+    const repeated = [...buckets.entries()]
+      .filter(([, n]) => n >= 3)
+      .sort((a, b) => b[1] - a[1]);
+    if (repeated.length > 0) {
+      lines.push(
+        "  repeated deltas (a systematic rule error, not noise): " +
+          repeated.map(([d, n]) => `${d > 0 ? "+" : ""}${d} x${n}`).join(", "),
+      );
+    }
+    for (const d of pr.diffs.slice(0, 40)) {
+      lines.push(
+        `    ${pad(d.name, 26)} ours ${padL(d.ourPoints, 6)} (#${padL(d.ourRank, 3)})  ` +
+          `LT ${padL(d.ltPoints, 6)} (#${padL(d.ltRank, 3)})  ` +
+          `${d.delta > 0 ? "+" : ""}${d.delta}${d.status ? `  [${d.status}]` : ""}`,
+      );
+    }
+    if (pr.diffs.length > 40) lines.push(`    ... and ${pr.diffs.length - 40} more`);
+    if (pr.unmatched.length > 0) {
+      lines.push(`  not matched by name: ${pr.unmatched.slice(0, 8).join(", ")}`);
+    }
+    lines.push("");
+  }
+
   const report = lines.join("\n") + "\n";
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, report, "utf-8");
@@ -354,7 +496,13 @@ async function main() {
   const trend =
     `${stamp}  ` +
     results
-      .map((r) => `${r.label.replace(" ", "-")}=${r.correct}/${r.judged}`)
+      .map((r) => {
+        const pr = players.get(r.label);
+        return (
+          `${r.label.replace(" ", "-")}=${r.correct}/${r.judged}` +
+          (pr ? `(byPlayer ${pr.exact}/${pr.matched})` : "")
+        );
+      })
       .join("  ") +
     // Tag stale runs so a dip in the trend line is attributable at a glance,
     // rather than looking like a regression in the maths.

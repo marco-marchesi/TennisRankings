@@ -126,7 +126,7 @@ export async function deriveDroppingPoints(opts: Options): Promise<Map<number, n
       )}]::text[])
     order by prm.player_id, prm.tournament_name, prm.round,
              lower(prm.opponent_name),
-             case prm.source when 'atp_site' then 0 when 'tennis_explorer' then 1 else 2 end
+             case prm.source when 'atp_site' then 0 when 'wta_api' then 0 when 'tennis_explorer' then 1 else 2 end
   `);
   const rawRows =
     (raw as unknown as { rows: Array<Record<string, unknown>> }).rows ??

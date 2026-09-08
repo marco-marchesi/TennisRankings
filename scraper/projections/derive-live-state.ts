@@ -124,7 +124,7 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
         ipm.round, ipm.won
       from in_progress_matches ipm
       order by ipm.player_id, ipm.played_on desc,
-               case ipm.source when 'atp_site' then 0 when 'tennis_explorer' then 1 else 2 end
+               case ipm.source when 'atp_site' then 0 when 'wta_api' then 0 when 'tennis_explorer' then 1 else 2 end
     ),
     next_upcoming as (
       -- Earliest scheduled match per player from the upcoming table — used

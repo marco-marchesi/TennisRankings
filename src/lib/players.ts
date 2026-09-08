@@ -77,7 +77,7 @@ export async function getSurfaceSplits(slug: string): Promise<SurfaceSplit[]> {
       join players p on p.id = prm.player_id
       where p.slug = ${slug}
       order by prm.player_id, prm.played_on, lower(prm.opponent_name),
-               case prm.source when 'atp_site' then 0 when 'tennis_explorer' then 1 else 2 end
+               case prm.source when 'atp_site' then 0 when 'wta_api' then 0 when 'tennis_explorer' then 1 else 2 end
     `);
     const matches =
       (rows as unknown as { rows: Array<{ surface: string | null; won: boolean; score: string | null }> })
@@ -193,7 +193,7 @@ export async function getRecentMatches(slug: string, limit = 10): Promise<Recent
         join players p on p.id = prm.player_id
         where p.slug = ${slug}
         order by prm.player_id, prm.played_on, lower(prm.opponent_name),
-                 case prm.source when 'atp_site' then 0 when 'tennis_explorer' then 1 else 2 end
+                 case prm.source when 'atp_site' then 0 when 'wta_api' then 0 when 'tennis_explorer' then 1 else 2 end
       )
       select * from deduped order by played_on desc limit ${limit};
     `);
