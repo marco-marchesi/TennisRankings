@@ -14,7 +14,7 @@
 // TE owns "fresh", TA owns "deep history".
 
 import { db, schema } from "@/db";
-import { eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, ne, sql } from "drizzle-orm";
 import {
   fetchDailyMatchList,
   fetchMatchDetail,
@@ -31,6 +31,8 @@ export interface RunSummary {
   rowsWritten: number;
   unmatchedPlayers: number;
   skippedNobodyMatched: number;
+  /** Finished matches skipped because we already stored them. */
+  alreadyHad: number;
 }
 
 export interface RunOptions {
@@ -75,6 +77,7 @@ export async function scrapeDailyMatches(opts: RunOptions = {}): Promise<RunSumm
         rowsWritten: 0,
         unmatchedPlayers: 0,
         skippedNobodyMatched: 0,
+        alreadyHad: 0,
       };
 
       let refs: TEMatchRef[] = [];
@@ -155,6 +158,35 @@ export async function scrapeDailyMatches(opts: RunOptions = {}): Promise<RunSumm
         const p1Final = p1Id;
         const p2Final = collision ? null : p2Id;
 
+        // Skip the per-match detail fetch when we already hold this match
+        // with a usable round. fetchMatchDetail is one politeFetch each, at
+        // 1 req/s, and it used to run for EVERY finished match on EVERY run
+        // — so a wide --lookback re-fetched thousands of matches it already
+        // had. This is what makes a long backfill resumable: interrupt it,
+        // re-run it, and it picks up where it stopped instead of starting over.
+        const matchNumForLookup = (() => {
+          const n = Number(ref.teMatchId);
+          return Number.isFinite(n) && n < 2_000_000_000
+            ? n
+            : Math.floor(n % 2_000_000_000);
+        })();
+        const already = await db
+          .select({ playerId: schema.playerRecentMatches.playerId })
+          .from(schema.playerRecentMatches)
+          .where(
+            and(
+              eq(schema.playerRecentMatches.source, "tennis_explorer"),
+              eq(schema.playerRecentMatches.externalTourneyId, ref.tournamentSlug),
+              eq(schema.playerRecentMatches.externalMatchNum, matchNumForLookup),
+              ne(schema.playerRecentMatches.round, "—"),
+            ),
+          )
+          .limit(1);
+        if (already.length > 0) {
+          summary.alreadyHad++;
+          continue;
+        }
+
         let detail;
         try {
           detail = await fetchMatchDetail(ref, tour);
@@ -214,9 +246,10 @@ export async function scrapeDailyMatches(opts: RunOptions = {}): Promise<RunSumm
         }
         if (rows.length === 0) continue;
 
-        await db
-          .insert(schema.playerRecentMatches)
-          .values(rows)
+        await withDbRetry(`insert ${rows.length} match row(s)`, () =>
+          db
+            .insert(schema.playerRecentMatches)
+            .values(rows)
           .onConflictDoUpdate({
             target: [
               schema.playerRecentMatches.playerId,
@@ -237,7 +270,8 @@ export async function scrapeDailyMatches(opts: RunOptions = {}): Promise<RunSumm
               won: sql`excluded.won`,
               score: sql`excluded.score`,
             },
-          });
+          }),
+        );
         summary.rowsWritten += rows.length;
       }
 
@@ -262,6 +296,7 @@ export async function scrapeDailyMatches(opts: RunOptions = {}): Promise<RunSumm
           `fetched=${summary.matchesFetched} finished=${summary.finishedMatches} ` +
           `wrote=${summary.rowsWritten} unmatched=${summary.unmatchedPlayers} ` +
           `skipped=${summary.skippedNobodyMatched}`,
+          `alreadyHad=${summary.alreadyHad}`,
       );
       summaries.push(summary);
     }
@@ -271,9 +306,10 @@ export async function scrapeDailyMatches(opts: RunOptions = {}): Promise<RunSumm
   // yesterday's "planned" list may include matches that have since been
   // postponed, finished, or rescheduled — keeping stale rows would
   // contaminate the "next opponent" card.
-  await db
-    .delete(schema.playerUpcomingMatches)
-    .where(eq(schema.playerUpcomingMatches.source, "tennis_explorer"));
+  await withDbRetry("wipe upcoming matches", () =>
+    db.delete(schema.playerUpcomingMatches)
+    .where(eq(schema.playerUpcomingMatches.source, "tennis_explorer"))
+  );
   if (upcomingRows.length > 0) {
     // Dedup within the batch (same match could appear on multiple scrape
     // dates if TE shows it on two days; the PK would reject otherwise).
@@ -288,7 +324,9 @@ export async function scrapeDailyMatches(opts: RunOptions = {}): Promise<RunSumm
     // Chunk inserts — postgres parameter limit is ~65k; each row has ~10 params.
     const CHUNK = 1000;
     for (let i = 0; i < deduped.length; i += CHUNK) {
-      await db.insert(schema.playerUpcomingMatches).values(deduped.slice(i, i + CHUNK));
+      await withDbRetry(`insert upcoming chunk at ${i}`, () =>
+        db.insert(schema.playerUpcomingMatches).values(deduped.slice(i, i + CHUNK)),
+      );
     }
     console.log(`[daily-matches] upcoming matches written: ${deduped.length}`);
   } else {
@@ -462,4 +500,41 @@ if (entryFile.endsWith("scrape-daily-matches.ts") || entryFile.endsWith("scrape-
       console.error(err);
       process.exit(1);
     });
+}
+
+/**
+ * Retry a database operation through a transient connection failure.
+ *
+ * The Neon serverless driver speaks HTTP, and a long crawl (this job runs for
+ * hours at TennisExplorer's 1 req/s) reliably hits the occasional ECONNRESET
+ * or 10s connect timeout. A single failed insert used to abort the whole run:
+ * four of five chunks of the 2026-06/08 backfill died that way, one of them
+ * after writing 60+ days of matches.
+ *
+ * Only connection-shaped errors are retried. A constraint violation is a real
+ * bug and must still surface immediately.
+ */
+async function withDbRetry<T>(label: string, fn: () => Promise<T>): Promise<T> {
+  const MAX = 4;
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= MAX; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      const transient =
+        /fetch failed|ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|Connect Timeout|socket hang up|terminating connection|Client has encountered a connection error/i.test(
+          msg,
+        );
+      if (!transient || attempt === MAX) throw err;
+      lastErr = err;
+      const backoffMs = 1000 * 2 ** (attempt - 1);
+      console.warn(
+        `[daily-matches] ${label}: transient DB error (attempt ${attempt}/${MAX}), ` +
+          `retrying in ${backoffMs}ms — ${msg.split("\n")[0]}`,
+      );
+      await new Promise((r) => setTimeout(r, backoffMs));
+    }
+  }
+  throw lastErr;
 }
