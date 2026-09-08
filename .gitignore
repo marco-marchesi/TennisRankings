@@ -37,6 +37,13 @@ drizzle/meta/
 scraper/.cache/
 scraper/__debug__/
 
+# local database dumps (local_data.sql is ~39 MB)
+local_data.sql
+*.sql.dump
+
+# pipeline transcripts from the .ps1 wrappers
+logs/
+
 # claude code session state
 .claude/
 
