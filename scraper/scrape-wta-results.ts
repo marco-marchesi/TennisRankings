@@ -29,6 +29,7 @@ import { eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { namesMatch } from "./sources/live-tennis";
 import {
+  eventName,
   fetchTournaments,
   fetchWtaMatches,
   WTA_API_SOURCE,
@@ -218,7 +219,7 @@ async function ingestTournament(
         externalTourneyId: `${t.year}-${t.id}`,
         externalMatchNum,
         playedOn: m.playedOn,
-        tournamentName: meta.title,
+        tournamentName: eventName(meta),
         tournamentLevel: level,
         surface: meta.surface,
         round: m.round,
@@ -308,6 +309,7 @@ async function main() {
       id,
       year,
       title: `WTA ${id}`,
+      groupName: null,
       level: "",
       surface: null,
       startDate: `${year}-01-01`,

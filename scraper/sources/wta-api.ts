@@ -57,7 +57,15 @@ export interface WtaTournament {
   /** WTA tournament group id, e.g. "905" for the US Open. */
   id: string;
   year: number;
+  /** Sponsor title, e.g. "Abierto GNP Seguros - Monterrey, MEX". */
   title: string;
+  /**
+   * Short event name, e.g. "MONTERREY" / "US OPEN" / "CINCINNATI".
+   *
+   * This is the one that can be compared with the other feeds. See
+   * `eventName()` for why it, and not `title`, is what gets stored.
+   */
+  groupName: string | null;
   /** "Grand Slam" | "WTA 1000" | "WTA 500" | "WTA 250" | "WTA 125" | "ITF". */
   level: string;
   surface: string | null;
@@ -137,6 +145,7 @@ export function parseTournamentRecord(raw: unknown): WtaTournament | null {
     id: String(id),
     year,
     title: str(t.title) ?? str(group.name) ?? `WTA ${id}`,
+    groupName: str(group.name),
     level: str(t.level) ?? str(group.level) ?? "",
     surface: str(t.surface),
     startDate,
@@ -708,4 +717,41 @@ export async function fetchWtaMatches(t: {
  */
 export function wtaTournamentLevel(level: string): string | null {
   return isTourLevel(level) ? level : null;
+}
+
+/** Tokens that stay upper-case when the API's SHOUTY group name is cased. */
+const ACRONYMS = new Set(["US", "DC", "UK", "UAE", "ATP", "WTA", "ITF", "GNP", "BNP"]);
+
+/**
+ * The name to STORE for an event.
+ *
+ * Uses the API's short `tournamentGroup.name`, not its sponsor `title`,
+ * because the stored name is what every cross-source comparison joins on and
+ * the sponsor title shares nothing with the other feeds:
+ *
+ *   wta_api title      "Abierto GNP Seguros - Monterrey, MEX"
+ *   tennis_explorer    "Monterrey"
+ *   wta_api groupName  "MONTERREY"                <- aligns
+ *
+ * Storing the title split every WTA event into two "tournaments" in the
+ * projections, and since the deriver credits each group separately, players
+ * were credited TWICE. Measured on 2026-09-08: Janice Tjen held her Monterrey
+ * R32 under both feeds with a different name, round label ("R32" / "1R"), date
+ * (08-24 / 08-25) and opponent format ("Dayana Yastremska" /
+ * "Yastremska D."), so no dedupe key could ever collide them. That is what
+ * put Iva Jovic 451 points above live-tennis.eu.
+ *
+ * Title-cased for display, preserving known acronyms so "US OPEN" does not
+ * become "Us Open".
+ */
+export function eventName(t: Pick<WtaTournament, "groupName" | "title" | "id">): string {
+  const raw = t.groupName ?? t.title;
+  return raw
+    .split(/\s+/)
+    .map((word) =>
+      ACRONYMS.has(word.toUpperCase())
+        ? word.toUpperCase()
+        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+    )
+    .join(" ");
 }

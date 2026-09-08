@@ -22,6 +22,7 @@ import {
   mainDrawLadder,
   nominalDrawSize,
   parseTournamentList,
+  eventName,
   parseWtaMatches,
   resolveWtaRound,
   wtaMatchesUrl,
@@ -391,5 +392,36 @@ describe("Winner not recorded", () => {
     // Scoring this from a majority-of-one would invent a result.
     expect(parsed.matches.some((m) => m.round === "SF")).toBe(false);
     expect(parsed.unresolvedWinners).toEqual(['LS002 Winner="0"']);
+  });
+});
+
+describe("eventName", () => {
+  it("stores the short name that aligns with the other feeds, not the sponsor title", () => {
+    // The sponsor title shares nothing with TennisExplorer's "Monterrey", so
+    // storing it split every WTA event into two tournaments in the
+    // projections and credited players twice.
+    expect(
+      eventName({
+        id: "1039",
+        title: "Abierto GNP Seguros - Monterrey, MEX",
+        groupName: "MONTERREY",
+      }),
+    ).toBe("Monterrey");
+    expect(
+      eventName({ id: "1017", title: "Cincinnati Open - Cincinnati, OH, USA", groupName: "CINCINNATI" }),
+    ).toBe("Cincinnati");
+  });
+
+  it("keeps acronyms upper-case", () => {
+    expect(eventName({ id: "905", title: "US Open - New York, NY, USA", groupName: "US OPEN" })).toBe(
+      "US Open",
+    );
+    expect(
+      eventName({ id: "1045", title: "Mubadala DC Open - Washington, DC, USA", groupName: "WASHINGTON DC" }),
+    ).toBe("Washington DC");
+  });
+
+  it("falls back to the title when no group name is supplied", () => {
+    expect(eventName({ id: "9", title: "WTA 9", groupName: null })).toBe("WTA 9");
   });
 });
