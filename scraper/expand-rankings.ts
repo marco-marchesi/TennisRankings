@@ -21,6 +21,7 @@
 import { db, schema } from "@/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
 import { fetchRanking, type Tour } from "./sources/tennis-explorer-rankings";
+import { comparisonSlug, namesMatch } from "./sources/live-tennis";
 import { slugify } from "@/lib/utils";
 
 const TOP_N = 800;
@@ -74,9 +75,13 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
   const slugToId = new Map<string, number>();
   const suffixSlugToId = new Map<string, number[]>();
   const nameToId = new Map<string, number>();
+  const sortedNameToId = new Map<string, number>();
+  const allPlayers: Array<{ id: number; fullName: string }> = [];
   for (const p of existingPlayers) {
     slugToId.set(p.slug, p.id);
     nameToId.set(normalizeName(p.fullName), p.id);
+    sortedNameToId.set(comparisonSlug(p.fullName, true), p.id);
+    allPlayers.push({ id: p.id, fullName: p.fullName });
     // Index by progressively-shorter slug suffixes (last 1-3 segments) so
     // we can match TE's "sinner-8b8e8" against our "jannik-sinner".
     const seg = p.slug.split("-");
@@ -97,6 +102,8 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
       slugToId,
       suffixSlugToId,
       nameToId,
+      sortedNameToId,
+      allPlayers,
       now,
       summary,
     });
@@ -150,6 +157,16 @@ interface ResolveCtx {
   slugToId: Map<string, number>;
   suffixSlugToId: Map<string, number[]>;
   nameToId: Map<string, number>;
+  /**
+   * Token-SORTED name key -> player id. TennisExplorer renders names surname
+   * first ("Cerundolo Juan Manuel") and `reorderName()` rotates the tokens
+   * rather than reordering them correctly, so the order-sensitive `nameToId`
+   * lookup missed and a phantom duplicate player was created. Sorting the
+   * tokens makes the two renderings equal.
+   */
+  sortedNameToId: Map<string, number>;
+  /** Every known player, for the tolerant last-resort comparison. */
+  allPlayers: Array<{ id: number; fullName: string }>;
   now: Date;
   summary: RunSummary;
 }
@@ -182,12 +199,46 @@ async function resolveOrCreatePlayer(
     }
   }
 
-  // 3. Normalized-name match.
+  // 3. Normalized-name match (order-sensitive).
   const nameKey = normalizeName(r.fullName);
   const byName = ctx.nameToId.get(nameKey);
   if (byName != null) {
     ctx.summary.playersMatchedByName++;
     return byName;
+  }
+
+  // 3b. Order-INSENSITIVE name match.
+  //
+  // This is the step whose absence created phantom players. TE gives names
+  // surname-first and reorderName() rotates the tokens, so
+  // "Juan Manuel Cerundolo" arrived as "Manuel Cerundolo Juan" — which step 3
+  // could never match. The result was a second player row and therefore two
+  // rows claiming the same rank: 203 rows in the ATP top-200 across five
+  // duplicated ranks (Cerundolo, Tirante, Burruchaga, Merida, Shevchenko).
+  const sortedKey = comparisonSlug(r.fullName, true);
+  const bySorted = ctx.sortedNameToId.get(sortedKey);
+  if (bySorted != null) {
+    ctx.summary.playersMatchedByName++;
+    return bySorted;
+  }
+
+  // 3c. Tolerant last resort: spelling variants (apostrophes, letter folding,
+  //     transliteration, extra given names). Accepted ONLY when exactly one
+  //     known player matches, so an ambiguous name still creates a new row
+  //     rather than silently merging two people.
+  const fuzzy = ctx.allPlayers.filter((p) =>
+    namesMatch(p.fullName, r.fullName, { fuzzy: false }),
+  );
+  if (fuzzy.length === 1) {
+    ctx.summary.playersMatchedByName++;
+    return fuzzy[0]!.id;
+  }
+  if (fuzzy.length > 1) {
+    console.warn(
+      `[expand-rankings] "${r.fullName}" matches ` +
+        `${fuzzy.map((f) => f.fullName).join(", ")} — ambiguous, ` +
+        `creating a new row instead of guessing`,
+    );
   }
 
   // 4. Insert a minimal player row. No DOB/height/hand/wikidata — those get
