@@ -40,6 +40,7 @@ import { db, schema } from "@/db";
 import { fetchAtpResults, type AtpResultMatch } from "./sources/atp-results";
 import { namesMatch } from "./sources/live-tennis";
 import { runEntrypoint } from "./exit";
+import { stableMatchNumber } from "./stable-match-number";
 
 /** Marks rows written by this module. */
 export const ATP_SITE_SOURCE = "atp_site";
@@ -185,31 +186,26 @@ function resolvePlayer(
   return null;
 }
 
-/**
- * Stable per-match number, so re-running upserts rather than duplicating.
- *
- * Built from round + both ATP ids, sorted so the pairing is orientation
- * independent. Deliberately NOT derived from the date: a match can be
- * rescheduled, and a date-dependent key would then insert a second row - the
- * exact failure mode that made the documented played_on dedupe useless.
- */
+/** Stable per-match number from round + both ATP ids. See stable-match-number.ts. */
 function matchNumber(m: AtpResultMatch): number {
-  const ids = m.players.map((p) => p.atpId).sort();
-  const key = `${m.round}|${ids.join("|")}`;
-  let h = 2166136261;
-  for (let i = 0; i < key.length; i++) {
-    h ^= key.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return Math.abs(h) % 2_000_000_000;
+  return stableMatchNumber(
+    m.round,
+    m.players.map((p) => p.atpId),
+  );
 }
 
 /**
  * ATP tier letter for category inference, matching Tennis Abstract's codes.
- * Qualifying rows are marked so they cannot be scored as main draw.
+ *
+ * Qualifying rows carry the SAME tier as the main draw. Marking them "Q"
+ * instead — as this did originally — threw the tier away, and
+ * `inferCategory` has no "Q" branch, so a qualifying loss at a Slam fell
+ * through to name matching and was scored on the 250 table. The round
+ * (Q1/Q2/Q3) is what selects the qualifying column of the points table; the
+ * level still has to say which event it was.
  */
 function levelLetter(m: AtpResultMatch, drawSize: number): string | null {
-  if (m.isQualifying) return "Q";
+  void m;
   if (drawSize >= 96) return "G"; // 128-draw main draws are Slams
   return null; // let name-based inference decide; Masters/500/250 differ by event
 }

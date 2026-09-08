@@ -258,40 +258,83 @@ describe("player id sources", () => {
 
 describe("per-match dates", () => {
   /**
-   * Matches are grouped into day accordions whose heading carries the real
-   * date. This is the property Tennis Abstract lacks entirely: TA stamps every
-   * match at an event with the tournament START date, which is why a flat
-   * 52-week dropping window missed the US Open and why no cross-source dedupe
-   * key on played_on could ever collide.
+   * The day panels on atptour.com are NOT a complete per-day index, and the
+   * first version of these tests was too weak to notice.
+   *
+   * The 13 panels in this capture hold 232 matches split 140 / 32 / 32 / 9 /
+   * 7 / 1 / 1 / 1 / 1 / 1 / 1 / 2 / 4: the later days carry only that day's
+   * FEATURED matches and the rest are dumped into "Day (1)", which dated 61
+   * of 64 first-round matches to 2026-08-24 — six days before the main draw
+   * began. 122 wrongly dated rows reached the database.
+   *
+   * Why it mattered rather than being cosmetic: `played_on` drives the 52-week
+   * dropping window and the in-week credit, and the documented cross-source
+   * dedupe keys on `played_on`, so a wrongly dated row does not collide with
+   * the correctly dated TennisExplorer row for the same match. The match is
+   * counted twice.
+   *
+   * What the old tests asserted, and why each passed anyway:
+   *   "a real ISO date on essentially every match" — they all had a date, it
+   *   was just the wrong one.
+   *   "dates span the tournament" — they did span it, 08-24 to 09-07.
+   *   "later rounds not dated before earlier rounds" — compared the EARLIEST
+   *   date of each round, and both rounds had a row in the 08-24 dump.
+   *
+   * The assertions below are ordering invariants instead of coverage ratios.
    */
-  it("attaches a real ISO date to essentially every match", async () => {
+  it("dates only the matches whose day panel is a real single day", async () => {
     const matches = await parseAtpResults(fixture);
     const dated = matches.filter((m) => m.playedOn !== null);
-    expect(dated.length / matches.length).toBeGreaterThan(0.95);
-    for (const m of dated) {
-      expect(m.playedOn).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    }
+    // Deliberately a minority. A missing date costs coverage; a wrong one
+    // corrupts every points sum that touches the row.
+    expect(dated.length).toBe(92);
+    expect(matches.length).toBe(232);
+    for (const m of dated) expect(m.playedOn).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it("dates span the tournament rather than collapsing to one day", async () => {
     const matches = await parseAtpResults(fixture);
     const days = new Set(matches.map((m) => m.playedOn).filter(Boolean));
-    // A Slam runs a fortnight; the capture covers qualifying onward.
     expect(days.size).toBeGreaterThanOrEqual(10);
   });
 
-  it("later rounds are not dated before earlier rounds", async () => {
+  it("finishes every main-draw round before the next one starts", async () => {
+    // The invariant that actually catches a mis-dated row. A Slam plays one
+    // round at a time, so the LAST day of R128 must precede the FIRST day of
+    // R64, and so on down the ladder. The 08-24 dump broke this in both
+    // directions at once and the old test could not see it.
     const matches = await parseAtpResults(fixture);
-    const earliest = (round: string) =>
-      matches
-        .filter((m) => m.round === round && m.playedOn)
+    const ladder = ["R128", "R64", "R32", "R16", "QF", "SF", "F"] as const;
+    const window = (round: string) => {
+      const days = matches
+        .filter((m) => m.round === round && !m.isQualifying && m.playedOn)
         .map((m) => m.playedOn!)
-        .sort()[0];
-    const r128 = earliest("R128");
-    const r16 = earliest("R16");
-    expect(r128).toBeDefined();
-    expect(r16).toBeDefined();
-    expect(r16! >= r128!).toBe(true);
+        .sort();
+      return days.length > 0 ? { first: days[0]!, last: days[days.length - 1]! } : null;
+    };
+    const present = ladder.map((r) => ({ round: r, w: window(r) })).filter((x) => x.w);
+    expect(present.length).toBeGreaterThanOrEqual(4);
+    for (let i = 1; i < present.length; i++) {
+      const prev = present[i - 1]!;
+      const cur = present[i]!;
+      expect(
+        cur.w!.first > prev.w!.last,
+        `${cur.round} starts ${cur.w!.first} but ${prev.round} still runs to ${prev.w!.last}`,
+      ).toBe(true);
+    }
+  });
+
+  it("dates no main-draw match before the main draw begins", async () => {
+    const matches = await parseAtpResults(fixture);
+    const mainDraw = matches.filter((m) => !m.isQualifying && m.playedOn);
+    const qualifying = matches.filter((m) => m.isQualifying && m.playedOn);
+    const lastQualifyingDay = qualifying.map((m) => m.playedOn!).sort().at(-1)!;
+    for (const m of mainDraw) {
+      expect(
+        m.playedOn! > lastQualifyingDay,
+        `${m.round} dated ${m.playedOn} but qualifying ran to ${lastQualifyingDay}`,
+      ).toBe(true);
+    }
   });
 });
 

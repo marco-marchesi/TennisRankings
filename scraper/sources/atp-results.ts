@@ -235,6 +235,32 @@ export async function parseAtpResults(html: string): Promise<AtpResultMatch[]> {
   // Build a lookup from match element -> ISO date before walking the matches,
   // so a match outside any accordion still parses (with a null date) rather
   // than being dropped.
+  //
+  // ============================================================
+  // THE DAY PANELS ARE NOT A COMPLETE PER-DAY INDEX. DO NOT TRUST
+  // THEM BLINDLY — THIS COST US 122 WRONGLY DATED US OPEN ROWS.
+  // ============================================================
+  //
+  // Verified against the checked-in US Open 2026 capture: 13 day panels hold
+  // 232 matches, but they are split 140 / 32 / 32 / 9 / 7 / 1 / 1 / 1 / 1 / 1
+  // / 1 / 2 / 4. The later days hold only the FEATURED matches of that day
+  // (one or four), and everything else is dumped into the "Day (1)" panel —
+  // dating 61 of 64 first-round matches to 2026-08-24, six days before the
+  // main draw began. There is no per-day URL, no day query parameter and no
+  // ISO timestamp anywhere in the markup, so a single fetch cannot do better.
+  //
+  // A wrong date is worse here than no date. `played_on` drives both the
+  // 52-week dropping window and the in-week credit, and because the
+  // documented cross-source dedupe keys on `played_on`, a wrongly dated row
+  // does not collide with the correctly dated TennisExplorer row for the same
+  // match — so the match is counted TWICE.
+  //
+  // The dump panel is identifiable and a legitimate day is not: one real day
+  // never spans three or more different main-draw rounds. Panels that do are
+  // treated as carrying no date, the writer skips those rows, and the
+  // correctly dated source keeps the match. Coverage is lost deliberately in
+  // exchange for not corrupting every points sum that touches these rows.
+  const MAX_MAIN_DRAW_ROUNDS_PER_DAY = 2;
   const dateFor = new Map<unknown, string>();
   $(".atp_accordion-item").each((_, accEl) => {
     const heading = $(accEl)
@@ -245,6 +271,23 @@ export async function parseAtpResults(html: string): Promise<AtpResultMatch[]> {
       .trim();
     const iso = parseAtpDayHeading(heading);
     if (!iso) return;
+
+    const mainDrawRounds = new Set<Round>();
+    $(accEl)
+      .find("div.match")
+      .each((__, mEl) => {
+        const header = $(mEl).find(".match-header").text().replace(/\s+/g, " ").trim();
+        if (!header) return;
+        let mapped: ReturnType<typeof mapRound>;
+        try {
+          mapped = mapRound(header);
+        } catch {
+          return; // an unknown label is reported by the main pass below
+        }
+        if (!mapped.qualifying) mainDrawRounds.add(mapped.round);
+      });
+    if (mainDrawRounds.size > MAX_MAIN_DRAW_ROUNDS_PER_DAY) return;
+
     $(accEl)
       .find("div.match")
       // Braces matter: cheerio's each() treats a returned value as a
