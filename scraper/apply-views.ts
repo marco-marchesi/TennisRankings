@@ -37,25 +37,110 @@ const FILES = [
 /**
  * Split a file into individual statements.
  *
- * The Neon HTTP driver rejects multiple statements in one query, so we cannot
- * hand a whole file over at once. These files contain no dollar-quoted bodies
- * and no semicolons inside string literals, so splitting on a semicolon that
- * ends a line is sufficient — and we assert that assumption below rather than
- * trusting it silently.
+ * The Neon HTTP driver rejects multiple statements in one query, so a whole
+ * file cannot be handed over at once.
+ *
+ * This has to be a small state machine rather than a split on ";". These
+ * files contain `DO $$ BEGIN ... END $$;` guards whose bodies are full of
+ * semicolons, and a naive split tears them in half. The first version of this
+ * function detected `$$` and refused to run rather than corrupt the schema -
+ * the right call at the time, but it meant matches-multisource.sql and
+ * race-views.sql never applied at all.
+ *
+ * Tracked: dollar-quoted blocks (including tagged `$tag$`), single-quoted
+ * string literals, and `--` line comments. Block comments are not used in
+ * these files.
  */
-function splitStatements(text: string, file: string): string[] {
-  if (text.includes("$$")) {
-    throw new Error(
-      `${file} contains a dollar-quoted body; the naive statement splitter ` +
-        `in apply-views.ts would break it. Split it manually or switch to a ` +
-        `real SQL lexer.`,
-    );
+function splitStatements(text: string): string[] {
+  const statements: string[] = [];
+  let buf = "";
+  let i = 0;
+  let dollarTag: string | null = null;
+  let inString = false;
+  let inLineComment = false;
+
+  while (i < text.length) {
+    const ch = text[i]!;
+    const rest = text.slice(i);
+
+    if (inLineComment) {
+      buf += ch;
+      if (ch === "\n") inLineComment = false;
+      i++;
+      continue;
+    }
+
+    if (dollarTag) {
+      if (rest.startsWith(dollarTag)) {
+        buf += dollarTag;
+        i += dollarTag.length;
+        dollarTag = null;
+        continue;
+      }
+      buf += ch;
+      i++;
+      continue;
+    }
+
+    if (inString) {
+      buf += ch;
+      // '' is an escaped quote inside a string literal.
+      if (ch === "'") {
+        if (text[i + 1] === "'") {
+          buf += "'";
+          i += 2;
+          continue;
+        }
+        inString = false;
+      }
+      i++;
+      continue;
+    }
+
+    if (rest.startsWith("--")) {
+      inLineComment = true;
+      buf += ch;
+      i++;
+      continue;
+    }
+
+    if (ch === "'") {
+      inString = true;
+      buf += ch;
+      i++;
+      continue;
+    }
+
+    // Opening of a dollar-quoted block: $$ or $tag$
+    const dollarOpen = rest.match(/^\$[A-Za-z_][A-Za-z0-9_]*\$|^\$\$/);
+    if (dollarOpen) {
+      dollarTag = dollarOpen[0];
+      buf += dollarTag;
+      i += dollarTag.length;
+      continue;
+    }
+
+    if (ch === ";") {
+      statements.push(buf);
+      buf = "";
+      i++;
+      continue;
+    }
+
+    buf += ch;
+    i++;
   }
-  return text
-    .split(/;\s*(?:\r?\n|$)/)
-    .map((s) => s.trim())
-    // Drop anything that is only comments/whitespace.
-    .filter((s) => s.length > 0 && !s.split(/\r?\n/).every((l) => l.trim() === "" || l.trim().startsWith("--")));
+  if (buf.trim()) statements.push(buf);
+
+  // Drop anything that is only comments or whitespace.
+  const NEWLINE = /\r?\n/;
+  return statements
+    .map((st) => st.trim())
+    .filter(
+      (st) =>
+        st.length > 0 &&
+        !st.split(NEWLINE).every((l) => l.trim() === "" || l.trim().startsWith("--")),
+    );
 }
 
 async function main() {
@@ -77,7 +162,7 @@ async function main() {
 
   for (const file of FILES) {
     const text = readFileSync(join(dir, file), "utf8");
-    const statements = splitStatements(text, file);
+    const statements = splitStatements(text);
     process.stdout.write(`${file} — ${statements.length} statement(s)\n`);
 
     for (const statement of statements) {

@@ -74,6 +74,33 @@ export const players = pgTable(
     wikipediaUrl: text("wikipedia_url"),
     /** Wikidata QID (e.g. "Q12421867") — bridge to wiki + photo lookups. */
     wikidataId: text("wikidata_id"),
+    /**
+     * ATP's own player id, from the profile href on atptour.com
+     * (/en/players/alexander-zverev/z355/overview → "z355").
+     *
+     * This is the identity column the project needed all along. Matching
+     * players by NAME produced, in order: 73 phantom duplicate rows from
+     * TennisExplorer rendering names surname-first and `reorderName()`
+     * rotating the tokens ("Juan Manuel Cerundolo" → "Manuel Cerundolo
+     * Juan"); two players holding the same rank in the same week; and a
+     * near-miss where a fuzzy matcher paired "Ekaterina Maklakova" with
+     * "Ekaterina Makarova", who are different people. An id has none of
+     * those failure modes.
+     *
+     * Nullable: not every entrant has one. Qualifiers and wildcards without
+     * an ATP profile appear with a Sportradar competitor id instead
+     * ("sr:competitor:1149753"), which is stored here in its normalised
+     * "sr-1149753" form — see `atpIdSource`.
+     */
+    atpId: text("atp_id"),
+    /** Which registry `atpId` belongs to: "atp" or "sportradar". */
+    atpIdSource: text("atp_id_source"),
+    /**
+     * WTA's own player id, from api.wtatennis.com (`PlayerIDA` / `PlayerIDB`
+     * on a match record, e.g. "319998" for Naomi Osaka). Same rationale as
+     * `atpId`.
+     */
+    wtaId: text("wta_id"),
     bio: text("bio"),
     tour: tour("tour").notNull(),
     active: boolean("active").default(true).notNull(),
@@ -93,6 +120,17 @@ export const players = pgTable(
     slugIdx: uniqueIndex("players_slug_idx").on(t.slug),
     nameIdx: index("players_full_name_idx").on(t.fullName),
     tourIdx: index("players_tour_idx").on(t.tour),
+    /**
+     * Plain indexes, deliberately NOT unique.
+     *
+     * A unique constraint here would be wrong twice over: the columns are
+     * nullable and mostly null until backfilled, and a Sportradar id can
+     * legitimately be shared before a player gets a real ATP profile. The
+     * ingest resolves by id and falls back to a name match, so a duplicate id
+     * should surface as a reconciliation finding rather than abort a scrape.
+     */
+    atpIdIdx: index("players_atp_id_idx").on(t.atpId),
+    wtaIdIdx: index("players_wta_id_idx").on(t.wtaId),
   }),
 );
 
