@@ -14,6 +14,7 @@ pnpm vitest run path/to/file.test   # Run one test file
 pnpm vitest -t "name fragment"      # Run tests matching a description
 pnpm test:e2e                       # Playwright smoke tests against dev server
 pnpm db:push                        # Apply src/db/schema.ts to DATABASE_URL
+pnpm db:views                       # Apply drizzle/views/*.sql (db:push does NOT)
 pnpm db:studio                      # Open Drizzle Studio
 ```
 
@@ -44,11 +45,13 @@ Wrappers in `scripts/`: `Weekly-Update.ps1` (full pipeline), `Hourly-Update.ps1`
 
 `src/` is the Next.js 15 web app. `scraper/` is a standalone TSX worker that reads/writes the same Postgres but ships separately. They share `src/db/schema.ts` and `src/lib/utils.ts` via the `@/` and `@scraper/` path aliases (configured in `vitest.config.ts` and `tsconfig.json`).
 
-The web app is read-only against the DB. Writes happen in three places: the scraper worker, authenticated user actions (favorites, newsletter), and the projections runner. The scraper and projections runner are entirely server-side TSX — no Next.js or React imports.
+The web app is **entirely** read-only against the DB. Writes happen in two places: the scraper worker and the projections runner. (Auth, favorites and the newsletter were deleted — they were unreachable stubs.) The scraper and projections runner are entirely server-side TSX — no Next.js or React imports.
 
 ### Database — multi-source by design
 
 The schema is in `src/db/schema.ts`. Drizzle uses `db:push` (no migrations folder), but ad-hoc SQL lives in `drizzle/views/` for things drizzle-kit can't infer cleanly (PK swaps, indexes with custom orderings).
+
+**`db:push` alone leaves an unqueryable schema.** It creates neither the views nor the added columns in `drizzle/views/*.sql`. Always follow it with `pnpm db:views`, which applies those files in dependency order (columns before the views that select them) and fails loudly if a new `.sql` file isn't registered in `scraper/apply-views.ts`.
 
 **`player_recent_matches` is multi-source.** PK is `(player_id, source, external_tourney_id, external_match_num)`. `source ∈ {tennis_abstract, tennis_explorer}`. The same logical match can land in the table twice — once per source. **Every reader** that consumes this table must dedupe with:
 
@@ -59,6 +62,25 @@ order by ... case source when 'tennis_explorer' then 0 else 1 end
 
 The pattern appears in `src/lib/players.ts` (getRecentMatches, getSurfaceSplits), `scraper/projections/derive-live-state.ts`, and `scraper/projections/derive-dropping-points.ts`. If you add a fourth reader, replicate it — never just `select * from player_recent_matches`.
 
+> **⚠️ This dedupe key does not actually dedupe. Do not trust it.**
+>
+> `scraper/sources/tennis-abstract.ts` sets `played_on` from `row.tourney_date`
+> — the **tournament start date**, identical for every match at an event,
+> because Sackmann's CSVs carry no per-match date. `scrape-daily-matches.ts`
+> sets `played_on` to the **real match date**. So a Tennis Abstract row and a
+> TennisExplorer row for the same logical match have different `played_on`
+> values and **never collide**: both survive the `distinct on`, and anything
+> that sums points double-counts.
+>
+> It also means every `played_on >= weekStart` filter is wrong for TA rows: a
+> Slam's R128 through F all carry the same Monday date.
+>
+> The fix is a date-free `match_key`
+> (`sha1(edition_key | round | playerLo | playerHi)`) on
+> `player_recent_matches`, populated by both writers, with the contract
+> becoming `distinct on (player_id, match_key)`. Until that lands, treat any
+> per-match points arithmetic over this table as unreliable.
+
 `player_upcoming_matches` is the planned-matches sibling. The daily-matches scraper **bulk-replaces** it on each run (delete + insert) — never upsert. Planned matches change too rapidly to merge.
 
 ### Data sources, by role
@@ -66,6 +88,26 @@ The pattern appears in `src/lib/players.ts` (getRecentMatches, getSurfaceSplits)
 - **ATP/WTA HTML** (`scraper/sources/atp.ts`, `wta.ts`) — authoritative top-100 + race rankings. Carries `points_move`, `drop_points`, `next_best_points` from the official site. Fetched via Playwright (`scraper/fetch-live.ts`) when politeFetch is blocked.
 - **TennisExplorer** (`scraper/sources/tennis-explorer.ts`, `tennis-explorer-rankings.ts`) — fresh-data overlay. Daily match lists, match details, top-800 rankings with the per-week "Move" column. Updates same-day after matches finish; ATP/WTA CSVs from Tennis Abstract lag by 1–3 weeks.
 - **Tennis Abstract** (`scraper/sources/tennis-abstract.ts`, `ta-leaderboards.ts`) — deep history. Per-year match CSVs for backfill, player metadata (DOB/height/hand/wikidata_id), and the MCP leaderboards. TA's reports all default-sort by serve-impact regardless of category — `scraper/sources/ta-leaderboards.ts` re-ranks per category at parse time.
+
+  > **⚠️ The upstream repos are gone (checked 2026-09-03).**
+  > `JeffSackmann/tennis_atp` and `tennis_wta` return 404 from the GitHub API,
+  > and the account is down to one public repo. Every URL this module used to
+  > build now 404s — which is why `backfill-history` failed outright and
+  > `backfill-matches` reported success while fetching nothing.
+  >
+  > We now read `Aneeshers/tennis-sackmann-archive`, an archival mirror laid
+  > out as `atp/<file>` / `wta/<file>` rather than as two separate repos.
+  > Override with `TA_BASE_URL` and `TA_LAYOUT`.
+  >
+  > **The archive is a one-time snapshot from 2026-06-25 and its 2026 match
+  > data stops at Roland Garros (`tourney_date` 20260525).** The upstream it
+  > mirrored is deleted, so nothing later will ever arrive from this source.
+  > **June 2026 onward is TennisExplorer-only.** `TA_COVERAGE_ENDS` records
+  > the cutoff.
+  >
+  > Upside: these CSVs *do* carry `draw_size` and `tourney_level`, so tier and
+  > draw-variant resolution is exact up to May 2026 — unlike TE, which
+  > supplies neither.
 - **Wikidata / Wikipedia** (`scraper/sources/wikipedia.ts`, `scraper/enrich-players.ts`) — photos and bios. Wikipedia infobox photos are usually portrait — the player profile pins `object-position: top` so the face stays in frame.
 
 ### politeFetch and TLS fingerprints

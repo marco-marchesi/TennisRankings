@@ -1,12 +1,16 @@
 # TennisRankings
 
-**The smartest tennis rankings site.** A live-tennis.eu competitor built
-for solo-dev scale: rankings, projections, points-expiry, head-to-heads,
-surface splits, simulators. SEO content is a byproduct of the data, not a
-content treadmill.
+ATP and WTA rankings with in-week projections, points-expiry tracking,
+head-to-heads and surface splits. Built and run at solo-dev scale.
 
-See [`PLAN.md`](./PLAN.md) for the full architecture, gap analysis, and
-roadmap.
+**Current focus: making the numbers exactly right.** The goal is that our
+computed ranking equals the ATP/WTA published points, and our projected
+ranking equals live-tennis.eu's live ranking — both verified by a permanent
+reconciliation harness rather than by eyeballing. See
+[`docs/ranking-rules.md`](./docs/ranking-rules.md) for the 2026 rulebook
+digest that serves as the spec.
+
+`PLAN.md` is the original 2026-05 build plan and is largely historical now.
 
 ---
 
@@ -15,7 +19,9 @@ roadmap.
 ```bash
 pnpm install
 cp .env.example .env.local              # fill DATABASE_URL etc.
-pnpm db:push                            # apply Drizzle schema to Neon
+pnpm db:push                            # apply Drizzle schema
+pnpm db:views                           # apply drizzle/views/*.sql — REQUIRED,
+                                        # db:push creates none of it
 pnpm scraper:seed                       # load fixtures into local DB
 pnpm dev                                # → http://localhost:3000
 ```
@@ -31,6 +37,7 @@ pnpm dev                                # → http://localhost:3000
 | `pnpm test` | Vitest (unit + scraper contract tests) |
 | `pnpm test:e2e` | Playwright smoke suite |
 | `pnpm db:push` | Push Drizzle schema |
+| `pnpm db:views` | Apply `drizzle/views/*.sql` (views, added columns, PK swaps) |
 | `pnpm db:studio` | Drizzle Studio |
 | `pnpm scraper:run` | One-off scraper (writes to DB) |
 | `pnpm scraper:run --dry` | Scraper, no writes (debug) |
@@ -41,23 +48,27 @@ pnpm dev                                # → http://localhost:3000
 ## Architecture
 
 ```
-Fly worker (cron, Mon 06:00 UTC + ad-hoc)
-  ├─ scraper/sources/atp.ts
-  ├─ scraper/sources/wta.ts
-  └─ scraper/sources/wikipedia.ts
+Local scraper run (scripts/*.ps1, manual today)
+  ├─ scraper/sources/{atp,wta}.ts        official rankings + race
+  ├─ scraper/sources/tennis-explorer*.ts fresh matches, top-800
+  ├─ scraper/sources/tennis-abstract.ts  deep history (Sackmann CSVs)
+  └─ scraper/sources/wikipedia.ts        photos + bios
         ↓
-  scraper/validate.ts   (zod + snapshot-diff sanity)
+  scraper/validate.ts    (zod + snapshot-diff sanity)
         ↓
-  Neon Postgres         (canonical, versioned snapshots)
+  Neon Postgres          (canonical, versioned snapshots)
         ↓
-  /api/revalidate       (on-demand ISR per route tag)
-        ↓
-  Cloudflare-cached Next.js HTML (24h s-maxage)
+  Next.js ISR (revalidate = 3600)
 ```
 
-Read paths use Drizzle queries server-side. Write paths are limited to
-the scraper worker and authenticated user actions (favourite player,
-newsletter).
+Read paths use Drizzle queries server-side. **All** write paths are the
+scraper worker and the projections runner — the web app never writes.
+
+> Earlier revisions of this file described a Fly.io worker on a Monday
+> 06:00 UTC cron. No Fly config has ever existed here, and the GitHub Actions
+> scraper workflow was removed in `36bd677`. **Nothing is scheduled right
+> now** — data is only as fresh as the last manual `.ps1` run. Registering the
+> Windows Task Scheduler jobs is a planned step.
 
 ---
 
@@ -82,17 +93,18 @@ src/
       rankings/[tour]/
       race/[tour]/
       players/[slug]/{,h2h/[opponent]/,history/}
-      tournaments/[slug]/{,[year]/}
+      leaderboards/[tour]/
     explainers/[slug]/
-    api/             # search, revalidate, newsletter, alerts, predictions
+    api/             # search, revalidate, player-photo
+    error.tsx        # honest failure state (no fabricated fallback data)
     layout.tsx, page.tsx, sitemap.ts, robots.ts
-  components/        # rankings-table, projection-table, form-widget, …
-  lib/               # data access, seo, schema-org, simulator, predictions
+  components/        # rankings-table, rank-delta, history chart, …
+  lib/               # data access, seo, schema-org
   db/                # drizzle client + schema
   styles/
 
-scraper/             # standalone worker (deployed to Fly)
-  sources/           # atp.ts, wta.ts, wikipedia.ts
+scraper/             # standalone worker, run locally via scripts/*.ps1
+  sources/           # atp, wta, tennis-explorer, tennis-abstract, wikipedia
   __fixtures__/      # recorded HTML/JSON for contract tests
   __tests__/
 

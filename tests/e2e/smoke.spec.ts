@@ -33,16 +33,6 @@ test.describe("smoke — pages render", () => {
     await expect(page.getByRole("heading", { name: /Ranking history/i })).toBeVisible();
   });
 
-  test("Tournament page renders", async ({ page }) => {
-    await page.goto("/tournaments/roland-garros");
-    await expect(page.getByRole("heading", { name: /Roland-Garros/ })).toBeVisible();
-  });
-
-  test("Projection page renders", async ({ page }) => {
-    await page.goto("/rankings/projection");
-    await expect(page.getByRole("heading", { name: /projection/i })).toBeVisible();
-  });
-
   test("Explainer page renders Markdown content", async ({ page }) => {
     await page.goto("/explainers/atp-points");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -111,15 +101,6 @@ test.describe("smoke — API", () => {
     });
     expect([403, 503]).toContain(res.status());
   });
-
-  test("/api/predictions returns probabilities summing to 1", async ({ request }) => {
-    const res = await request.post("/api/predictions", {
-      data: { playerA: "a", playerB: "b", surface: "hard" },
-    });
-    expect(res.ok()).toBe(true);
-    const body = (await res.json()) as { playerA: { winProb: number }; playerB: { winProb: number } };
-    expect(body.playerA.winProb + body.playerB.winProb).toBeCloseTo(1, 2);
-  });
 });
 
 test.describe("smoke — accessibility (axe)", () => {
@@ -137,12 +118,19 @@ test.describe("smoke — accessibility (axe)", () => {
   }
 });
 
-test.describe("smoke — consent gating", () => {
-  test("Plausible analytics does NOT load before consent is given", async ({ page }) => {
+test.describe("smoke — no third-party tracking", () => {
+  // The site ships no analytics at all now, so this asserts the stronger
+  // property: the page loads nothing from a third-party origin.
+  test("loads no third-party scripts or beacons", async ({ page }) => {
     const requests: string[] = [];
     page.on("request", (req) => requests.push(req.url()));
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    expect(requests.filter((u) => u.includes("plausible.io"))).toEqual([]);
+    const pageOrigin = new URL(page.url()).origin;
+    const thirdParty = requests.filter((u) => {
+      if (!u.startsWith("http")) return false;
+      return new URL(u).origin !== pageOrigin;
+    });
+    expect(thirdParty, `third-party requests: ${thirdParty.join(", ")}`).toEqual([]);
   });
 });

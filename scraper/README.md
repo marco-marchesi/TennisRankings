@@ -1,6 +1,10 @@
 # Scraper
 
-Standalone TypeScript worker, deployed to Fly.io. Runs every Monday 06:00 UTC
+Standalone TypeScript worker. Runs on the developer's machine via the
+`scripts/*.ps1` wrappers. (An earlier draft of this file described a Fly.io
+Machine on a Monday 06:00 UTC cron; no Fly config has ever existed in this
+repo. The GitHub Actions scraper workflow was also removed in 36bd677.)
+Historically intended to run every Monday 06:00 UTC
 and on-demand.
 
 ## Ethical scraping rules

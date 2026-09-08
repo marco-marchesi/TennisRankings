@@ -98,41 +98,43 @@ These can take a while — run them in order and let each finish.
 
 ---
 
-## 7. Set up the weekly scraper cron (GitHub Actions)
+## 7. Keeping the data fresh
 
-Vercel Hobby does not support cron jobs. Use GitHub Actions instead — it's free.
+**Nothing is scheduled today.** This section previously told you to create
+`.github/workflows/scraper.yml`, but that workflow was deliberately removed in
+`36bd677` in favour of running the pipeline locally via Windows Task Scheduler
+— and those scheduled tasks were never actually registered. The registration
+commands exist only as `.NOTES` comment blocks in the `scripts/*.ps1` headers,
+so `Get-ScheduledTask -TaskName "TennisRankings*"` returns nothing.
 
-Create `.github/workflows/scraper.yml`:
+Until a scheduler is set up, the site is only as fresh as the last manual run:
 
-```yaml
-name: Weekly scraper
-
-on:
-  schedule:
-    - cron: "0 8 * * 1"   # every Monday at 08:00 UTC (after ATP/WTA publish)
-  workflow_dispatch:        # allows manual trigger
-
-jobs:
-  scrape:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm scraper:run
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
-          NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL }}
+```powershell
+./scripts/Weekly-Update.ps1     # full pipeline
+./scripts/Hourly-Update.ps1     # TennisExplorer matches + projections
 ```
 
-Add `DATABASE_URL`, `REVALIDATE_SECRET`, and `NEXT_PUBLIC_SITE_URL` to **GitHub repo → Settings → Secrets and variables → Actions**.
+Both load `DATABASE_URL` from `.env.local` and only require the local Docker
+container when that URL points at localhost — pointing at Neon just works.
+
+**Why not GitHub Actions?** The production fetch path (`refresh.ts` →
+`fetch-live.ts`) drives Playwright/Chromium, because Cloudflare fingerprints
+Node's TLS handshake and blocks it regardless of User-Agent. That is workable
+in Actions with the Playwright action, but slower and more fragile than running
+it locally.
+
+The planned fix is `scripts/Register-Tasks.ps1` — idempotent registration of
+the weekly and hourly jobs with `-MultipleInstances IgnoreNew` (so hourly runs
+never stack), `-StartWhenAvailable` and an `-AtStartup` trigger (so a machine
+that was off on Monday catches up rather than silently skipping a week), plus
+`Start-Transcript` logging to `logs/` and a watchdog that asserts freshness.
+
+### After any schema change
+
+```powershell
+pnpm db:push
+pnpm db:views    # REQUIRED — db:push creates no views or added columns
+```
 
 ---
 
@@ -144,7 +146,6 @@ Add `DATABASE_URL`, `REVALIDATE_SECRET`, and `NEXT_PUBLIC_SITE_URL` to **GitHub 
 | Neon compute | 190 hours/month | Unlikely — DB only wakes on queries |
 | Vercel bandwidth | 100 GB/month | ~100k–500k pageviews/month |
 | Vercel builds | 6,000 min/month | Very unlikely |
-| GitHub Actions | 2,000 min/month | Weekly scraper uses ~2 min/run = 8 min/month |
 
 When Neon storage approaches 0.5 GB, upgrade to Neon Launch ($19/month). Everything else stays free for a long time.
 

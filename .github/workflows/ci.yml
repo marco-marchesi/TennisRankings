@@ -24,12 +24,45 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
+      # Unit + contract tests are offline by design: no DB, no network.
+      # LIVE_TESTS is deliberately unset here.
       - run: pnpm test
 
-  build:
-    name: Build
+  # Build and e2e are one job because they need the same thing: a real
+  # database. They used to be separate, with `build` running against
+  # DATABASE_URL=postgres://invalid/invalid — which only worked because the
+  # data layer silently fell back to hardcoded 2024 fixtures on any DB error.
+  # Those fallbacks are gone, and /rankings/[tour] + /race/[tour] are
+  # prerendered via generateStaticParams, so the build genuinely queries
+  # Postgres.
+  build-e2e:
+    name: Build · Playwright smoke
     runs-on: ubuntu-latest
     needs: quality
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: tennisrankings
+          POSTGRES_PASSWORD: tennisrankings
+          POSTGRES_DB: tennisrankings
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # localhost, so src/db/index.ts selects the node-postgres driver
+      # rather than the Neon HTTP one.
+      DATABASE_URL: postgres://tennisrankings:tennisrankings@localhost:5432/tennisrankings
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      REVALIDATE_SECRET: ci-not-a-real-secret
+      SCRAPER_CONTACT_EMAIL: ci@example.invalid
+
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -38,39 +71,34 @@ jobs:
           node-version: "20"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+
+      - name: Apply Drizzle schema
+        run: pnpm db:push --force
+
+      # drizzle-kit push creates neither the views nor the added columns,
+      # PK swaps and custom-ordering indexes in drizzle/views/*.sql. Without
+      # this step the app builds a schema it cannot fully query.
+      - name: Apply hand-maintained DDL (views, columns, indexes)
+        run: pnpm db:views
+
+      # Loads scraper/__fixtures__/atp-rankings.html. ATP only, so the WTA
+      # tables stay empty and those pages render their empty state.
+      - name: Seed from checked-in fixtures
+        run: pnpm scraper:seed
+
       - run: pnpm build
-        env:
-          NEXT_PUBLIC_SITE_URL: https://tennisrankings.example
-          DATABASE_URL: postgres://invalid/invalid
 
-  e2e:
-    name: Playwright smoke
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
-        env:
-          PLAYWRIGHT_BASE_URL: http://localhost:3000
 
-  lighthouse:
-    name: Lighthouse CI
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      # PLAYWRIGHT_BASE_URL is deliberately NOT set. Setting it made
+      # playwright.config.ts skip its `webServer` block, so nothing served the
+      # app and every test hit a dead port — the suite was never genuinely
+      # green.
+      - run: pnpm test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
         with:
-          node-version: "20"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec lhci autorun --config=./lighthouserc.json
-        continue-on-error: true
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
