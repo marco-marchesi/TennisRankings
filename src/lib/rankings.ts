@@ -1,8 +1,7 @@
 import "server-only";
 import { db, schema } from "@/db";
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import type { Tour } from "./constants";
-import { mockTopRanked } from "@/lib/mock-data";
 
 export interface RankingRow {
   rank: number;
@@ -66,7 +65,19 @@ export async function getTopRanked({
         )
         .then((rows) => rows[0]?.w));
 
-    if (!week) return mockTopRanked(tour, limit);
+    if (!week) return [];
+
+    // The live_projections join must be race-aware. live_projections holds a
+    // SINGLES projection (one row per player, no is_race column), so joining it
+    // on a race query made `projected_points` — and therefore the ORDER BY — a
+    // singles total (e.g. 11,830) for rows whose real calendar-year points are
+    // ~2,900. The displayed number came from ar.points and looked right, so the
+    // only visible symptom was a scrambled row order.
+    // `on false` keeps the query shape identical and leaves every lp.* column
+    // NULL, so projected_points collapses to ar.points via the coalesce below.
+    const projectionJoin = race
+      ? sql`left join live_projections lp on false`
+      : sql`left join live_projections lp on lp.player_id = p.id`;
 
     // One query that gives us everything: the current week's snapshot joined to
     // players, with national rank computed via a window function and career
@@ -165,14 +176,14 @@ export async function getTopRanked({
         row_number() over (order by coalesce(lp.next_points, ar.points) desc) as projected_rank
       from all_rows ar
       join players p on p.id = ar.player_id
-      left join live_projections lp on lp.player_id = p.id
+      ${projectionJoin}
       where ar.rank >= 1
       order by coalesce(lp.next_points, ar.points) desc
       limit ${limit};
     `);
 
     const result = (rows as unknown as { rows: Record<string, unknown>[] }).rows ?? (rows as unknown as Record<string, unknown>[]);
-    if (!Array.isArray(result) || result.length === 0) return mockTopRanked(tour, limit);
+    if (!Array.isArray(result) || result.length === 0) return [];
 
     return result.map((r) => ({
       rank: Number(r.rank),
@@ -207,10 +218,15 @@ export async function getTopRanked({
             },
     }));
   } catch (err) {
-    // DB unreachable — fall back to mock so dev/preview is never empty.
-    // eslint-disable-next-line no-console
-    console.warn("getTopRanked failed, falling back to mock:", err);
-    return mockTopRanked(tour, limit);
+    // Deliberately NOT caught into a fallback. This used to return
+    // mockTopRanked() — hardcoded 2024 points — on any DB error, with only a
+    // console.warn. Combined with `export const revalidate = 3600` that baked
+    // fabricated rankings into the ISR cache for an hour with nothing in the UI
+    // to say so. A visible error is strictly better than a plausible lie.
+    throw new Error(
+      `getTopRanked(${tour}${race ? ", race" : ""}) failed: ${err instanceof Error ? err.message : String(err)}`,
+      { cause: err },
+    );
   }
 }
 

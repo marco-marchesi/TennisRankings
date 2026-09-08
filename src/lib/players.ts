@@ -1,7 +1,6 @@
 import "server-only";
 import { db, schema } from "@/db";
-import { eq, ilike, sql } from "drizzle-orm";
-import { mockTopRanked } from "./mock-data";
+import { sql } from "drizzle-orm";
 
 export interface PlayerDetail {
   id: number;
@@ -78,7 +77,7 @@ export async function getSurfaceSplits(slug: string): Promise<SurfaceSplit[]> {
       join players p on p.id = prm.player_id
       where p.slug = ${slug}
       order by prm.player_id, prm.played_on, lower(prm.opponent_name),
-               case prm.source when 'tennis_explorer' then 0 else 1 end
+               case prm.source when 'atp_site' then 0 when 'tennis_explorer' then 1 else 2 end
     `);
     const matches =
       (rows as unknown as { rows: Array<{ surface: string | null; won: boolean; score: string | null }> })
@@ -194,7 +193,7 @@ export async function getRecentMatches(slug: string, limit = 10): Promise<Recent
         join players p on p.id = prm.player_id
         where p.slug = ${slug}
         order by prm.player_id, prm.played_on, lower(prm.opponent_name),
-                 case prm.source when 'tennis_explorer' then 0 else 1 end
+                 case prm.source when 'atp_site' then 0 when 'tennis_explorer' then 1 else 2 end
       )
       select * from deduped order by played_on desc limit ${limit};
     `);
@@ -346,7 +345,7 @@ export async function getPlayerBySlug(slug: string): Promise<PlayerDetail | null
     `);
     const result = (rows as unknown as { rows: Record<string, unknown>[] }).rows ?? (rows as unknown as Record<string, unknown>[]);
     const r = Array.isArray(result) ? result[0] : undefined;
-    if (!r) return mockPlayer(slug);
+    if (!r) return null;
 
     return {
       id: Number(r.id),
@@ -372,9 +371,12 @@ export async function getPlayerBySlug(slug: string): Promise<PlayerDetail | null
       nationalRank: r.national_rank == null ? null : Number(r.national_rank),
     };
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn("getPlayerBySlug failed, falling back to mock:", err);
-    return mockPlayer(slug);
+    // Surface it. Returning mockPlayer() here meant a DB blip rendered a real
+    // player page populated with 2024 fixture data and no indication it was fake.
+    throw new Error(
+      `getPlayerBySlug(${slug}) failed: ${err instanceof Error ? err.message : String(err)}`,
+      { cause: err },
+    );
   }
 }
 
@@ -416,21 +418,15 @@ export async function searchPlayers(q: string, limit = 8) {
         rank: r.rank == null ? null : Number(r.rank),
       }));
     }
-  } catch {
-    /* fall through to mock */
+  } catch (err) {
+    throw new Error(
+      `searchPlayers(${q}) failed: ${err instanceof Error ? err.message : String(err)}`,
+      { cause: err },
+    );
   }
-  // Mock fallback for dev/preview
-  const all = [...mockTopRanked("atp", 10), ...mockTopRanked("wta", 10)];
-  return all
-    .filter((r) => r.player.fullName.toLowerCase().includes(q.toLowerCase()))
-    .slice(0, limit)
-    .map((r) => ({
-      slug: r.player.slug,
-      fullName: r.player.fullName,
-      countryCode: r.player.countryCode,
-      tour: r.rank > 100 ? "wta" : ("atp" as const),
-      rank: r.rank,
-    }));
+  // No matches is a legitimate answer — previously this fell through to a
+  // substring match over 20 hardcoded 2024 players.
+  return [];
 }
 
 export async function listAllPlayerSlugs(): Promise<Array<{ slug: string; updatedAt: Date }>> {
@@ -438,41 +434,14 @@ export async function listAllPlayerSlugs(): Promise<Array<{ slug: string; update
     const rows = await db
       .select({ slug: schema.players.slug, updatedAt: schema.players.updatedAt })
       .from(schema.players);
-    if (rows.length > 0) return rows;
-  } catch {
-    /* fall through */
+    return rows;
+  } catch (err) {
+    // This feeds the sitemap. Emitting fixture slugs here would publish URLs
+    // for players that do not exist in the database.
+    throw new Error(
+      `listAllPlayerSlugs failed: ${err instanceof Error ? err.message : String(err)}`,
+      { cause: err },
+    );
   }
-  return [...mockTopRanked("atp", 10), ...mockTopRanked("wta", 10)].map((r) => ({
-    slug: r.player.slug,
-    updatedAt: new Date(),
-  }));
 }
 
-function mockPlayer(slug: string): PlayerDetail | null {
-  const all = [...mockTopRanked("atp", 10), ...mockTopRanked("wta", 10)];
-  const hit = all.find((r) => r.player.slug === slug);
-  if (!hit) return null;
-  return {
-    id: hit.player.id,
-    slug: hit.player.slug,
-    fullName: hit.player.fullName,
-    countryCode: hit.player.countryCode,
-    dateOfBirth: null,
-    height_cm: null,
-    plays: hit.player.plays,
-    backhand: null,
-    turnedPro: null,
-    photoUrl: null,
-    photoAttribution: null,
-    hasCachedPhoto: false,
-    wikipediaUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.player.fullName)}`,
-    bio: null,
-    tour: hit.player.id < 100 ? "atp" : "wta",
-    currentRank: hit.rank,
-    currentPoints: hit.points,
-    careerHighRank: hit.rank,
-    careerHighWeek: hit.weekOf,
-    raceRank: null,
-    nationalRank: hit.nationalRank,
-  };
-}

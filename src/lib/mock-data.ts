@@ -1,3 +1,17 @@
+/**
+ * TEST FIXTURES ONLY. Do not import this from application code.
+ *
+ * This used to be the silent fallback for every ranking, player and search
+ * query: `rankings.ts` and `players.ts` caught any database error — and, worse,
+ * any EMPTY RESULT — and returned these hardcoded 2024 figures with only a
+ * `console.warn`. Combined with `export const revalidate = 3600` on every
+ * page, one transient blip baked fabricated rankings into the ISR cache for an
+ * hour with nothing in the UI to say the numbers were invented.
+ *
+ * Those call sites now return an empty list or throw, and `src/app/error.tsx`
+ * renders an honest failure state. The data below survives only because
+ * `rankings-table.test.tsx` needs deterministic rows to render against.
+ */
 import type { Tour } from "./constants";
 import type { RankingRow } from "./rankings";
 
