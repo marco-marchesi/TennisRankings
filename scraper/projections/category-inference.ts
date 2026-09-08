@@ -56,11 +56,37 @@ function matchesAny(name: string, set: Set<string>): boolean {
   return false;
 }
 
+/**
+ * Levels exactly as `api.wtatennis.com` states them.
+ *
+ * Preferred over the Tennis Abstract letters wherever available, because they
+ * are unambiguous: TA's "P" covers both WTA 500 and WTA 250, so the letter
+ * path has to guess the tier from the event name and gets it wrong for any
+ * event missing from `WTA_500_TOURNAMENTS`. "WTA 1000" is deliberately absent
+ * — combined (1000 pts) and non-combined (900 pts) still have to be split by
+ * name.
+ */
+const WTA_API_EXACT_LEVELS: Record<string, Category> = {
+  "Grand Slam": "wta_grand_slam",
+  "WTA Finals": "finals",
+  "WTA 500": "wta_500",
+  "WTA 250": "wta_250",
+  "WTA 125": "wta_125",
+};
+
 export function inferCategory(
   tour: "atp" | "wta",
   tournamentName: string,
   level: string | null,
 ): Category {
+  if (tour === "wta" && level) {
+    const exact = WTA_API_EXACT_LEVELS[level];
+    if (exact) return exact;
+    if (level === "WTA 1000") {
+      return matchesAny(tournamentName, WTA_1000_NC) ? "wta_1000_nc" : "wta_1000";
+    }
+  }
+
   if (level === "F") return "finals";
   if (level === "D") return "davis_cup";
   if (level === "O") return "olympics";

@@ -24,6 +24,7 @@
     "scraper:validate": "tsx scraper/validate-report.ts",
     "scraper:merge-dupes": "tsx scraper/merge-duplicate-players.ts",
     "scraper:atp-results": "tsx scraper/scrape-atp-results.ts",
+    "scraper:wta-results": "tsx scraper/scrape-wta-results.ts",
     "scraper:compare-live": "tsx scraper/compare-live.ts",
     "scraper:verify": "tsx scraper/verify-data.ts",
     "scraper:projections": "tsx scraper/projections/index.ts",
