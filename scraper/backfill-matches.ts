@@ -18,10 +18,16 @@ import { db, schema } from "@/db";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { fetchMatches, type Tour, type TAMatch } from "./sources/tennis-abstract";
 
-// Cap on stored matches per player. ~80 covers a full season for any active
-// top-50 player (typical pro plays 60-80 matches/year) — needed for accurate
-// Played-YTD counts on the race view. Storage cost is ~100KB per player.
-const PER_PLAYER_LIMIT = 80;
+// Cap on stored matches per player, applied to the most recent matches first.
+//
+// Was 80, on the reasoning that a top-50 player plays 60-80 matches a year.
+// That is true for the tour-level main draw, but ranks 100-200 add qualifying
+// and Challenger/ITF draws and can exceed 100 matches a season — and a
+// ranking total needs a full 52 weeks, so truncating drops the OLDEST
+// counting results and reads downstream as a points shortfall rather than as
+// missing data. 250 covers a full 52 weeks with headroom at every depth we
+// rank.
+const PER_PLAYER_LIMIT = 250;
 
 function currentYear(): number {
   return new Date().getUTCFullYear();

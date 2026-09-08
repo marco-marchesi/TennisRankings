@@ -13,7 +13,43 @@
 // Everything here is read-only HTTP. No Cloudflare, no Playwright, no rate
 // limiting concerns at GitHub's raw-content scale.
 
-const TA_BASE = "https://raw.githubusercontent.com/JeffSackmann";
+// Jeff Sackmann's tennis_atp / tennis_wta repositories WERE the source here.
+// As of 2026-09 they are gone: the GitHub API returns 404 for
+// JeffSackmann/tennis_atp, and the account is down to a single public repo.
+// Every URL this module built now 404s, which is why backfill-history failed
+// and backfill-matches "succeeded" while fetching nothing.
+//
+// We fall back to a community archive of the same files. Two things to know:
+//
+//   1. Its layout differs — files live under `atp/` and `wta/` directories
+//      rather than in separate `tennis_atp` / `tennis_wta` repositories.
+//   2. **Its 2026 data ends at Roland Garros (tourney_date 20260525).**
+//      Wimbledon, the North American hard-court swing and the US Open are
+//      absent, so anything after May 2026 must come from TennisExplorer.
+//
+// Override with TA_BASE_URL / TA_LAYOUT if a fresher mirror appears.
+import { namesMatch } from "./live-tennis";
+
+const TA_BASE =
+  process.env.TA_BASE_URL ??
+  "https://raw.githubusercontent.com/Aneeshers/tennis-sackmann-archive/main";
+
+/**
+ * "archive" — <base>/<atp|wta>/<file>       (the community archive)
+ * "sackmann" — <base>/tennis_<tour>/master/<file>  (the original layout)
+ */
+const TA_LAYOUT = (process.env.TA_LAYOUT ?? "archive") as "archive" | "sackmann";
+
+/** The last date covered by the archive's 2026 match files. */
+export const TA_COVERAGE_ENDS = "2026-05-25";
+
+function taFileUrl(tour: Tour, fileName: string): string {
+  if (TA_LAYOUT === "sackmann") {
+    const repo = tour === "atp" ? "tennis_atp" : "tennis_wta";
+    return `${TA_BASE}/${repo}/master/${fileName}`;
+  }
+  return `${TA_BASE}/${tour}/${fileName}`;
+}
 
 export type Tour = "atp" | "wta";
 
@@ -61,8 +97,7 @@ export interface TAMatch {
 
 /** Fetch the full player metadata table for a tour. */
 export async function fetchPlayers(tour: Tour): Promise<TAPlayer[]> {
-  const repo = tour === "atp" ? "tennis_atp" : "tennis_wta";
-  const url = `${TA_BASE}/${repo}/master/${tour}_players.csv`;
+  const url = taFileUrl(tour, `${tour}_players.csv`);
   const text = await httpGet(url);
   const rows = parseCsv(text);
   return rows.map(toPlayer).filter((p): p is TAPlayer => p !== null);
@@ -75,10 +110,10 @@ export async function fetchPlayers(tour: Tour): Promise<TAPlayer[]> {
  * 50 player turned pro around 2003 and didn't break into top 50 until 2010+.
  */
 export async function fetchRankings(tour: Tour, buckets: string[]): Promise<TARanking[]> {
-  const repo = tour === "atp" ? "tennis_atp" : "tennis_wta";
   const all: TARanking[] = [];
+  let fetched = 0;
   for (const b of buckets) {
-    const url = `${TA_BASE}/${repo}/master/${tour}_rankings_${b}.csv`;
+    const url = taFileUrl(tour, `${tour}_rankings_${b}.csv`);
     try {
       const text = await httpGet(url);
       const rows = parseCsv(text);
@@ -88,7 +123,17 @@ export async function fetchRankings(tour: Tour, buckets: string[]): Promise<TARa
       }
     } catch (err) {
       console.warn(`[tennis-abstract] skipping ${url}:`, err instanceof Error ? err.message : err);
+      continue;
     }
+    fetched++;
+  }
+  // Every file failing is an upstream change, not "no data". Swallowing it
+  // with a warning is how a dead source looked like a successful run.
+  if (fetched === 0 && buckets.length > 0) {
+    throw new Error(
+      `[tennis-abstract] all ${buckets.length} ranking file(s) failed for ${tour}. ` +
+        `Base URL is ${TA_BASE} (layout=${TA_LAYOUT}). Set TA_BASE_URL to a working mirror.`,
+    );
   }
   return all;
 }
@@ -99,10 +144,10 @@ export async function fetchRankings(tour: Tour, buckets: string[]): Promise<TARa
  * all years; the caller filters by player.
  */
 export async function fetchMatches(tour: Tour, years: string[]): Promise<TAMatch[]> {
-  const repo = tour === "atp" ? "tennis_atp" : "tennis_wta";
   const all: TAMatch[] = [];
+  let fetchedFiles = 0;
   for (const y of years) {
-    const url = `${TA_BASE}/${repo}/master/${tour}_matches_${y}.csv`;
+    const url = taFileUrl(tour, `${tour}_matches_${y}.csv`);
     try {
       const text = await httpGet(url);
       const rows = parseCsv(text);
@@ -112,7 +157,15 @@ export async function fetchMatches(tour: Tour, years: string[]): Promise<TAMatch
       }
     } catch (err) {
       console.warn(`[tennis-abstract] skipping ${url}:`, err instanceof Error ? err.message : err);
+      continue;
     }
+    fetchedFiles++;
+  }
+  if (fetchedFiles === 0 && years.length > 0) {
+    throw new Error(
+      `[tennis-abstract] all ${years.length} match file(s) failed for ${tour}. ` +
+        `Base URL is ${TA_BASE} (layout=${TA_LAYOUT}). Set TA_BASE_URL to a working mirror.`,
+    );
   }
   return all;
 }
@@ -243,10 +296,29 @@ export function matchPlayer(
   candidates: TAPlayer[],
 ): TAPlayer | null {
   const ourName = normalizeName(ours.fullName);
-  const hits = candidates.filter((c) => {
+  let hits = candidates.filter((c) => {
     const candidateName = normalizeName(`${c.firstName} ${c.lastName}`);
     return candidateName === ourName;
   });
+
+  // Fall back to tolerant comparison when the exact key misses. The feeds
+  // spell the same player differently, and an unmatched player silently loses
+  // their entire ranking history:
+  //   official "Daniel Merida"        vs TA "Daniel Merida Aguilar"
+  //   official "Aleksandr Shevchenko" vs TA "Alexander Shevchenko"
+  //   official "Tomas Barrios Vera Marcelo" vs TA "Tomas Barrios Vera"
+  //
+  // Country is required here, which the exact path does not need — a
+  // tolerant name match plus a matching 3-letter country is strong evidence,
+  // and it keeps same-surname players on different tours/nations apart.
+  if (hits.length === 0) {
+    hits = candidates.filter(
+      (c) =>
+        namesMatch(`${c.firstName} ${c.lastName}`, ours.fullName) &&
+        (ours.countryCode == null || c.countryCode === ours.countryCode),
+    );
+  }
+
   if (hits.length === 0) return null;
   if (hits.length === 1) return hits[0]!;
   // Multiple hits → prefer country match, then most recent activity (we don't
