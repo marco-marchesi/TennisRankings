@@ -14,31 +14,74 @@ interface SourceConfig {
   // Optional: page actions to take after initial load (e.g. click "Load More"
   // to expand a lazy-paginated list). Returns when the page has the desired
   // row count or no more rows can be loaded.
-  expandRows?: (page: Page) => Promise<void>;
+  /** Returns the row count reached, so the caller can log/assert it. */
+  expandRows?: (page: Page) => Promise<number>;
 }
 
 // Shared WTA load-more expander — both the rankings and race pages paginate
-// at 50/page with the same `js-load-more` button.
-const expandWtaRows = async (page: Page) => {
-  const targetRows = 100;
-  const maxAttempts = 8;
+// at 50 rows per page behind the same `js-load-more` button.
+//
+// Why this does not use locator.click():
+//
+// The button renders around y=8020 on a 900px-tall viewport, and the page
+// keeps reflowing while lazy images resolve. Playwright's click performs
+// actionability checks — including waiting for the element to be positionally
+// STABLE — and on this page it never settles, so the click times out. The
+// original code wrote `await button.click().catch(() => {})`, swallowing that
+// timeout, then fell out of the loop and returned 50 rows. Both WTA sources
+// therefore parsed exactly 50 entries, the zod floor of 100 rejected the
+// snapshot, and no WTA rankings had been written since 2026-05.
+//
+// `el.click()` inside evaluate() invokes the site's own handler directly with
+// no hit-testing and no stability requirement, which is what we actually want:
+// we are not simulating a user, we are asking the page for more rows.
+const expandWtaRows = async (page: Page, targetRows = 200) => {
+  // Each click yields ~50 rows; allow a couple of spare attempts.
+  const maxAttempts = Math.ceil(targetRows / 50) + 3;
   let lastCount = await page.locator("tr.player-row").count();
-  for (let i = 0; i < maxAttempts; i++) {
-    if (lastCount >= targetRows) return;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    if (lastCount >= targetRows) break;
+
     const button = page.locator("button.js-load-more").first();
-    if (!(await button.isVisible().catch(() => false))) return;
-    await button.click().catch(() => {});
+    if ((await button.count()) === 0) {
+      console.warn(`[fetch-live] no js-load-more button; stopping at ${lastCount} rows`);
+      break;
+    }
+    if (!(await button.isVisible().catch(() => false))) {
+      console.warn(`[fetch-live] js-load-more not visible; stopping at ${lastCount} rows`);
+      break;
+    }
+
+    // Bring the button into view so any lazy content below it resolves, then
+    // fire the handler directly.
+    await button.evaluate((el) => {
+      el.scrollIntoView({ block: "center" });
+      (el as HTMLElement).click();
+    });
+
     try {
       await page.waitForFunction(
         (n) => document.querySelectorAll("tr.player-row").length > n,
         lastCount,
-        { timeout: 8_000 },
+        { timeout: 15_000 },
       );
     } catch {
-      return;
+      console.warn(
+        `[fetch-live] row count stuck at ${lastCount} after attempt ${attempt}; ` +
+          `the list is probably exhausted`,
+      );
+      break;
     }
-    lastCount = await page.locator("tr.player-row").count();
+
+    const next = await page.locator("tr.player-row").count();
+    console.log(`[fetch-live] expanded ${lastCount} → ${next} rows`);
+    lastCount = next;
   }
+
+  // Surfaced so the caller can log it and so a regression is visible in the
+  // pipeline output rather than only in a rejected snapshot.
+  return lastCount;
 };
 
 const SOURCES: Record<string, SourceConfig> = {
@@ -88,7 +131,8 @@ export async function fetchLive(tour: Tour): Promise<{ html: string; savedTo: st
 
     if (source.expandRows) {
       console.log(`[fetch-live] ${tour}: expanding paginated rows...`);
-      await source.expandRows(page);
+      const rows = await source.expandRows(page);
+      console.log(`[fetch-live] ${tour}: ${rows} player rows after expansion`);
     }
 
     const html = await page.content();
