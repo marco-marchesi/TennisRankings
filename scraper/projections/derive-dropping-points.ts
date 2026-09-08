@@ -21,6 +21,7 @@ import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { ROUNDS_IN_ORDER, canonicalizeRound, pointsForRound, type Round } from "../config/points-table";
 import { inferCategory } from "./category-inference";
+import { normSql } from "./tournament-key";
 
 interface Options {
   tour: "atp" | "wta";
@@ -60,21 +61,16 @@ export async function deriveDroppingPoints(opts: Options): Promise<Map<number, n
   const today = new Date();
   const weekStart = isoDate(mostRecentMonday(today));
 
-  // Names must be compared NORMALIZED, never as raw strings.
+  // Names must be compared NORMALIZED, never as raw strings — see
+  // `tournament-key.ts`, which also records why this deliberately does NOT
+  // strip tier suffixes (doing so merges the Madrid Challenger into the
+  // Madrid Masters, and this function charges points by event identity).
   //
-  // Tennis Abstract writes "Us Open"; TennisExplorer writes "US Open". A pure
-  // casing difference between the two feeds silently zeroed every dropping
-  // calculation, and because the WTA publishes no drop_points column that
-  // made the entire WTA live ranking wrong — Sabalenka appeared 1,940 points
-  // too high because her 2025 US Open title never registered as dropping.
-  //
-  // The same normalisation also bridges the tier suffixes the feeds disagree
-  // on: TA "Rome Masters" vs TE "Rome", TA "Cincinnati" (WTA) vs TE
-  // "Cincinnati WTA".
-  const NORM = (col: string) =>
-    sql.raw(
-      `regexp_replace(regexp_replace(lower(${col}), '\s+(masters|wta|atp|itf|challenger)\b.*$', ''), '\s+', ' ', 'g')`,
-    );
+  // The previous local copy claimed to bridge "Rome Masters" and "Rome". It
+  // did not: `'\s'` in a JS string is the letter s, so it was rewriting
+  // "bnp paribas open" to "bnp pariba  open", and Postgres reads `\b` as a
+  // backspace rather than a word boundary, so the suffix branch never fired.
+  const NORM = normSql;
 
   const eventsNow = await db.execute<{ tournament_name: string }>(sql`
     select distinct ${NORM("prm.tournament_name")} as tournament_name
@@ -98,24 +94,41 @@ export async function deriveDroppingPoints(opts: Options): Promise<Map<number, n
   const lo = isoDate(addDays(today, -400));
   const hi = isoDate(addDays(today, -330));
 
-  // DISTINCT ON dedups the same logical match if both TA and TE wrote rows
-  // for it — preferring TE via the source-CASE tiebreak. Keyed on
-  // (tournament, round, opponent) rather than on played_on, because the two
-  // sources disagree about the date: TA stores the tournament start, TE the
-  // real match date, so a date-based key can never collide.
+  // DISTINCT ON dedups the same logical match when several feeds wrote a row
+  // for it, preferring the official sources via the source-CASE tiebreak.
+  //
+  // Keyed on (player, NORMALISED tournament, round). Every other candidate
+  // key has been tried and fails, because the feeds agree on nothing else
+  // about the same match. For Janice Tjen's Monterrey R32:
+  //
+  //   wta_api           "Monterrey"  R32  2026-08-24  "Dayana Yastremska"
+  //   tennis_explorer   "Monterrey"  1R   2026-08-25  "Yastremska D."
+  //
+  //   played_on   differs (one day, or the whole tournament for TA rows)
+  //   opponent    differs in FORMAT, which is what the previous key used, so
+  //               it never collided and both rows survived
+  //   round       differs in LABEL ("1R" / "R32"), canonicalised below
+  //
+  // (player, edition, round) is sound as a unique key because a player plays
+  // at most ONE match per round at an event. The exception is a round-robin
+  // group (the season finals), where several matches share round "RR" and
+  // this will keep only one — acceptable, since `earnedAtTournament` already
+  // scores by deepest round rather than by RR record.
   const raw = await db.execute<{
     player_id: number;
     tournament_name: string;
+    tournament_key: string;
     tournament_level: string | null;
     round: string;
     won: boolean;
     played_on: string;
   }>(sql`
     select distinct on (
-      prm.player_id, prm.tournament_name, prm.round, lower(prm.opponent_name)
+      prm.player_id, ${NORM("prm.tournament_name")}, prm.round
     )
-      prm.player_id, prm.tournament_name, prm.tournament_level,
-      prm.round, prm.won, prm.played_on
+      prm.player_id, prm.tournament_name,
+      ${NORM("prm.tournament_name")} as tournament_key,
+      prm.tournament_level, prm.round, prm.won, prm.played_on
     from player_recent_matches prm
     where prm.player_id = any(array[${sql.join(opts.playerIds.map((id) => sql`${id}`), sql`, `)}]::int[])
       and prm.played_on >= ${lo}
@@ -124,8 +137,7 @@ export async function deriveDroppingPoints(opts: Options): Promise<Map<number, n
         currentEventNames.map((n) => sql`${n}`),
         sql`, `,
       )}]::text[])
-    order by prm.player_id, prm.tournament_name, prm.round,
-             lower(prm.opponent_name),
+    order by prm.player_id, ${NORM("prm.tournament_name")}, prm.round,
              case prm.source when 'atp_site' then 0 when 'wta_api' then 0 when 'tennis_explorer' then 1 else 2 end
   `);
   const rawRows =
@@ -134,18 +146,28 @@ export async function deriveDroppingPoints(opts: Options): Promise<Map<number, n
   const rows = rawRows.map((r) => ({
     playerId: Number(r.player_id),
     tournamentName: String(r.tournament_name),
+    tournamentKey: String(r.tournament_key),
     tournamentLevel: (r.tournament_level as string | null) ?? null,
     round: String(r.round),
     won: Boolean(r.won),
     playedOn: String(r.played_on),
   }));
 
-  // Group by (player, tournament_name). Each group is the player's matches at
-  // that tournament. The deepest match tells us how many points they earned.
+  // Group by (player, NORMALISED tournament). Each group is the player's
+  // matches at that edition, and the deepest one says what they earned.
+  //
+  // This used to group on the RAW name, which meant one edition became one
+  // group PER SPELLING and every group's points were added together. With
+  // both an official-feed row and a TennisExplorer row for the same event,
+  // players were charged twice what they were defending: Sabalenka's 2025 US
+  // Open title came to 4,000 rather than 2,000, and Iva Jovic's R64 to 140
+  // rather than 70. Any name-alignment work upstream makes this worse, not
+  // better, because more spellings normalise into the same current-week
+  // event list and therefore more duplicate groups qualify.
   type Key = string;
   const groups = new Map<Key, typeof rows>();
   for (const r of rows) {
-    const key = `${r.playerId}::${r.tournamentName}`;
+    const key = `${r.playerId}::${r.tournamentKey}`;
     const existing = groups.get(key);
     if (existing) existing.push(r);
     else groups.set(key, [r]);

@@ -19,6 +19,7 @@ import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { canonicalizeRound, ROUNDS_IN_ORDER, type Category, type Round } from "../config/points-table";
 import type { ProjectionStatus } from "./calculator";
 import { inferCategory } from "./category-inference";
+import { normSql } from "./tournament-key";
 
 export interface LiveState {
   playerId: number;
@@ -94,9 +95,18 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
       -- names ("Madrid", "Rome", "Cincinnati"), so without the tour column an
       -- ATP final marked the WTA event of the same name finished, and vice
       -- versa. player_recent_matches has no tour column, hence the join.
+      --
+      -- The name is NORMALISED on both sides. It used to be joined raw, which
+      -- meant the exclusion silently did not apply whenever the Final and the
+      -- player's own row came from feeds that spell the event differently.
+      -- Measured on 2026-09-08: 102 US Open players stored under "US Open"
+      -- (TennisExplorer) and 48 under "Us Open" (the ATP writer's slug
+      -- title-casing), so a third of the field would have kept being credited
+      -- an in-progress US Open after it finished — the exact double-count
+      -- this CTE exists to prevent.
       select distinct
         p.tour,
-        prm.tournament_name,
+        ${normSql("prm.tournament_name")} as tournament_key,
         extract(year from prm.played_on)::int as year
       from player_recent_matches prm
       join players p on p.id = prm.player_id
@@ -109,11 +119,11 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
       from player_recent_matches prm
       join players pt on pt.id = prm.player_id
       left join finished_tournaments ft
-        on ft.tournament_name = prm.tournament_name
+        on ft.tournament_key = ${normSql("prm.tournament_name")}
        and ft.year = extract(year from prm.played_on)::int
        and ft.tour = pt.tour
       where prm.played_on >= ${cutoffStr}
-        and ft.tournament_name is null
+        and ft.tournament_key is null
     ),
     latest_match as (
       -- Tie-break on source so when both TA and TE recorded the same date,
