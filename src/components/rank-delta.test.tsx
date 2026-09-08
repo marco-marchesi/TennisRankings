@@ -2,17 +2,35 @@ import { describe, it, expect } from "vitest";
 import { renderToString } from "react-dom/server";
 import { RankDelta } from "./rank-delta";
 
+/**
+ * React's server renderer separates adjacent text nodes with `<!-- -->`
+ * markers, so `{dir} {n} {noun}` serialises as
+ * `up<!-- --> <!-- -->3<!-- --> <!-- -->places`.
+ *
+ * These tests previously matched `/up 3/` against the raw HTML and failed on
+ * that punctuation, even though the accessible text was correct all along.
+ * Strip the markers and collapse whitespace so the assertions describe what a
+ * screen reader actually announces rather than React's wire format.
+ */
+function announcedText(html: string): string {
+  return html
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 describe("<RankDelta />", () => {
   it("renders an upward triangle and 'up N places' SR label when rank improves", () => {
     const html = renderToString(<RankDelta prevRank={10} currentRank={7} />);
     expect(html).toContain("▲");
-    expect(html).toMatch(/up 3/);
+    expect(announcedText(html)).toMatch(/up 3 places/);
   });
 
   it("renders a downward triangle and 'down N places' SR label when rank worsens", () => {
     const html = renderToString(<RankDelta prevRank={5} currentRank={9} />);
     expect(html).toContain("▼");
-    expect(html).toMatch(/down 4/);
+    expect(announcedText(html)).toMatch(/down 4 places/);
   });
 
   it("renders the no-change glyph (–) when ranks are equal", () => {
@@ -27,6 +45,6 @@ describe("<RankDelta />", () => {
 
   it("singularises the SR label for a 1-place move", () => {
     const html = renderToString(<RankDelta prevRank={5} currentRank={4} />);
-    expect(html).toMatch(/up 1 place(?!s)/);
+    expect(announcedText(html)).toMatch(/up 1 place(?!s)/);
   });
 });

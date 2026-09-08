@@ -5,8 +5,6 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/constants";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { ConsentBanner } from "@/components/consent-banner";
-import { Analytics } from "@/components/analytics";
 import { JsonLd } from "@/components/json-ld";
 import { organizationLd, websiteLd } from "@/lib/schema-org";
 
@@ -66,8 +64,6 @@ export default function RootLayout({
             {children}
           </main>
           <SiteFooter />
-          <ConsentBanner />
-          <Analytics />
           <JsonLd data={[organizationLd(), websiteLd()]} />
         </ThemeProvider>
       </body>

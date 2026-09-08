@@ -6,7 +6,7 @@ export default function NotFound() {
       <p className="text-xs uppercase tracking-wider text-[color:var(--muted-foreground)]">404</p>
       <h1 className="mt-2 font-serif text-4xl">Out of the draw.</h1>
       <p className="mt-3 text-[color:var(--muted-foreground)]">
-        That page doesn't exist. Try the{" "}
+        That page doesn&apos;t exist. Try the{" "}
         <Link href="/rankings/atp" className="underline">ATP rankings</Link>,{" "}
         the <Link href="/rankings/wta" className="underline">WTA rankings</Link>, or
         search a player from the top bar.

@@ -246,15 +246,15 @@ export default async function PlayerPage({ params }: Params) {
               </a>
             </li>
           )}
-          <li>
-            <a
-              className="underline"
-              href={`https://www.atptour.com/en/players/${p.slug}`}
-              rel="noopener nofollow"
-            >
-              Official {p.tour.toUpperCase()} profile
-            </a>
-          </li>
+          {/*
+            Removed: an "Official {tour} profile" link hardcoded to
+            atptour.com, so every WTA player was labelled "Official WTA
+            profile" while pointing at the men's tour. It was also broken for
+            ATP players, because atptour.com profile URLs need the player's
+            official id (/en/players/{slug}/{id}/overview) and we only had the
+            slug. Restore this once player_external_ids carries the official
+            site ids.
+          */}
         </ul>
         {p.photoAttribution && (
           <p className="mt-3 text-xs text-[color:var(--muted-foreground)]">

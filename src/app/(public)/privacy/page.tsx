@@ -14,39 +14,33 @@ export default function PrivacyPage() {
 
       <h2>What we collect</h2>
       <p>
-        Public browsing requires no account. If you choose to enable
-        analytics via the consent banner, we collect aggregated, anonymised
-        page-view statistics through Plausible. We do not use third-party
-        tracking cookies.
+        Nothing that identifies you. There are no accounts, no sign-in, no
+        newsletter and no email collection. We store no personal data about
+        visitors at all.
       </p>
 
-      <h2>Accounts</h2>
+      <h2>Cookies and analytics</h2>
       <p>
-        If you sign up to follow players or receive alerts, we store your
-        email address and the list of players you follow. You can export or
-        delete this data at any time from your account page.
+        We set no tracking cookies and use no third-party advertising or
+        tracking scripts.
       </p>
 
-      <h2>Newsletter</h2>
+      <h2>What the site does store</h2>
       <p>
-        Subscribers receive a single confirmation email and weekly digest.
-        Each email includes a one-click unsubscribe link.
+        Only public tennis data: player rankings, match results, tournament
+        results and biographical details sourced from the ATP and WTA sites,
+        Tennis Abstract, TennisExplorer, Wikidata and Wikipedia.
       </p>
 
       <h2>Data location</h2>
-      <p>
-        Our database is hosted on Neon in the EU. Email is sent via Resend.
-        All processing happens in the EU.
-      </p>
+      <p>Our database is hosted on Neon in the EU.</p>
 
       <h2>Your rights</h2>
       <p>
-        Under GDPR you have the right of access, rectification, erasure,
-        restriction, portability and objection. Email{" "}
-        <a href="mailto:privacy@tennisrankings.example">
-          privacy@tennisrankings.example
-        </a>{" "}
-        and we will respond within 30 days.
+        Because we hold no personal data about visitors, there is nothing to
+        access, rectify, erase or port. If you believe a page shows personal
+        data about you that should not be there, get in touch via the contact
+        page and we will remove it.
       </p>
     </article>
   );

@@ -108,7 +108,7 @@ export function RankingsTable({ rows, caption, isRace = false }: Props) {
               : nullable((r) => r.projection?.pointsDelta ?? null, sortDir);
 
     return [...filtered].sort(cmp);
-  }, [rows, ageFilter, countryFilter, sortKey, sortDir]);
+  }, [rows, ageFilter, countryFilter, sortKey, sortDir, isRace]);
 
   const showCareerHigh = !isRace;
   const anyProjection = !isRace && filteredSorted.some((r) => r.projection !== null);

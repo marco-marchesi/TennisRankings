@@ -9,7 +9,7 @@ export const revalidate = 3600;
 export const metadata = buildMetadata({
   title: "Live ATP & WTA rankings — smarter projections",
   description:
-    "The smartest tennis-rankings site. Live ATP & WTA tables, points-expiry, head-to-heads, and what-if simulators — built for fans who want depth.",
+    "Live ATP & WTA tables, points-expiry, head-to-heads and surface splits — built for fans who want depth.",
   path: "/",
 });
 

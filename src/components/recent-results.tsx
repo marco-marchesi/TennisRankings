@@ -39,7 +39,7 @@ export function RecentResults({ matches, limit = 10 }: Props) {
   if (matches.length === 0) {
     return (
       <div className="rounded-lg border bg-[color:var(--muted)]/30 p-6 text-center text-sm text-[color:var(--muted-foreground)]">
-        No recent matches recorded yet. Run <code>pnpm scraper:backfill-matches</code> to pull history from Tennis Abstract.
+        No recent matches recorded for this player yet.
       </div>
     );
   }

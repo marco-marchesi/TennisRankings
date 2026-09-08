@@ -13,26 +13,24 @@ export default function CookiePage() {
       <p><strong>Last updated:</strong> {new Date().toISOString().slice(0, 10)}</p>
 
       <h2>What we set</h2>
-      <ul>
-        <li><strong>Essential</strong> — theme preference (light/dark), consent choice. No tracking. Cannot be disabled because the site needs them to work.</li>
-        <li><strong>Analytics</strong> — Plausible. Loaded only after you accept. Aggregated, no personal identifiers, no cross-site profile.</li>
-        <li><strong>Account</strong> — secure HTTP-only session cookie. Set only after you sign in.</li>
-      </ul>
-
-      <h2>What we don't set</h2>
       <p>
-        We do not use third-party advertising cookies, Facebook pixels, or
-        session-replay tools. When advertising is enabled in a later phase
-        we will list every vendor here and surface them in the consent
-        banner before any cookie is set.
+        No cookies. The site has no accounts and no analytics, so there is no
+        session cookie, no consent cookie and no tracking cookie.
       </p>
 
-      <h2>Changing your choice</h2>
+      <h2>Local storage</h2>
       <p>
-        You can change your consent at any time by clearing site data in
-        your browser, or by clicking the "Cookie settings" link in the
-        footer (coming soon).
+        One entry, <code>theme</code>, remembers whether you chose light or
+        dark mode. It stays in your browser, is never sent to us, and clearing
+        site data removes it.
       </p>
+
+      <h2>What we don&apos;t set</h2>
+      <p>
+        No third-party advertising cookies, no tracking pixels, no
+        session-replay tools, no analytics of any kind.
+      </p>
+
     </article>
   );
 }

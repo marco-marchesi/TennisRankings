@@ -382,75 +382,19 @@ export const playerPointsBreakdown = pgTable(
   }),
 );
 
-// --- Auth.js tables (Drizzle adapter expects these names) ---
-export const users = pgTable("users", {
-  id: text("id").primaryKey(),
-  name: text("name"),
-  email: text("email").notNull().unique(),
-  emailVerified: timestamp("email_verified", { withTimezone: true }),
-  image: text("image"),
-  premiumUntil: timestamp("premium_until", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
-
-export const accounts = pgTable(
-  "accounts",
-  {
-    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    type: text("type").notNull(),
-    provider: text("provider").notNull(),
-    providerAccountId: text("provider_account_id").notNull(),
-    refresh_token: text("refresh_token"),
-    access_token: text("access_token"),
-    expires_at: integer("expires_at"),
-    token_type: text("token_type"),
-    scope: text("scope"),
-    id_token: text("id_token"),
-    session_state: text("session_state"),
-  },
-  (t) => ({ pk: primaryKey({ columns: [t.provider, t.providerAccountId] }) }),
-);
-
-export const sessions = pgTable("sessions", {
-  sessionToken: text("session_token").primaryKey(),
-  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  expires: timestamp("expires", { withTimezone: true }).notNull(),
-});
-
-export const verificationTokens = pgTable(
-  "verification_tokens",
-  {
-    identifier: text("identifier").notNull(),
-    token: text("token").notNull(),
-    expires: timestamp("expires", { withTimezone: true }).notNull(),
-  },
-  (t) => ({ pk: primaryKey({ columns: [t.identifier, t.token] }) }),
-);
-
-export const userFollowedPlayers = pgTable(
-  "user_followed_players",
-  {
-    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
-    notifyOnResult: boolean("notify_on_result").default(true).notNull(),
-    notifyOnRankChange: boolean("notify_on_rank_change").default(true).notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (t) => ({ pk: primaryKey({ columns: [t.userId, t.playerId] }) }),
-);
-
-export const newsletterSubscribers = pgTable(
-  "newsletter_subscribers",
-  {
-    id: serial("id").primaryKey(),
-    email: text("email").notNull(),
-    locale: text("locale").default("en"),
-    confirmed: boolean("confirmed").default(false).notNull(),
-    confirmationToken: text("confirmation_token"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (t) => ({ emailIdx: uniqueIndex("newsletter_email_idx").on(t.email) }),
-);
+// --- Removed: Auth.js, favorites and newsletter tables ---
+//
+// users / accounts / sessions / verification_tokens / user_followed_players /
+// newsletter_subscribers were all defined here and all held zero rows. The
+// features on top of them never worked: auth pointed `signIn` at a
+// non-existent /account/sign-in, POST /api/alerts returned an unconditional
+// 401 with the implementation commented out, and the newsletter had no
+// confirmation endpoint at all, so `confirmed` could never become true.
+//
+// The table definitions are gone from the schema, but `pnpm db:push` will now
+// want to DROP the real tables. That is intended — they are empty — but it is
+// a destructive migration, so run it deliberately rather than as a side effect
+// of some other schema change.
 
 // --- Relations ---
 export const playersRelations = relations(players, ({ many }) => ({

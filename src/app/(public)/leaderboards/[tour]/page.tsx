@@ -69,7 +69,7 @@ export default async function LeaderboardsPage({ params, searchParams }: Params 
         {tour.toUpperCase()} Leaderboards
       </h1>
       <p className="mt-2 max-w-2xl text-[color:var(--muted-foreground)]">
-        Last-52-week stats from Tennis Abstract's Match Charting Project — the
+        Last-52-week stats from Tennis Abstract&apos;s Match Charting Project — the
         point-by-point dataset volunteers have been hand-tagging since 2013.
       </p>
 
@@ -102,7 +102,6 @@ export default async function LeaderboardsPage({ params, searchParams }: Params 
 
       <p className="mt-6 text-xs text-[color:var(--muted-foreground)]">
         Source: <a className="underline" rel="noopener nofollow" href="https://tennisabstract.com/">Tennis Abstract</a> Match Charting Project (CC-BY).
-        Updated whenever <code>pnpm scraper:leaderboards</code> runs.
       </p>
     </div>
   );

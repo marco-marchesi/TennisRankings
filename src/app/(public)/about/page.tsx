@@ -16,7 +16,7 @@ export default function AboutPage() {
         official ATP and WTA tour data is too polite to show: where the
         rankings are <em>going</em>. Points-expiry windows, head-to-heads,
         surface splits, ranking projections — built for fans who think
-        about tennis the way the players' coaches do.
+        about tennis the way the players&apos; coaches do.
       </p>
 
       <h2>Who runs it</h2>
@@ -49,8 +49,8 @@ export default function AboutPage() {
       <h2>How it stays independent</h2>
       <p>
         Optional Premium membership (no ads, full alerts, CSV exports) and
-        sparingly placed display ads. We don't sell user data and we don't
-        pretend that affiliate partners "endorse" anything.
+        sparingly placed display ads. We don&apos;t sell user data and we don&apos;t
+        pretend that affiliate partners &quot;endorse&quot; anything.
       </p>
     </article>
   );

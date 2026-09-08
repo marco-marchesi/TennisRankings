@@ -4,7 +4,7 @@ import { SITE_URL } from "@/lib/constants";
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      { userAgent: "*", allow: "/", disallow: ["/api/", "/account/"] },
+      { userAgent: "*", allow: "/", disallow: ["/api/"] },
       // Block known LLM scrapers by default — Google + Bing still allowed.
       { userAgent: ["GPTBot", "CCBot", "ClaudeBot", "anthropic-ai"], disallow: "/" },
     ],

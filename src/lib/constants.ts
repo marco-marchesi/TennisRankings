@@ -1,7 +1,7 @@
 export const SITE_NAME = "TennisRankings";
 export const SITE_TAGLINE = "The smartest tennis rankings site.";
 export const SITE_DESCRIPTION =
-  "Live ATP and WTA rankings, projections, points-expiry tracking, head-to-heads, surface splits, and what-if simulators. Built for tennis fans who want depth, not just numbers.";
+  "Live ATP and WTA rankings, projections, points-expiry tracking, head-to-heads and surface splits. Built for tennis fans who want depth, not just numbers.";
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://tennisrankings.example";
 export const DEFAULT_LOCALE = "en";

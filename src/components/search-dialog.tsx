@@ -101,7 +101,7 @@ export function SearchTrigger() {
               ))}
               {q && q.length >= 2 && results.length === 0 && (
                 <li className="px-4 py-3 text-sm text-[color:var(--muted-foreground)]">
-                  No players match "{q}".
+                  No players match &quot;{q}&quot;.
                 </li>
               )}
             </ul>
