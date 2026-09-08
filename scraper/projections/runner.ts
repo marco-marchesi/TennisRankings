@@ -85,9 +85,16 @@ export async function runProjections(opts: RunOptions): Promise<ProjectionRunRes
     playerIds,
   });
 
-  // 3. Wipe the previous run for this tour's players. Done by playerId rather
-  //    than tour-keyed so a single transactionless batch is fine.
-  await db.delete(schema.liveProjections).where(inArray(schema.liveProjections.playerId, playerIds));
+  // 3. Wipe the previous run for this ENTIRE tour, not just the players we are
+  //    about to rewrite. Deleting only `playerIds` (the current top-N) left a
+  //    frozen row behind for anyone who dropped out of the top-N, and
+  //    src/lib/rankings.ts prefers lp.next_points over the settled points
+  //    whenever a row exists — so a stale projection outranked live data
+  //    indefinitely.
+  await db.execute(sql`
+    delete from live_projections
+    where player_id in (select id from players where tour = ${opts.tour})
+  `);
 
   // 4. Compute + write per-player projections.
   for (const state of liveStates) {

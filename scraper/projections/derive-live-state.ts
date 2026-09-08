@@ -78,21 +78,40 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
       order by rs.rank
       limit ${opts.topN}
     ),
+    week_start as (
+      select date_trunc('week', current_date)::date as monday
+    ),
     finished_tournaments as (
-      -- Any tournament that has a Final row recorded is over. We compare by
-      -- (tournament_name, year) so re-runs of the same event don't conflate.
+      -- A tournament whose Final was played BEFORE the current ranking week is
+      -- already baked into the settled snapshot, so crediting it again would
+      -- double-count. But a Final played INSIDE the current week must stay in
+      -- scope: the champion's title-winning match IS that Final row, so
+      -- excluding the whole event made the champion and the runner-up vanish
+      -- from the result set and get reported as "not playing". That is why the
+      -- won_tournament branch below could never fire on real data.
+      --
+      -- Scoped by tour as well as (name, year): the tours share tournament
+      -- names ("Madrid", "Rome", "Cincinnati"), so without the tour column an
+      -- ATP final marked the WTA event of the same name finished, and vice
+      -- versa. player_recent_matches has no tour column, hence the join.
       select distinct
-        tournament_name,
-        extract(year from played_on)::int as year
-      from player_recent_matches
-      where round = 'F'
+        p.tour,
+        prm.tournament_name,
+        extract(year from prm.played_on)::int as year
+      from player_recent_matches prm
+      join players p on p.id = prm.player_id
+      cross join week_start ws
+      where prm.round = 'F'
+        and prm.played_on < ws.monday
     ),
     in_progress_matches as (
       select prm.*
       from player_recent_matches prm
+      join players pt on pt.id = prm.player_id
       left join finished_tournaments ft
         on ft.tournament_name = prm.tournament_name
        and ft.year = extract(year from prm.played_on)::int
+       and ft.tour = pt.tour
       where prm.played_on >= ${cutoffStr}
         and ft.tournament_name is null
     ),
@@ -105,8 +124,8 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
         ipm.round, ipm.won
       from in_progress_matches ipm
       order by ipm.player_id, ipm.played_on desc,
-               case ipm.source when 'tennis_explorer' then 0 else 1 end
-    )
+               case ipm.source when 'atp_site' then 0 when 'tennis_explorer' then 1 else 2 end
+    ),
     next_upcoming as (
       -- Earliest scheduled match per player from the upcoming table — used
       -- when a player has been drawn into an event but their first match

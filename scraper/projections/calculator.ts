@@ -46,6 +46,11 @@ export interface ProjectionInput {
    * Defaults to 0 when unknown (e.g. WTA, where the column isn't published).
    */
   nextBestPoints?: number;
+  /**
+   * Apply the next-best promotion. Default OFF, to match live-tennis.eu's
+   * live-ranking convention. See the note in computeProjection().
+   */
+  applyNextBest?: boolean;
   status: ProjectionStatus;
   /** Required unless status is "not_playing". */
   category?: Category;
@@ -72,12 +77,24 @@ export function computeProjection(input: ProjectionInput): ProjectionOutput {
   const { currentPoints, droppingPoints, status, category, roundReached } = input;
   const nextBest = input.nextBestPoints ?? 0;
 
-  // The "next-best promotion" mechanic: when a countable result rolls off,
-  // a player's next-best non-countable steps in to fill the slot. Net loss
-  // from dropping is therefore (dropping − nextBest), not the full dropping.
-  // We cap nextBest at droppingPoints because next_best can't promote into
-  // anything beyond the slot that just opened up.
-  const effectiveDrop = Math.max(0, droppingPoints - Math.min(droppingPoints, nextBest));
+  // The "next-best promotion" mechanic: when a countable result rolls off, a
+  // player's next-best non-countable result steps into the freed slot, so the
+  // net loss is (dropping − nextBest) rather than the full dropping.
+  //
+  // That is how the ranking behaves at Monday's publish — but it is NOT how a
+  // LIVE ranking is presented, and live-tennis.eu is the target we are held
+  // to. Measured against LT's live ATP ranking, applying the promotion made
+  // us too high by exactly each player's next-best value on every row:
+  // Auger-Aliassime +50, Zverev +40, de Minaur +50, Cobolli/Medvedev/
+  // Shelton/Tien/Mensik +10. LT computes official − dropping + earned, full
+  // stop.
+  //
+  // So the promotion is off by default and opt-in via `applyNextBest`, kept
+  // because it is the right model for a next-Monday PROJECTION even though it
+  // is the wrong one for a live ranking.
+  const effectiveDrop = input.applyNextBest
+    ? Math.max(0, droppingPoints - Math.min(droppingPoints, nextBest))
+    : droppingPoints;
 
   if (status === "not_playing") {
     // No tournament this week → no secured points → the only thing that

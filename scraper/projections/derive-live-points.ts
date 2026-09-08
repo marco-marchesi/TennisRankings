@@ -24,13 +24,7 @@
 
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
-import {
-  canonicalizeRound,
-  pointsForRound,
-  ROUNDS_IN_ORDER,
-  type Category,
-  type Round,
-} from "../config/points-table";
+import { canonicalizeRound, pointsForRound } from "../config/points-table";
 import { inferCategory } from "./category-inference";
 
 export interface LivePointsRow {
@@ -139,7 +133,7 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
     where prm.player_id = any(array[${sql.join(allPlayerIds.map((id) => sql`${id}`), sql`, `)}]::int[])
       and prm.played_on >= ${weekStart}
     order by prm.player_id, prm.played_on, lower(prm.opponent_name),
-             case prm.source when 'tennis_explorer' then 0 else 1 end
+             case prm.source when 'atp_site' then 0 when 'tennis_explorer' then 1 else 2 end
   `);
   const matchRows =
     ((matches as unknown) as { rows?: InWeekMatch[] }).rows ??
@@ -176,16 +170,27 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
     ms.sort((a, b) => a.played_on.localeCompare(b.played_on));
     // Group by tournament so a player who appeared in two tournaments this
     // week (rare — qualifying + main draw) gets each contribution.
+    //
+    // The key MUST be normalised. The sources spell the same event
+    // differently - atptour.com "Us Open", TennisExplorer "US Open", Tennis
+    // Abstract "Rome Masters" vs TE "Rome" - and grouping on the raw string
+    // splits one tournament into several, crediting a player once per
+    // spelling. Adding the atp_site source made this concrete: Zverev held an
+    // atp_site R16 row and a TennisExplorer 1R row for the same US Open, and
+    // was credited a reached-QF (400) plus a reached-R64 (50).
     const byTournament = new Map<string, InWeekMatch[]>();
     for (const m of ms) {
-      const arr = byTournament.get(m.tournament_name) ?? [];
+      const key = normaliseTournamentKey(m.tournament_name);
+      const arr = byTournament.get(key) ?? [];
       arr.push(m);
-      byTournament.set(m.tournament_name, arr);
+      byTournament.set(key, arr);
     }
     let total = 0;
-    for (const [tName, tMatches] of byTournament) {
+    for (const [, tMatches] of byTournament) {
       const last = tMatches[tMatches.length - 1]!;
-      const category = inferCategory(tour, tName, last.tournament_level);
+      // Infer the category from the RAW name of the deepest row, not the
+      // normalised key: category inference matches against real event names.
+      const category = inferCategory(tour, last.tournament_name, last.tournament_level);
       // Mirror live-tennis.eu's crediting rule:
       //   - last match LOST → credit the round they lost in
       //   - last match WON the final → champion credit
@@ -261,29 +266,6 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
 }
 
 /**
- * Given a match this player just played, what round have they currently
- * reached? Mirrors the calculator's roundReached convention:
- *   - won  → the NEXT round (they advanced)
- *   - lost → the round of the match (they fell out at this round)
- *
- * The raw round string comes from player_recent_matches.round, which can
- * be in any of TA / TE / ATP formats. canonicalizeRound + category resolve
- * this into our internal `Round` ladder.
- */
-function reachedRoundForMatch(
-  m: { round: string; won: boolean },
-  category: Category,
-): Round | null {
-  const round = canonicalizeRound(m.round, category);
-  if (!round) return null;
-  if (!m.won) return round;
-  // Advanced. If they won the final ("F"), the next round is "W".
-  if (round === "F") return "W";
-  const idx = ROUNDS_IN_ORDER.indexOf(round);
-  return ROUNDS_IN_ORDER[idx + 1] ?? "W";
-}
-
-/**
  * Return the most-recent Monday at 00:00 UTC as an ISO date string. ATP/WTA
  * publishes new rankings on Monday — anything before that boundary is in
  * the settled snapshot already.
@@ -295,4 +277,20 @@ function mostRecentMondayUtc(): string {
   const daysBack = dow === 0 ? 6 : dow - 1;
   d.setUTCDate(d.getUTCDate() - daysBack);
   return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Canonical grouping key for a tournament name.
+ *
+ * Lower-cases and strips the tier/tour suffixes the feeds disagree on, so
+ * "Us Open" / "US Open", "Rome" / "Rome Masters" and
+ * "Cincinnati" / "Cincinnati WTA" collapse to one event. Comparison only -
+ * never stored.
+ */
+export function normaliseTournamentKey(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/\s+(masters|wta|atp|itf|challenger).*$/i, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }

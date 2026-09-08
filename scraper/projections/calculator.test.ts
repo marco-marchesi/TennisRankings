@@ -19,6 +19,7 @@ describe("computeProjection", () => {
         currentPoints: 4000,
         droppingPoints: 200,
         nextBestPoints: 100,
+        applyNextBest: true,
         status: "not_playing",
       });
       // effectiveDrop = 200 - 100 = 100 → delta = -100, next = 3900
@@ -31,6 +32,7 @@ describe("computeProjection", () => {
         currentPoints: 5000,
         droppingPoints: 200,
         nextBestPoints: 500,
+        applyNextBest: true,
         status: "not_playing",
       });
       expect(Math.abs(r.pointsDelta)).toBe(0); // effectiveDrop = 0, no net change (could be -0)
@@ -58,6 +60,7 @@ describe("computeProjection", () => {
         currentPoints: 4060,
         droppingPoints: 200,
         nextBestPoints: 100,
+        applyNextBest: true,
         status: "in_progress",
         category: "masters_1000",
         roundReached: "R64",
@@ -123,5 +126,47 @@ describe("computeProjection", () => {
         }),
       ).toThrow();
     });
+  });
+});
+
+/**
+ * The next-best promotion is opt-in as of 2026-09. Measured against
+ * live-tennis.eu's live ATP ranking, applying it made us too high by exactly
+ * each player's next-best value on every single row, because LT computes
+ * official - dropping + earned with no promotion. The mechanic is still the
+ * right model for a next-Monday projection, hence the flag.
+ */
+describe("next-best promotion is opt-in", () => {
+  const base = {
+    currentPoints: 4000,
+    droppingPoints: 200,
+    nextBestPoints: 100,
+    status: "not_playing" as const,
+  };
+
+  it("by default the FULL dropping is subtracted (live-tennis.eu convention)", () => {
+    const out = computeProjection(base);
+    expect(out.pointsDelta).toBe(-200);
+    expect(out.nextPoints).toBe(3800);
+  });
+
+  it("with applyNextBest the promotion offsets the drop", () => {
+    const out = computeProjection({ ...base, applyNextBest: true });
+    expect(out.pointsDelta).toBe(-100);
+    expect(out.nextPoints).toBe(3900);
+  });
+
+  it("reproduces the Auger-Aliassime row that exposed this", () => {
+    // Official 4640, dropping 800, next best 50, secured 50 (US Open R64).
+    // live-tennis.eu showed 3890 = 4640 - 800 + 50.
+    const out = computeProjection({
+      currentPoints: 4640,
+      droppingPoints: 800,
+      nextBestPoints: 50,
+      status: "in_progress",
+      category: "grand_slam",
+      roundReached: "R64",
+    });
+    expect(out.nextPoints).toBe(3890);
   });
 });
