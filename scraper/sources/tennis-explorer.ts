@@ -74,7 +74,32 @@ export async function fetchDailyMatchList(date: Date, tour: Tour): Promise<TEMat
 
 export function parseDailyMatchList(html: string): TEMatchRef[] {
   const $ = cheerio.load(html);
-  const table = $("table.result").first();
+  // EVERY results table that carries tournament header rows — not
+  // `table.result`.first(). On some days TE renders a small extra table above
+  // the main one (2026-09-29: a two-match "UTR Pro Tennis Series 9" block), and
+  // reading only the first table silently dropped all 200+ other matches of
+  // that day, Beijing and Tokyo included. The sidebar's "interesting matches"
+  // tables share the class but have no tournament headers, so this filter
+  // excludes them without depending on the page's container class names.
+  const tables = $("table.result")
+    .toArray()
+    .filter((t) => $(t).find("tr.head a[href]").length > 0);
+  const out: TEMatchRef[] = [];
+  const seenIds = new Set<string>();
+  for (const table of tables) {
+    for (const ref of parseResultTable($, $(table))) {
+      if (seenIds.has(ref.teMatchId)) continue;
+      seenIds.add(ref.teMatchId);
+      out.push(ref);
+    }
+  }
+  return out;
+}
+
+function parseResultTable(
+  $: cheerio.CheerioAPI,
+  table: ReturnType<cheerio.CheerioAPI>,
+): TEMatchRef[] {
   const rows = table.find("tr").toArray();
   const out: TEMatchRef[] = [];
 

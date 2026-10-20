@@ -38,19 +38,43 @@ const URLS: Record<Tour, string> = {
   wta: "https://www.tennisexplorer.com/ranking/wta-women/",
 };
 
-export async function fetchRanking(tour: Tour, topN: number): Promise<TERankingRow[]> {
+export interface TERanking {
+  /** The ranking date TE says it is showing ("2026-09-28"), or null. */
+  weekOf: string | null;
+  rows: TERankingRow[];
+}
+
+export async function fetchRanking(tour: Tour, topN: number, date?: string): Promise<TERanking> {
   const pages = Math.ceil(topN / ROWS_PER_PAGE);
   const all: TERankingRow[] = [];
+  let weekOf: string | null = null;
   for (let p = 1; p <= pages; p++) {
-    const url = `${URLS[tour]}?page=${p}`;
+    const url = `${URLS[tour]}?${date ? `date=${date}&` : ""}page=${p}`;
     const res = await politeFetch(url);
     const html = await res.text();
+    if (p === 1) weekOf = parseRankingDate(html);
     const rows = parseRanking(html);
     if (rows.length === 0) break; // beyond the published list
     all.push(...rows);
     if (all.length >= topN) break;
   }
-  return all.slice(0, topN);
+  return { weekOf, rows: all.slice(0, topN) };
+}
+
+/**
+ * The ranking date TE is displaying: the selected option of its date picker,
+ * `<option value="2026-09-28" selected="selected">`. expand-rankings used to
+ * ignore it and write into whatever week was newest in OUR table, so a week
+ * whose official refresh had failed received TE's NEXT week on top of the
+ * previous week's top 100 — two ranking lists in one bucket.
+ */
+export function parseRankingDate(html: string): string | null {
+  const $ = cheerio.load(html);
+  const v = $("option[selected]")
+    .toArray()
+    .map((o) => $(o).attr("value") ?? "")
+    .find((x) => /^\d{4}-\d{2}-\d{2}$/.test(x));
+  return v ?? null;
 }
 
 export function parseRanking(html: string): TERankingRow[] {

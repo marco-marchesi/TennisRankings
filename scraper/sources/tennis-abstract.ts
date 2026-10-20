@@ -188,7 +188,7 @@ async function httpGet(url: string): Promise<string> {
  * (like commas in player names) would require a real CSV library — we have
  * not seen any so far across hundreds of thousands of rows.
  */
-function parseCsv(text: string): Record<string, string>[] {
+export function parseCsv(text: string): Record<string, string>[] {
   const lines = text.trim().split(/\r?\n/);
   if (lines.length < 2) return [];
   const header = lines[0]!.split(",");

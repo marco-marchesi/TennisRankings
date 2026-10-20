@@ -42,8 +42,13 @@ export class CloudflareChallengeError extends Error {
   }
 }
 
+// NOT the bare "challenge-platform" path: every genuine atptour.com and
+// live-tennis.eu page loads Cloudflare's passive beacon from
+// /cdn-cgi/challenge-platform/scripts/jsd/main.js, so matching the path alone
+// classified every real page as a challenge. Only the interstitial loads the
+// "orchestrate" script (/challenge-platform/h/<x>/orchestrate/...).
 const CHALLENGE_PAT =
-  /Just a moment\.\.\.|Attention Required|cf-browser-verification|challenge-platform|__cf_chl|Enable JavaScript and cookies to continue/i;
+  /Just a moment\.\.\.|Attention Required|cf-browser-verification|challenge-platform\/h\/|_cf_chl_opt|__cf_chl|Enable JavaScript and cookies to continue/i;
 
 /**
  * A Cloudflare interstitial is a 200 with an HTML body, so it reaches the

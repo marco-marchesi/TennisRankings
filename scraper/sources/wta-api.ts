@@ -316,16 +316,16 @@ export function resolveWtaRound(input: {
     if (n == null) return null;
     const present = (input.qualifyingRoundIds ?? []).slice().sort((a, b) => a - b);
     const position = present.indexOf(n);
-    // The points tables key off the FINAL qualifying round, so anchor there
-    // and count backwards: a three-round qualifying draw maps 1/2/3 onto
-    // Q1/Q2/Q3, a two-round draw maps 1/2 onto Q2/Q3. This is an
-    // approximation for short qualifying draws, where the true first-round
-    // value is lower than Q2's — worth at most a couple of points, and only
-    // for players who qualified rather than entered directly.
+    // Numbered from the first round: 1/2/3 -> Q1/Q2/Q3, 1/2 -> Q1/Q2. At a
+    // non-Slam the points table's Q3 slot is the qualifying WINNER's value
+    // and Q2 the last round's loser (docs/ranking-rules.md:96-98), so
+    // anchoring a two-round draw on Q3 — as this used to — charged every
+    // last-round loser the qualifier's value. TennisExplorer's Q-1R / Q-2R
+    // land on the same labels.
     if (position < 0 || present.length === 0) {
       return n >= 1 && n <= 3 ? { round: QUAL_LADDER[n - 1]!, isQualifying: true } : null;
     }
-    const ladder = QUAL_LADDER.slice(Math.max(0, QUAL_LADDER.length - present.length));
+    const ladder = QUAL_LADDER.slice(0, present.length);
     const round = ladder[Math.min(position, ladder.length - 1)];
     return round ? { round, isQualifying: true } : null;
   }
@@ -441,7 +441,10 @@ export interface MatchParseContext {
    * needs no calendar lookup to name a numeric round.
    */
   singlesDrawSize?: number | null;
-  /** Fallback clamp bounds for `playedOn`. */
+  /**
+   * Fallback clamp bounds for `playedOn`. `startDate` is the MAIN-DRAW start,
+   * as the API reports it; the parser widens it for qualifying itself.
+   */
   startDate?: string;
   endDate?: string;
 }
@@ -530,6 +533,20 @@ function clampDate(iso: string, from?: string, to?: string): string {
   return iso;
 }
 
+/**
+ * Days before the MAIN-DRAW start that qualifying may be played. Both the
+ * embedded record's and the calendar's `startDate` are the main-draw start, so
+ * the clamp's lower bound must reach back this far or qualifying is re-dated
+ * forward: Wuhan 2026 Q1/Q2 (10-11 Oct) were stored as 12 Oct.
+ */
+const QUALIFYING_LEAD_DAYS = 4;
+
+function isoShift(iso: string, days: number): string {
+  const d = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 /** Parse the matches endpoint for one tournament. */
 export function parseWtaMatches(json: unknown, ctx: MatchParseContext): MatchParseResult {
   const root = (json ?? {}) as Record<string, unknown>;
@@ -541,7 +558,8 @@ export function parseWtaMatches(json: unknown, ctx: MatchParseContext): MatchPar
 
   const tournament = parseTournamentRecord(root.tournament);
   const singlesDrawSize = tournament?.singlesDrawSize ?? ctx.singlesDrawSize ?? null;
-  const startDate = tournament?.startDate ?? ctx.startDate;
+  const mainDrawStart = tournament?.startDate ?? ctx.startDate;
+  const startDate = mainDrawStart ? isoShift(mainDrawStart, -QUALIFYING_LEAD_DAYS) : undefined;
   const endDate = tournament?.endDate ?? ctx.endDate;
 
   const result: MatchParseResult = {

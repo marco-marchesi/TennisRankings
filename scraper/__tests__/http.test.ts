@@ -100,6 +100,30 @@ describe("isChallengePage", () => {
     expect(isChallengePage(realPage)).toBe(false);
   });
 
+  // Every real atptour.com and live-tennis.eu page carries Cloudflare's
+  // passive bot-detection beacon, which also lives under
+  // /cdn-cgi/challenge-platform/. Matching the bare path therefore flagged
+  // EVERY genuine page as a challenge, so the curl fallback threw on good
+  // content. Snippet verbatim from atptour.com/en/rankings/singles, 2026-09-21.
+  it("does not flag a real page that carries the passive jsd beacon", () => {
+    const beacon =
+      `<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;` +
+      `if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3e91a8d8b46d0b3',` +
+      `t:'MTc4OTk5NDA2Mg=='};var a=document.createElement('script');` +
+      `a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';` +
+      `document.getElementsByTagName('head')[0].appendChild(a);";}}})();</script>`;
+    const realPage =
+      `<html><head><title>ATP Rankings | PIF ATP Rankings (Singles)</title></head><body>` +
+      "<tr><td class=rank>1</td><td class=player>Jannik Sinner</td></tr>".repeat(200) +
+      beacon +
+      `</body></html>`;
+    expect(isChallengePage(realPage)).toBe(false);
+  });
+
+  it("detects the interstitial's cf_chl_opt bootstrap", () => {
+    expect(isChallengePage(`<script>window._cf_chl_opt={cvId:'3'}</script>`)).toBe(true);
+  });
+
   it("does not flag ordinary short content", () => {
     expect(isChallengePage("<html><body><p>No results.</p></body></html>")).toBe(false);
   });

@@ -383,33 +383,25 @@ export function atpResultsUrl(t: AtpResultsTarget): string {
  * per-match crawl it replaces.
  */
 export async function fetchAtpResults(t: AtpResultsTarget): Promise<AtpResultMatch[]> {
-  const { chromium } = await import("@playwright/test");
+  const { withPage, gotoPastChallenge } = await import("../browser");
   const url = atpResultsUrl(t);
-  const browser = await chromium.launch({ headless: true });
-  try {
-    const ctx = await browser.newContext({
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      viewport: { width: 1400, height: 1000 },
-      locale: "en-US",
-    });
-    const page = await ctx.newPage();
-    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
-    // The results are server-rendered; waiting on a match block also gives
-    // the Cloudflare check time to clear.
-    await page.waitForSelector("div.match", { timeout: 45_000 }).catch(() => {});
-    const html = await page.content();
-    const matches = await parseAtpResults(html);
-    if (matches.length === 0) {
-      throw new Error(
-        `${url}: parsed 0 matches from ${html.length} bytes. Either the ` +
-          `tournament has no results yet, or the markup changed — check ` +
-          `div.match / .player-info / .score-item in atp-results.ts.`,
-      );
-    }
-    return matches;
-  } finally {
-    await browser.close();
+  const html = await withPage(
+    async (page) => {
+      // Throws CloudflareChallengeError on an uncleared interstitial, instead
+      // of letting it surface as "parsed 0 matches ... or the markup changed".
+      await gotoPastChallenge(page, url);
+      await page.waitForSelector("div.match", { timeout: 45_000 }).catch(() => {});
+      return page.content();
+    },
+    { width: 1400, height: 1000 },
+  );
+  const matches = await parseAtpResults(html);
+  if (matches.length === 0) {
+    throw new Error(
+      `${url}: parsed 0 matches from ${html.length} bytes. Either the ` +
+        `tournament has no results yet, or the markup changed — check ` +
+        `div.match / .player-info / .score-item in atp-results.ts.`,
+    );
   }
+  return matches;
 }

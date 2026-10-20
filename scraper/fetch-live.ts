@@ -3,7 +3,8 @@
 // exists so devs can capture real, JS-rendered HTML locally to validate
 // the parser against the actual current page structure.
 
-import { chromium, type Browser, type Page } from "@playwright/test";
+import type { Browser, Page } from "@playwright/test";
+import { gotoPastChallenge, launchBrowser, newScraperContext } from "./browser";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -86,12 +87,18 @@ const expandWtaRows = async (page: Page, targetRows = 200) => {
 
 const SOURCES: Record<string, SourceConfig> = {
   atp: {
-    url: "https://www.atptour.com/en/rankings/singles",
-    // ATP returns the full top-100 in initial HTML — no expansion needed.
+    // rankRange pulls the OFFICIAL list well past the default top 100, with
+    // the same Dropping / Next Best columns. Ranks 101+ used to come from
+    // TennisExplorer instead, which was a week stale on some rows (Hugo
+    // Dellien 122 pts where ATP published 460) and carried no dropping at
+    // all — so every ATP player ranked 101-200 was projected to drop nothing.
+    url: "https://www.atptour.com/en/rankings/singles?rankRange=1-500",
   },
   wta: {
     url: "https://www.wtatennis.com/rankings/singles",
-    expandRows: expandWtaRows,
+    // 500, matching the ATP depth, so TennisExplorer only ever fills ranks
+    // beyond the official list (see expand-rankings.ts).
+    expandRows: (page) => expandWtaRows(page, 500),
   },
   // ATP Race to the Finals — calendar-year points (resets every January).
   // Same HTML structure as the regular rankings page.
@@ -118,15 +125,12 @@ export async function fetchLive(tour: Tour): Promise<{ html: string; savedTo: st
 
   let browser: Browser | undefined;
   try {
-    browser = await chromium.launch({ headless: true });
-    const ctx = await browser.newContext({
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      viewport: { width: 1280, height: 800 },
-      locale: "en-US",
-    });
+    browser = await launchBrowser();
+    const ctx = await newScraperContext(browser, { width: 1280, height: 800 });
     const page = await ctx.newPage();
-    await page.goto(source.url, { waitUntil: "domcontentloaded", timeout: 45_000 });
+    // Throws CloudflareChallengeError rather than handing the interstitial to
+    // the parser, where it used to become a silent 0-row parse.
+    await gotoPastChallenge(page, source.url, { timeoutMs: 45_000 });
     await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => {});
 
     if (source.expandRows) {

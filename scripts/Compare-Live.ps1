@@ -89,6 +89,15 @@ function Write-Log([string]$Message) {
 
 Write-Log "=== Compare-Live starting (lookback=$LookbackDays top=$Top skipRefresh=$SkipRefresh) ==="
 
+# Wait for a Weekly-Update started by the same logon to finish, rather than
+# racing it (see Pipeline-Lock.ps1). Comparing mid-refresh diffs a ranking
+# that is being rewritten.
+. (Join-Path $PSScriptRoot "Pipeline-Lock.ps1")
+if (-not (Enter-PipelineLock -OnWait { param($m) Write-Log $m })) {
+    Write-Log "FATAL: pipeline lock still held after 120 min - another run is stuck"
+    exit 2
+}
+
 # DATABASE_URL: prefer the environment, else read .env.local. tsx does not
 # load .env.local by itself (Next.js does, the scraper does not).
 if (-not $env:DATABASE_URL) {
@@ -156,10 +165,12 @@ if (-not $SkipRefresh) {
     # TennisExplorer fallback: covers Challengers and ITF events the official
     # sources do not. Currently blocked by the network, so a failure here is
     # expected and must not stop the run.
-    # --lookahead 1 keeps player_upcoming_matches populated for today without
-    # spending requests on a week of provisional schedules.
+    # --lookahead 2 = today + tomorrow. It used to be 1 (today only), so a
+    # seed with a first-round bye whose opening match is tomorrow had no
+    # upcoming row and was projected "not playing" for the whole first days
+    # of a 96-draw event.
     Invoke-Step "3/5 TennisExplorer fallback (last $LookbackDays days)" `
-        "pnpm scraper:daily-matches -- --lookback $LookbackDays --lookahead 1" -Optional | Out-Null
+        "pnpm scraper:daily-matches -- --lookback $LookbackDays --lookahead 2" -Optional | Out-Null
 
     Invoke-Step "4/5 recompute projections (top $Top)" `
         "pnpm scraper:projections -- --top $Top" | Out-Null
@@ -172,6 +183,7 @@ $compareExit = Invoke-Step "5/5 compare against live-tennis.eu" `
 
 Write-Log "=== Compare-Live finished: $failures failed step(s), $optionalFailures optional step(s) skipped/failed ==="
 Write-Log "report: logs\live-diff-$today.log"
+Exit-PipelineLock
 
 # Surface a duplicate-rank defect (compare-live exits 1 for that) distinctly
 # from a step that simply failed to run.

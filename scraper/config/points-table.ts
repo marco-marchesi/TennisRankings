@@ -3,7 +3,7 @@
 // Source: ATP 2026 Rulebook Chapter 9, WTA 2026 Rulebook (cross-checked).
 // Grand Slam round values differ between tours — use "grand_slam" for ATP,
 // "wta_grand_slam" for WTA. WTA non-combined 1000s (Doha/Dubai/Wuhan) use
-// "wta_1000_nc" (winner earns 900, not 1000). Bump POINTS_TABLE_VERSION
+// "wta_1000_nc" (a separate best-1-of-3 slot). Bump POINTS_TABLE_VERSION
 // whenever a tier table changes so downstream consumers can spot a
 // points-rule shift versus a data error.
 //
@@ -30,7 +30,7 @@
 //     reward values are identical; only qualifying differs in obscure ways.
 //   - CH50 events with 48 draws add an R48 row worth 1 point. Modelled.
 
-export const POINTS_TABLE_VERSION = "2026-05-wta-slam-nc";
+export const POINTS_TABLE_VERSION = "2026-10-ch-itf-wta-q";
 
 export type Round =
   | "W" | "F" | "SF" | "QF"
@@ -68,7 +68,7 @@ export type Category =
   | "atp_250"
   // WTA equivalents — 1000 combined mirrors ATP 1000; non-combined pay less
   | "wta_1000"         // combined WTA 1000s (Indian Wells, Miami, Madrid, Rome, Canada, Cincinnati, Beijing)
-  | "wta_1000_nc"      // non-combined WTA 1000s (Doha, Dubai, Wuhan) — winner earns 900
+  | "wta_1000_nc"      // non-combined WTA 1000s (Doha, Dubai, Wuhan) — own slot; 900 until 2023
   | "wta_500"
   | "wta_250"
   | "wta_125"
@@ -84,7 +84,14 @@ export type Category =
   | "ch_50"
   // ITF Futures, modelled per prize-money tier
   | "m25_futures"
-  | "m15_futures";
+  | "m15_futures"
+  // ITF event whose tier (W15..W100 / M15, M25) no feed states. Scored 0
+  // rather than guessed; see category-inference.ts.
+  | "itf"
+  // Exhibitions and team events that award no ranking points (UTR series,
+  // Laver Cup, Asian Games, Billie Jean King Cup, ...). Before this existed
+  // they fell through to atp_250 / wta_250.
+  | "non_ranking";
 
 type PointsByRound = Partial<Record<Round, number>>;
 
@@ -134,24 +141,33 @@ const MASTERS_1000_POINTS: PointsByRound = {
   R32: 50,
   R64: 30,
   R128: 10,
-  Q3: 20,
-  Q2: 10,
+  // docs/ranking-rules.md:64-66. Two qualifying rounds; the Q3 slot holds the
+  // qualifying winner's value, as at every non-Slam tier. Was 20 / 10 / none.
+  Q3: 25,
+  Q2: 16,
+  Q1: 8,
 };
 
-// WTA non-combined 1000s (Doha, Dubai, Wuhan): winner earns 900 (not 1000)
-// because these count in a separate "best 1 of 3" slot vs. the 7 combined.
-// docs/ranking-rules.md:317-332
+// WTA non-combined 1000s (Doha, Dubai, Wuhan) — 56-draw. They still count in
+// a separate "best 1 of 3" slot, but since 2025 they PAY like every other
+// 1000: 1000 / 650 / 390 / 215 / 120 / 65, and 10 for the first round.
+// This table used to carry the pre-2025 900 / 585 / 350 / 190 / 105 / 60 / 1,
+// which under-charged Gauff's Wuhan 2025 title by 100 and Pegula's final by
+// 65 when those results dropped (live-tennis.eu, 2026-09-29; WTA 1000 points
+// table on Wikipedia "WTA 1000 tournaments").
 const WTA_1000_NC_POINTS: PointsByRound = {
-  W: 900,
-  F: 585,
-  SF: 350,
-  QF: 190,
-  R16: 105,
-  R32: 60,
-  R64: 1,
-  Q3: 25,
-  Q2: 13,
-  Q1: 1,
+  W: 1000,
+  F: 650,
+  SF: 390,
+  QF: 215,
+  R16: 120,
+  R32: 65,
+  R64: 10,
+  // Qualifying as the other 1000s' 64/56-draw row (2024/2025_WTA_Tour); was
+  // 25 / 13 / 1, the 500's values. Replay over 2026: clean delta 65.7 -> 66.0%.
+  Q3: 30,
+  Q2: 20,
+  Q1: 2,
 };
 
 // WTA combined/mandatory 1000s (Indian Wells, Miami, Madrid, Rome, Canada,
@@ -181,7 +197,12 @@ const ATP_500_POINTS: PointsByRound = {
   SF: 200,
   QF: 100,
   R16: 50,
-  R32: 25,
+  // A first-round loss at a 32-draw 500 earns nothing (2025 ATP Rulebook,
+  // ch. 9, "ATP Tour 500 - 32 Draw": R1 0). This said 25 — the 48-draw
+  // value, where R32 is the SECOND round — so every Beijing / Tokyo 2026
+  // first-round loser, and every player waiting to play one, was 25 high
+  // against live-tennis.eu.
+  R32: 0,
   Q3: 25,
   Q2: 13,
   Q1: 0,
@@ -194,7 +215,8 @@ const ATP_250_POINTS: PointsByRound = {
   SF: 100,
   QF: 50,
   R16: 25,
-  R32: 13,
+  // 0, not 13 — as for the 500 above ("ATP Tour 250 - 32 Draw": R1 0).
+  R32: 0,
   Q3: 12,
   Q2: 6,
   Q1: 0,
@@ -242,6 +264,19 @@ const WTA_125_POINTS: PointsByRound = {
   QF: 27,
   R16: 15,
   R32: 1,
+  // Qualifier 6, last qualifying round 4, first 1 (2024_WTA_125_tournaments
+  // "Points distribution"). Replay over 2026: clean delta 65.7 -> 66.6%.
+  Q3: 6,
+  Q2: 4,
+  Q1: 1,
+};
+
+/**
+ * 56/48-draw WTA 500 (2024/2025_WTA_Tour, "64/56/48S" row): the first round
+ * is R64 (1) and R32 pays 32. Replay over 2026: clean delta 65.7 -> 66.0%.
+ */
+const WTA_500_D56_POINTS: PointsByRound = {
+  W: 500, F: 325, SF: 195, QF: 108, R16: 60, R32: 32, R64: 1, Q3: 25, Q2: 13, Q1: 1,
 };
 
 // ─── Draw-size variants ──────────────────────────────────────────
@@ -288,12 +323,15 @@ const WTA_1000_D56_POINTS: PointsByRound = {
  */
 const ATP_500_D48_POINTS: PointsByRound = {
   ...ATP_500_POINTS,
+  // In a 48-draw R32 is the second round, which does pay.
+  R32: 25,
   R64: 16,
 };
 
 /** 48-draw ATP 250. docs/ranking-rules.md:95 gives R64 = 8. */
 const ATP_250_D48_POINTS: PointsByRound = {
   ...ATP_250_POINTS,
+  R32: 13,
   R64: 8,
 };
 
@@ -344,35 +382,48 @@ const FINALS_POINTS: PointsByRound = {
 };
 
 // ─── ATP Challenger Tour — five distinct prize-money tiers ──────────────
+//
+// 2024/2025_ATP_Challenger_Tour "Point distribution" (the 2025 page cites the
+// 2025 ATP rulebook ch. 9). A first-round loss earns nothing; Q3 is the
+// qualifying winner's value (as at every non-Slam tier), Q2 the last
+// qualifying round's loser. docs/ranking-rules.md listed 6/5/4/3/3 under
+// "R32": that was the qualifier column. Replay over the 2026 weeks
+// (2026-10-13): clean delta 60.1% -> 68.0%, clean full 17.9% -> 27.5% of
+// ~7k player-weeks with these values.
 
 const CH_175_POINTS: PointsByRound = {
-  W: 175, F: 90, SF: 50, QF: 25, R16: 13, R32: 6,
+  W: 175, F: 90, SF: 50, QF: 25, R16: 13, R32: 0, Q3: 6, Q2: 3, Q1: 0,
 };
 
 const CH_125_POINTS: PointsByRound = {
-  W: 125, F: 64, SF: 35, QF: 16, R16: 8, R32: 5,
+  W: 125, F: 64, SF: 35, QF: 16, R16: 8, R32: 0, Q3: 5, Q2: 3, Q1: 0,
 };
 
 const CH_100_POINTS: PointsByRound = {
-  W: 100, F: 50, SF: 25, QF: 14, R16: 7, R32: 4,
+  W: 100, F: 50, SF: 25, QF: 14, R16: 7, R32: 0, Q3: 4, Q2: 2, Q1: 0,
 };
 
 const CH_75_POINTS: PointsByRound = {
-  W: 75, F: 44, SF: 22, QF: 12, R16: 6, R32: 0,
+  W: 75, F: 44, SF: 22, QF: 12, R16: 6, R32: 0, Q3: 4, Q2: 2, Q1: 0,
 };
 
+// R48: the first round of a 48-draw CH50 (docs/ranking-rules.md; not on the
+// Wikipedia table, unverified by replay — the archive has no 48-draw CH50).
 const CH_50_POINTS: PointsByRound = {
-  W: 50, F: 25, SF: 14, QF: 8, R16: 4, R32: 3, R48: 1,
+  W: 50, F: 25, SF: 14, QF: 8, R16: 4, R32: 0, R48: 1, Q3: 3, Q2: 1, Q1: 0,
 };
 
 // ─── ITF Futures ────────────────────────────────────────────────────────
 
+// <Y>_ITF_Men's_World_Tennis_Tour "Ranking points distribution", 2022-2025
+// (one table): the R16 point was missing here. Replay over the 2026 weeks:
+// clean delta 79.6% -> 83.0% of ~7k player-weeks with it (2026-10-13).
 const M25_POINTS: PointsByRound = {
-  W: 25, F: 16, SF: 8, QF: 3,
+  W: 25, F: 16, SF: 8, QF: 3, R16: 1,
 };
 
 const M15_POINTS: PointsByRound = {
-  W: 15, F: 8, SF: 4, QF: 2,
+  W: 15, F: 8, SF: 4, QF: 2, R16: 1,
 };
 
 // ─── Olympics & Davis Cup ──────────────────────────────────────────────
@@ -427,6 +478,8 @@ const POINTS: Record<Category, PointsByRound> = {
   m15_futures: M15_POINTS,
   olympics: OLYMPICS_POINTS,
   davis_cup: DAVIS_CUP_POINTS,
+  itf: {},
+  non_ranking: {},
 };
 
 /**
@@ -444,6 +497,7 @@ const VARIANT_POINTS: Partial<Record<Category, Partial<Record<DrawVariant, Point
   wta_1000: { d56: WTA_1000_D56_POINTS },
   atp_500: { d48: ATP_500_D48_POINTS },
   atp_250: { d48: ATP_250_D48_POINTS },
+  wta_500: { d56: WTA_500_D56_POINTS },
   olympics: { d64: OLYMPICS_WTA_2024_POINTS },
 };
 
@@ -488,7 +542,7 @@ export function qualifierBonus(category: Category): number {
     case "wta_1000":
       return 30;
     case "wta_1000_nc":
-      return 25;
+      return 30;
     case "atp_500":
       return 25;
     case "wta_500":
@@ -497,6 +551,17 @@ export function qualifierBonus(category: Category): number {
       return 12;
     case "wta_250":
       return 18;
+    case "wta_125":
+      return 6;
+    case "ch_175":
+      return 6;
+    case "ch_125":
+      return 5;
+    case "ch_100":
+    case "ch_75":
+      return 4;
+    case "ch_50":
+      return 3;
     default:
       return 0;
   }

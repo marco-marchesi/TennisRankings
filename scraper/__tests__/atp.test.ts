@@ -84,6 +84,15 @@ describe("parseAtpRankings (contract test against real atptour.com HTML)", () =>
     expect(withCountry.length / snap.entries.length).toBeGreaterThanOrEqual(0.95);
   });
 
+  // The tour's own player id. Resolving players by slug alone created a second
+  // player whenever atptour.com's slug differed from ours ("christopher-o'connell"
+  // vs "christopher-oconnell") — 34 duplicates the week the list went to 500.
+  it("carries atptour.com's player id on every row", () => {
+    expect(snap.entries.every((e) => /^[a-z0-9]{4}$/.test(e.externalId ?? ""))).toBe(true);
+    expect(snap.entries.find((e) => e.fullName === "Jannik Sinner")?.externalId).toBe("s0ag");
+    expect(new Set(snap.entries.map((e) => e.externalId)).size).toBe(snap.entries.length);
+  });
+
   it("tags the snapshot as ATP, not race", () => {
     expect(snap.tour).toBe("atp");
     expect(snap.isRace).toBe(false);

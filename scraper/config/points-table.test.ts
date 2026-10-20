@@ -56,6 +56,16 @@ describe("points table — Grand Slams differ between tours", () => {
   });
 });
 
+describe("points table — 96-draw Masters qualifying", () => {
+  // docs/ranking-rules.md:64-66: qualifying winner 25, Q2 16, Q1 8. The
+  // table had Q3 20 / Q2 10 / no Q1, which the replay review caught.
+  it("docs:64-66 — two qualifying rounds, Q3 slot = qualifying winner", () => {
+    expect(pointsForRound("masters_1000", "Q3")).toBe(25);
+    expect(pointsForRound("masters_1000", "Q2")).toBe(16);
+    expect(pointsForRound("masters_1000", "Q1")).toBe(8);
+  });
+});
+
 describe("points table — 1000-level differs between tours", () => {
   // docs/ranking-rules.md:54-63 (ATP) vs :303-315 (WTA combined)
   it("docs:56-57 + :305-306 — W and F coincide", () => {
@@ -78,13 +88,18 @@ describe("points table — 1000-level differs between tours", () => {
 
   // docs/ranking-rules.md:317-332 — Doha, Dubai, Wuhan pay less because they
   // occupy a separate "best 1 of 3" slot.
-  it("docs:319-329 — non-combined WTA 1000 tops out at 900, not 1000", () => {
-    expect(pointsForRound("wta_1000_nc", "W")).toBe(900);
-    expect(pointsForRound("wta_1000_nc", "F")).toBe(585);
-    expect(pointsForRound("wta_1000_nc", "SF")).toBe(350);
-    expect(pointsForRound("wta_1000_nc", "QF")).toBe(190);
-    expect(pointsForRound("wta_1000_nc", "R16")).toBe(105);
-    expect(pointsForRound("wta_1000_nc", "R32")).toBe(60);
+  // Was 900 / 585 / 350 / 190 / 105 / 60 — the pre-2025 values. Since 2025 the
+  // 56-draw non-combined 1000s pay like the rest of the tier; confirmed by
+  // live-tennis.eu dropping exactly 1000 for Gauff's Wuhan 2025 title and 650
+  // for Pegula's final.
+  it("docs:317-333 — non-combined WTA 1000 pays 1000-level points since 2025", () => {
+    expect(pointsForRound("wta_1000_nc", "W")).toBe(1000);
+    expect(pointsForRound("wta_1000_nc", "F")).toBe(650);
+    expect(pointsForRound("wta_1000_nc", "SF")).toBe(390);
+    expect(pointsForRound("wta_1000_nc", "QF")).toBe(215);
+    expect(pointsForRound("wta_1000_nc", "R16")).toBe(120);
+    expect(pointsForRound("wta_1000_nc", "R32")).toBe(65);
+    expect(pointsForRound("wta_1000_nc", "R64")).toBe(10);
   });
 });
 
@@ -117,11 +132,17 @@ describe("points table — 500 and 250 differ between tours", () => {
    * ATP pays 25 and 13. Because wta_500/wta_250 aliased the ATP tables, every
    * WTA first-round exit was credited 25x / 13x too much.
    */
-  it("docs:343 + :357 — WTA R32 is 1 point; ATP pays 25 (500) and 13 (250)", () => {
+  // The ATP half of this was wrong: 25 / 13 are the 48-draw SECOND-round
+  // values. At a 32-draw ATP 500 or 250 a first-round loss earns nothing
+  // (2025 ATP Rulebook ch. 9), which live-tennis.eu confirmed for every
+  // Beijing / Tokyo 2026 first-round loser.
+  it("docs:343 + :357 — WTA R32 is 1 point; a 32-draw ATP first round pays 0", () => {
     expect(pointsForRound("wta_500", "R32")).toBe(1);
     expect(pointsForRound("wta_250", "R32")).toBe(1);
-    expect(pointsForRound("atp_500", "R32")).toBe(25);
-    expect(pointsForRound("atp_250", "R32")).toBe(13);
+    expect(pointsForRound("atp_500", "R32")).toBe(0);
+    expect(pointsForRound("atp_250", "R32")).toBe(0);
+    expect(pointsForRound("atp_500", "R32", "d48")).toBe(25);
+    expect(pointsForRound("atp_250", "R32", "d48")).toBe(13);
   });
 
   // docs/ranking-rules.md:362-371 — previously not a category at all, so
@@ -358,6 +379,47 @@ describe("qualifier bonus", () => {
 
   it("docs:96 — an ATP 250 qualifying winner earns 12", () => {
     expect(qualifierBonus("atp_250")).toBe(12);
+  });
+
+  // 2024/2025_ATP_Challenger_Tour "Point distribution" (2025 cites the 2025
+  // ATP rulebook ch. 9). The docs' Challenger "R32" column (6/5/4/3/3) was
+  // the qualifier column: replay over 2026 weeks scores clean delta 60.1% ->
+  // 68.0% and clean full 17.9% -> 27.5% (n ~7k) with these values.
+  it("Challenger: first round 0, qualifier bonus and last qualifying round per tier", () => {
+    const want: Array<[Category, number, number]> = [
+      ["ch_175", 6, 3], ["ch_125", 5, 3], ["ch_100", 4, 2], ["ch_75", 4, 2], ["ch_50", 3, 1],
+    ];
+    for (const [cat, bonus, q2] of want) {
+      expect(pointsForRound(cat, "R32")).toBe(0);
+      expect(qualifierBonus(cat)).toBe(bonus);
+      expect(pointsForRound(cat, "Q3")).toBe(bonus); // the non-Slam Q3 slot = qualifying winner
+      expect(pointsForRound(cat, "Q2")).toBe(q2);
+      expect(pointsForRound(cat, "Q1")).toBe(0);
+    }
+  });
+
+  // <Y>_ITF_Men's_World_Tennis_Tour, 2022-2025 (one table). Replay over the
+  // 2026 weeks: clean delta 79.6% -> 83.0% (n ~7k) with the R16 point.
+  it("ITF men: an R16 loss earns 1 ATP point", () => {
+    expect(pointsForRound("m25_futures", "R16")).toBe(1);
+    expect(pointsForRound("m15_futures", "R16")).toBe(1);
+    expect(pointsForRound("m25_futures", "QF")).toBe(3);
+  });
+
+  // 2024/2025_WTA_Tour "Points distribution" and 2024_WTA_125_tournaments.
+  // Replay over the 2026 weeks (2026-10-13, n ~9.5k): each lifts the clean
+  // delta rate (1000 nc 65.7 -> 66.0%, 500 -> 66.0%, 125 -> 66.6%).
+  it("WTA: non-combined 1000 and 125 qualifying, 56-draw 500 first rounds", () => {
+    expect(qualifierBonus("wta_1000_nc")).toBe(30);
+    expect(pointsForRound("wta_1000_nc", "Q2")).toBe(20);
+    expect(pointsForRound("wta_1000_nc", "Q1")).toBe(2);
+    expect(qualifierBonus("wta_125")).toBe(6);
+    expect(pointsForRound("wta_125", "Q3")).toBe(6);
+    expect(pointsForRound("wta_125", "Q2")).toBe(4);
+    expect(pointsForRound("wta_125", "Q1")).toBe(1);
+    expect(pointsForRound("wta_500", "R32", "d56")).toBe(32);
+    expect(pointsForRound("wta_500", "R64", "d56")).toBe(1);
+    expect(pointsForRound("wta_500", "R32")).toBe(1);
   });
 
   it("is zero for tiers where it does not apply", () => {

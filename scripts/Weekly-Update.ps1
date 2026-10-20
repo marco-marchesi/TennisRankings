@@ -16,6 +16,14 @@
     Each step is independent: a failure in one is logged but doesn't abort
     the later steps. The exit code is the count of failed steps.
 
+    Output goes to logs\weekly-update-<yyyy-MM-dd>.log as well as the
+    console. Without it a scheduled run that exits 1 (as on 2026-10-12)
+    leaves no trace of which step failed. Lines are appended as they arrive,
+    so a run killed by sleep/shutdown still shows how far it got.
+
+    Holds the pipeline lock (Pipeline-Lock.ps1) for the whole run, so a
+    Compare-Live started by the same logon waits for this to finish.
+
 .PARAMETER SkipEnrich
     Omits the Wikipedia/Wikidata enrichment step (saves ~2 minutes — useful
     for weekly runs where photos rarely change anyway).
@@ -48,6 +56,24 @@ param(
 $Root = Split-Path $PSScriptRoot -Parent
 Set-Location $Root
 
+if (-not (Test-Path "logs")) { New-Item -ItemType Directory "logs" | Out-Null }
+$transcript = "logs\weekly-update-$(Get-Date -Format 'yyyy-MM-dd').log"
+Get-ChildItem "logs" -Filter "weekly-update-*.log" -ErrorAction SilentlyContinue |
+    Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-90) } |
+    Remove-Item -Force -ErrorAction SilentlyContinue
+
+function Write-Log([string]$Message, [string]$Color = "Gray") {
+    $line = "[{0}] {1}" -f (Get-Date -Format "HH:mm:ss"), $Message
+    Write-Host $line -ForegroundColor $Color
+    Add-Content -Path $transcript -Value $line -Encoding utf8
+}
+
+. (Join-Path $PSScriptRoot "Pipeline-Lock.ps1")
+if (-not (Enter-PipelineLock -OnWait { param($m) Write-Log $m Yellow })) {
+    Write-Log "FATAL: pipeline lock still held after 120 min - another run is stuck" Red
+    exit 1
+}
+
 # Load DATABASE_URL from .env.local if not already set
 if (-not $env:DATABASE_URL) {
     $envFile = Join-Path $Root ".env.local"
@@ -63,57 +89,64 @@ if (-not $env:DATABASE_URL) {
 if ($env:DATABASE_URL -match "@localhost|@127\.0\.0\.1") {
     $state = docker inspect --format "{{.State.Status}}" tennisrankings-db 2>$null
     if ($state -ne "running") {
-        Write-Host "Database container is not running. Start it with: .\scripts\Start-Dev.ps1" -ForegroundColor Red
+        Write-Log "FATAL: database container is not running. Start it with: .\scripts\Start-Dev.ps1" Red
         exit 1
     }
-    Write-Host "Target: local Docker container" -ForegroundColor DarkGray
+    Write-Log "Target: local Docker container" DarkGray
 } else {
     $maskedUrl = $env:DATABASE_URL -replace ':[^@]+@', ':****@'
-    Write-Host "Target: $maskedUrl" -ForegroundColor DarkGray
+    Write-Log "Target: $maskedUrl" DarkGray
 }
 
 $failures = 0
-$timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-Write-Host "===========================================================" -ForegroundColor Cyan
-Write-Host " Weekly update started at $timestamp" -ForegroundColor Cyan
-Write-Host "===========================================================" -ForegroundColor Cyan
+$failedSteps = @()
+Write-Log "=== Weekly update starting (skipEnrich=$SkipEnrich skipBackfill=$SkipBackfill) ===" Cyan
 
 function Invoke-Step {
     param([string]$Label, [string]$Cmd)
-    Write-Host ""
-    Write-Host ">>> $Label" -ForegroundColor Cyan
-    Invoke-Expression $Cmd
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "    FAILED with exit $LASTEXITCODE" -ForegroundColor Red
+    Write-Log ">>> $Label" Cyan
+    $started = Get-Date
+    # Stream each line to console + transcript as it arrives, so a killed run
+    # still records how far it got.
+    & cmd /c "$Cmd 2>&1" | ForEach-Object {
+        Write-Host "    $_"
+        Add-Content -Path $transcript -Value "    $_" -Encoding utf8
+    }
+    $code = $LASTEXITCODE
+    $secs = [int]((Get-Date) - $started).TotalSeconds
+    if ($code -ne 0) {
+        Write-Log "    FAILED (exit $code, ${secs}s)" Red
         $script:failures++
+        $script:failedSteps += $Label
     } else {
-        Write-Host "    OK" -ForegroundColor Green
+        Write-Log "    OK (${secs}s)" Green
     }
 }
 
 Invoke-Step "1/7 Refresh ATP+WTA+race rankings"  "pnpm scraper:refresh --no-backfill"
-Invoke-Step "2/7 Expand to top-800 via Tennis Abstract" "pnpm scraper:expand-rankings"
+Invoke-Step "2/7 Expand ranks 501-800 via TennisExplorer" "pnpm scraper:expand-rankings"
+# Challenger tiers for TennisExplorer's Challenger rows (atptour.com calendar).
+# A failure keeps the stored scraper/config/challenger-calendar.json.
+Invoke-Step "2b/7 Refresh ATP Challenger calendar" "pnpm scraper:challenger-calendar"
 if (-not $SkipBackfill) {
     Invoke-Step "3/7 Backfill historical rankings (Tennis Abstract)" "pnpm scraper:backfill-history"
     Invoke-Step "4/7 Backfill recent matches (Tennis Abstract)"      "pnpm scraper:backfill-matches"
 } else {
-    Write-Host ""; Write-Host ">>> 3-4/7 Backfill steps SKIPPED" -ForegroundColor Yellow
+    Write-Log ">>> 3-4/7 Backfill steps SKIPPED" Yellow
 }
 Invoke-Step "5/7 Refresh MCP leaderboards"     "pnpm scraper:leaderboards"
 if (-not $SkipEnrich) {
     Invoke-Step "6/7 Wikidata + Wikipedia enrichment + photo download" "pnpm scraper:enrich-players"
 } else {
-    Write-Host ""; Write-Host ">>> 6/7 Enrichment SKIPPED" -ForegroundColor Yellow
+    Write-Log ">>> 6/7 Enrichment SKIPPED" Yellow
 }
 Invoke-Step "7/7 Compute live projections"     "pnpm scraper:projections"
 
-Write-Host ""
-Write-Host "===========================================================" -ForegroundColor Cyan
 if ($failures -eq 0) {
-    Write-Host " All steps completed successfully." -ForegroundColor Green
+    Write-Log "=== Weekly update finished: all steps OK ===" Green
 } else {
-    Write-Host " Completed with $failures failed step(s). See above." -ForegroundColor Red
+    Write-Log "=== Weekly update finished: $failures failed step(s): $($failedSteps -join '; ') ===" Red
 }
-Write-Host "===========================================================" -ForegroundColor Cyan
+Exit-PipelineLock
 
 exit $failures

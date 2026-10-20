@@ -28,6 +28,9 @@ Thumbs.db
 # editor
 .idea/
 *.swp
+
+# replay harness: local cache of the Sackmann archive
+data/archive/
 *.swo
 
 # drizzle

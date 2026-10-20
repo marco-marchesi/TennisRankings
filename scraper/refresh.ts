@@ -36,39 +36,66 @@ function mostRecentMonday(): string {
   return d.toISOString().slice(0, 10);
 }
 
-async function refreshOne(t: RefreshTarget) {
-  console.log(`[refresh] ${t.source}: fetching live HTML...`);
-  let html: string;
-  try {
-    ({ html } = await fetchLive(t.source));
-  } catch (err) {
-    console.error(`[refresh] ${t.source}: fetch FAILED — ${err instanceof Error ? err.message : err}`);
-    return;
-  }
-  const weekOf = mostRecentMonday();
-
-  const snap =
-    t.tour === "atp"
-      ? parseAtpRankings({ html, weekOf, isRace: t.isRace })
-      : parseWtaRankings({ html, weekOf, isRace: t.isRace });
-
-  console.log(`[refresh] ${t.source}: parsed ${snap.entries.length} entries for week ${weekOf}`);
-
-  const check = RankingSnapshot.safeParse(snap);
-  if (!check.success) {
-    console.error(`[refresh] ${t.source}: schema check FAILED — refusing to write`);
-    console.error(check.error.issues.slice(0, 5));
-    return;
-  }
-
+/**
+ * Refresh one target. Returns true only when a snapshot was written.
+ *
+ * Every attempt now leaves a scrape_runs row. The previous version inserted
+ * that row only AFTER a successful fetch + schema check, and on either failure
+ * logged to stderr and returned — so the process exited 0, Weekly-Update.ps1
+ * printed "OK", and the database kept no trace of the attempt. That is exactly
+ * how the ATP rankings for 2026-09-14 and 2026-09-28 went missing: atptour.com
+ * served a Cloudflare interstitial, it parsed to 0 rows, and nothing noticed
+ * until live-tennis.eu disagreed with us about 85 of the top 200.
+ */
+async function refreshOne(t: RefreshTarget): Promise<boolean> {
   const [run] = await db
     .insert(schema.scrapeRuns)
     .values({ source: `refresh:${t.source}`, status: "started" })
     .returning({ id: schema.scrapeRuns.id });
   if (!run) {
     console.error(`[refresh] ${t.source}: could not insert scrape_runs row`);
-    return;
+    return false;
   }
+  const fail = async (message: string) => {
+    console.error(`[refresh] ${t.source}: FAILED — ${message}`);
+    await db
+      .update(schema.scrapeRuns)
+      .set({ status: "failed", finishedAt: new Date(), errorMessage: message.slice(0, 2000) })
+      .where(eq(schema.scrapeRuns.id, run.id));
+    return false;
+  };
+
+  const weekOf = mostRecentMonday();
+  let snap: ReturnType<typeof parseAtpRankings> | null = null;
+  let lastProblem = "";
+  // Anti-bot interstitials are intermittent; one retry in a fresh browser
+  // clears most of them.
+  for (let attempt = 1; attempt <= 2 && !snap; attempt++) {
+    console.log(`[refresh] ${t.source}: fetching live HTML (attempt ${attempt})...`);
+    let html: string;
+    try {
+      ({ html } = await fetchLive(t.source));
+    } catch (err) {
+      lastProblem = `fetch failed — ${err instanceof Error ? err.message : String(err)}`;
+      console.warn(`[refresh] ${t.source}: ${lastProblem}`);
+      continue;
+    }
+    const parsed =
+      t.tour === "atp"
+        ? parseAtpRankings({ html, weekOf, isRace: t.isRace })
+        : parseWtaRankings({ html, weekOf, isRace: t.isRace });
+    console.log(`[refresh] ${t.source}: parsed ${parsed.entries.length} entries for week ${weekOf}`);
+    const check = RankingSnapshot.safeParse(parsed);
+    if (!check.success) {
+      lastProblem =
+        `schema check failed on ${html.length} bytes — ` +
+        JSON.stringify(check.error.issues.slice(0, 3));
+      console.warn(`[refresh] ${t.source}: ${lastProblem}`);
+      continue;
+    }
+    snap = parsed;
+  }
+  if (!snap) return fail(lastProblem || "no snapshot produced");
 
   try {
     await writeRankingSnapshot(snap, run.id);
@@ -81,13 +108,9 @@ async function refreshOne(t: RefreshTarget) {
       })
       .where(eq(schema.scrapeRuns.id, run.id));
     console.log(`[refresh] ${t.source}: wrote ${snap.entries.length} rows OK`);
+    return true;
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    await db
-      .update(schema.scrapeRuns)
-      .set({ status: "failed", finishedAt: new Date(), errorMessage: message })
-      .where(eq(schema.scrapeRuns.id, run.id));
-    console.error(`[refresh] ${t.source}: FAILED — ${message}`);
+    return fail(err instanceof Error ? err.message : String(err));
   }
 }
 
@@ -109,8 +132,9 @@ async function main() {
     process.exit(1);
   }
 
+  const failed: string[] = [];
   for (const t of targets) {
-    await refreshOne(t);
+    if (!(await refreshOne(t))) failed.push(t.source);
   }
 
   // After a successful settled-rankings refresh, look for new top-50 entrants
@@ -120,6 +144,11 @@ async function main() {
   const ranTopTier = targets.some((t) => !t.isRace);
   if (ranTopTier) {
     await maybeBackfillHistory();
+  }
+
+  if (failed.length > 0) {
+    console.error(`[refresh] ${failed.length} target(s) FAILED: ${failed.join(", ")}`);
+    process.exit(1);
   }
 }
 

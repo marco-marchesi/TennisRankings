@@ -76,8 +76,8 @@ A player who receives a bye and loses their first match played still receives th
 | SF | 200 |
 | QF | 100 |
 | R16 | 50 |
-| R32 | 25 |
-| R64 | 16 |
+| R32 | 0 at a 32-draw (first round); 25 at a 48-draw (second round) |
+| R64 | 16 (48-draw only) |
 | Qualifying winner | 25 |
 | Q2 | 13 |
 | Q1 | 0 |
@@ -91,8 +91,8 @@ A player who receives a bye and loses their first match played still receives th
 | SF | 100 |
 | QF | 50 |
 | R16 | 25 |
-| R32 | 13 |
-| R64 | 8 |
+| R32 | 0 at a 32-draw (first round); 13 at a 48-draw (second round) |
+| R64 | 8 (48-draw only) |
 | Qualifying winner | 12 |
 | Q2 | 6 |
 | Q1 | 0 |
@@ -316,17 +316,17 @@ Two draw sizes: **96-draw** (most) and **56-draw** (smaller events).
 
 #### WTA 1000 — Non-Combined (Doha, Dubai, Wuhan)
 
-Winner receives slightly fewer points (900) because these are counted separately (best 1 of 3 slots).
+Counted separately (best 1 of 3 slots). Until 2024 the winner received 900; since 2025 the 56-draw non-combined 1000s pay 1000 / 650 / 390 / 215 / 120 / 65 / 10 like the rest of the tier.
 
 | Round | Points |
 |-------|--------|
-| W | 900 |
-| F | 585 |
-| SF | 350 |
-| QF | 190 |
-| R16 | 105 |
-| R32 | 60 |
-| R64 | 1 |
+| W | 1000 |
+| F | 650 |
+| SF | 390 |
+| QF | 215 |
+| R16 | 120 |
+| R32 | 65 |
+| R64 | 10 |
 | Qualifying winner | 25 |
 | Q2 | 13 |
 | Q1 | 1 |
@@ -479,7 +479,7 @@ Players must compete in at least **8 WTA 1000 or WTA 500 tournaments** during th
 | Grand Slam R16 | 200 | 240 |
 | Grand Slam R32 | 100 | 130 |
 | Grand Slam qualifying R1 loss | 0 | 2 |
-| 1000 winner | 1,000 | 1,000 (combined); 900 (non-combined) |
+| 1000 winner | 1,000 | 1,000 (combined and, since 2025, non-combined) |
 | Mandatory 1000s | 8 of 9 (Monte Carlo optional) | All 10 |
 | 500 mandatory count | 4 per year (Top 30) | No minimum |
 | Non-mandatory 1000 | Monte Carlo (counted as "best other") | Doha/Dubai/Wuhan (best 1 of 3 separate slot) |

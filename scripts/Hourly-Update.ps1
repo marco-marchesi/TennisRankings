@@ -87,7 +87,7 @@ function Invoke-Step {
     }
 }
 
-Invoke-Step "1/2 TennisExplorer daily matches"  "pnpm scraper:daily-matches -- --lookback $LookbackDays --lookahead 1"
+Invoke-Step "1/2 TennisExplorer daily matches"  "pnpm scraper:daily-matches -- --lookback $LookbackDays --lookahead 2"
 Invoke-Step "2/2 Recompute live projections"    "pnpm scraper:projections"
 
 if ($failures -eq 0) {

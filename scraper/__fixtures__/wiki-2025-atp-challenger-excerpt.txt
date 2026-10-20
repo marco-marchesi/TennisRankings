@@ -1,0 +1,55 @@
+=== January ===
+{| class="wikitable" style="font-size:85%;"
+|-
+!width="75"|Week of
+!width="250"|Tournament
+!width="210"|Champions
+!width="210"|Runners-up
+!width="210"|Semifinalists
+!width="210"|Quarterfinalists
+|-valign=top
+|rowspan=6|December 30||rowspan=2|[[2025 Canberra Tennis International|Canberra Tennis International]]<br/>[[Canberra]], Australia <br/> Hard – Challenger 125 – 32S/24Q/16D<br/>[[2025 Canberra Tennis International – Men's singles|Singles]] – [[2025 Canberra Tennis International – Men's doubles|Doubles]] || {{#invoke:flag|icon|BRA}} '''[[João Fonseca (tennis)|João Fonseca]]'''<br />6–4, 6–4 || {{#invoke:flag|icon|USA}} [[Ethan Quinn]] ||rowspan=2|{{#invoke:flag|icon|ESP}} [[Martín Landaluce]] <br/> {{#invoke:flag|icon|GBR}} [[Jacob Fearnley]] ||rowspan=2| {{#invoke:flag|icon|JPN}} [[Yosuke Watanuki]] <br/>{{#invoke:flag|icon|CZE}} [[Vít Kopřiva]] <br/>{{#invoke:flag|icon|USA}} [[Christopher Eubanks]] <br/> {{#invoke:flag|icon|FRA}} [[Harold Mayot]]
+|-valign=top
+|{{#invoke:flag|icon|USA}} '''[[Ryan Seggerman]]'''<br />{{#invoke:flag|icon|USA}} '''[[Eliot Spizzirri]]'''<br />1–6, 7–5, [10–5] || {{#invoke:flag|icon|FRA}} [[Pierre-Hugues Herbert]]<br />{{#invoke:flag|icon|SUI}} [[Jérôme Kym]]
+|-valign=top
+|rowspan=2|[[2025 Open Nouvelle-Calédonie|Open Nouvelle-Calédonie]]<br/>[[Nouméa]], New Caledonia <br/> Hard – Challenger 100 – 32S/24Q/16D<br/>[[2025 Open Nouvelle-Calédonie – Singles|Singles]] – [[2025 Open Nouvelle-Calédonie – Doubles|Doubles]] || {{#invoke:flag|icon|JPN}} '''[[Shintaro Mochizuki]]'''<br />6–1, 6–3 || {{#invoke:flag|icon|AUS}} [[Moerani Bouzige]] ||rowspan=2|{{#invoke:flag|icon|AUT}} [[Jurij Rodionov]] <br/> {{#invoke:flag|icon|FRA}} [[Constant Lestienne]] ||rowspan=2| {{#invoke:flag|icon|FRA}} [[Enzo Couacaud]] <br/>{{#invoke:flag|icon|JPN}} [[Taisei Ichikawa]] <br/>{{#invoke:flag|icon|MON}} [[Valentin Vacherot]] <br/> {{#invoke:flag|icon|HUN}} [[Márton Fucsovics]]
+|-valign=top
+|{{#invoke:flag|icon|AUS}} '''[[Blake Bayldon]]''' <br/> {{#invoke:flag|icon|NMI}} '''[[Colin Sinclair (tennis)|Colin Sinclair]]''' <br> 6–3, 7–5||{{#invoke:flag|icon|JPN}} Ryuki Matsuda<br/> {{#invoke:flag|icon|JPN}} Ryotaro Taguchi
+|-valign=top
+|rowspan=2|[[2025 Nonthaburi Challenger|Nonthaburi Challenger]]<br/>[[Nonthaburi]], Thailand <br/> Hard – Challenger 75 – 32S/24Q/16D<br/>[[2025 Nonthaburi Challenger – Singles|Singles]] – [[2025 Nonthaburi Challenger – Doubles|Doubles]] || {{flagicon|}} '''[[Aslan Karatsev]]'''<br />7–6<sup>(7–5)</sup>, 7–5 || {{#invoke:flag|icon|FRA}} [[Grégoire Barrère]] ||rowspan=2|{{#invoke:flag|icon|BEL}} [[Kimmer Coppejans]] <br/> {{#invoke:flag|icon|JPN}} [[Rei Sakamoto]] ||rowspan=2| {{#invoke:flag|icon|ITA}} [[Enrico Dalla Valle]] <br/>{{#invoke:flag|icon|AUT}} [[Lukas Neumayer]] <br/> {{#invoke:flag|icon|ITA}} [[Gianluca Mager]] <br/> {{#invoke:flag|icon|UZB}} [[Khumoyun Sultanov]]
+|-valign=top
+|{{#invoke:flag|icon|JPN}} '''[[Kokoro Isomura]]'''<br />{{#invoke:flag|icon|JPN}} '''[[Rio Noguchi]]'''<br />7–6<sup>(7–3)</sup>, 7–6<sup>(11–9)</sup> || {{#invoke:flag|icon|CZE}} [[Zdeněk Kolář]]<br />{{#invoke:flag|icon|AUT}} [[Neil Oberleitner]]
+|-valign=top
+|rowspan=6|January 6||rowspan=2|[[2025 Nonthaburi Challenger II|Nonthaburi Challenger II]]<br/>[[Nonthaburi]], Thailand <br/> Hard – Challenger 75 – 32S/24Q/16D<br/>[[2025 Nonthaburi Challenger II – Singles|Singles]] – [[2025 Nonthaburi Challenger II – Doubles|Doubles]] || {{#invoke:flag|icon|JPN}} '''[[Rio Noguchi]]'''<br />7–6<sup>(11–9)</sup>, 6–2 || {{#invoke:flag|icon|CHN}} [[Cui Jie (tennis)|Cui Jie]] ||rowspan=2|{{#invoke:flag|icon|USA}} [[Murphy Cassone]] <br/> {{flagicon|}} [[Marat Sharipov]] ||rowspan=2| {{#invoke:flag|icon|THA}} [[Maximus Jones]] <br/> {{#invoke:flag|icon|SUI}} [[Jakub Paul]] <br/> {{#invoke:flag|icon|JPN}} [[Yusuke Takahashi]] <br/> {{#invoke:flag|icon|POL}} [[Daniel Michalski]]
+|-valign=top
+|{{#invoke:flag|icon|TPE}} '''[[Ray Ho]]'''<br />{{#invoke:flag|icon|AUT}} '''[[Neil Oberleitner]]'''<br />6–4, 7–6<sup>(7–5)</sup> || {{#invoke:flag|icon|ISR}} [[Daniel Cukierman]]<br />{{#invoke:flag|icon|GBR}} [[Joshua Paris]]
+|-valign=top
+|rowspan=2|[[2025 Lexus Nottingham Challenger|Lexus Nottingham Challenger]]<br/>[[Nottingham]], United Kingdom <br/> Hard (i) – Challenger 75 – 32S/24Q/16D<br/>[[2025 Lexus Nottingham Challenger – Singles|Singles]] – [[2025 Lexus Nottingham Challenger – Doubles|Doubles]] || {{#invoke:flag|icon|NOR}} '''[[Viktor Durasovic]]'''<br />7–6<sup>(8–6)</sup>, 3–6, 6–1 || {{#invoke:flag|icon|GBR}} [[Henry Searle (tennis)|Henry Searle]] ||rowspan=2|{{#invoke:flag|icon|SUI}} [[Mika Brunold]] <br/> {{#invoke:flag|icon|GBR}} [[Anton Matusevich]] ||rowspan=2| {{#invoke:flag|icon|SVK}} [[Lukáš Pokorný (tennis)|Lukáš Pokorný]] <br/>{{#invoke:flag|icon|LUX}} [[Chris Rodesch]] <br/> {{#invoke:flag|icon|SVK}} [[Norbert Gombos]] <br/> {{#invoke:flag|icon|AUT}} [[Dennis Novak]]
+|-valign=top
+|{{#invoke:flag|icon|CZE}} '''[[Jonáš Forejtek]]'''<br />{{#invoke:flag|icon|CZE}} '''[[Michael Vrbenský]]'''<br />7–6<sup>(7–5)</sup>, 7–6<sup>(7–5)</sup> || {{#invoke:flag|icon|CZE}} Jiří Barnat<br />{{#invoke:flag|icon|CZE}} [[Filip Duda]]
+|-valign=top
+|rowspan=2|[[2025 Oeiras Indoors|Oeiras Indoors]]<br/>[[Oeiras, Portugal|Oeiras]], Portugal <br/> Hard (i) – Challenger 75 – 32S/24Q/16D<br/>[[2025 Oeiras Indoors – Singles|Singles]] – [[2025 Oeiras Indoors – Doubles|Doubles]] || {{#invoke:flag|icon|SRB}} '''[[Hamad Medjedovic]]'''<br />6–1, 6–3 || {{#invoke:flag|icon|CAN}} [[Liam Draxl]] ||rowspan=2|{{#invoke:flag|icon|ESP}} [[Daniel Rincón (tennis)|Daniel Rincón]] <br/> {{#invoke:flag|icon|GER}} [[Rudolf Molleker]] ||rowspan=2| {{#invoke:flag|icon|HUN}} [[Zsombor Piros]] <br/> {{#invoke:flag|icon|GER}} [[Max Hans Rehberg]] <br/> {{#invoke:flag|icon|FRA}} Antoine Cornut-Chauvinc <br/> {{#invoke:flag|icon|SUI}} [[Alexander Ritschard]]
+|-valign=top
+|{{#invoke:flag|icon|USA}} '''[[George Goldhoff]]'''<br />{{#invoke:flag|icon|USA}} '''[[Trey Hilderbrand]]'''<br />7–5, 2–6, [10–5] || {{#invoke:flag|icon|JPN}} [[Kaichi Uchida]]<br />{{#invoke:flag|icon|KAZ}} [[Denis Yevseyev]]
+|-valign=top
+|rowspan=6|January 13||rowspan=2|[[2025 Oeiras Indoors II|Oeiras Indoors II]]<br/>[[Oeiras, Portugal|Oeiras]], Portugal <br/> Hard (i) – Challenger 100 – 32S/24Q/16D<br/>[[2025 Oeiras Indoors II – Singles|Singles]] – [[2025 Oeiras Indoors II – Doubles|Doubles]] || {{#invoke:flag|icon|USA}} '''[[Aleksandar Kovacevic (tennis)|Aleksandar Kovacevic]]'''<br />6–4, 7–6<sup>(7–4)</sup> || {{#invoke:flag|icon|HUN}} [[Zsombor Piros]] ||rowspan=2|{{#invoke:flag|icon|CAN}} [[Alexis Galarneau]] <br/> {{#invoke:flag|icon|USA}} [[Mackenzie McDonald]] ||rowspan=2| {{#invoke:flag|icon|KAZ}} [[Beibit Zhukayev]] <br/>{{#invoke:flag|icon|SUI}} [[Alexander Ritschard]] <br/>{{#invoke:flag|icon|POR}} [[Frederico Ferreira Silva]] <br/> {{#invoke:flag|icon|SRB}} [[Hamad Medjedovic]]
+|-valign=top
+|{{#invoke:flag|icon|CRO}} '''[[Mili Poljičak]]'''<br />{{#invoke:flag|icon|SRB}} '''[[Matej Sabanov]]'''<br />6–0, 6–1 || {{#invoke:flag|icon|ESP}} [[Íñigo Cervantes]]<br />{{#invoke:flag|icon|NED}} [[Mick Veldheer]]
+|-valign=top
+|rowspan=2|[[2025 Nonthaburi Challenger III|Nonthaburi Challenger III]]<br/>[[Nonthaburi]], Thailand <br/> Hard – Challenger 75 – 32S/24Q/16D<br/>[[2025 Nonthaburi Challenger III – Singles|Singles]] – [[2025 Nonthaburi Challenger III – Doubles|Doubles]] || {{#invoke:flag|icon|USA}} '''[[Brandon Holt]]'''<br />6–3, 6–2 || {{#invoke:flag|icon|CZE}} [[Vít Kopřiva]] ||rowspan=2|{{#invoke:flag|icon|USA}} [[Murphy Cassone]] <br/> {{#invoke:flag|icon|FRA}} [[Clément Tabur]] ||rowspan=2| {{#invoke:flag|icon|CZE}} [[Dalibor Svrčina]] <br/> {{#invoke:flag|icon|ITA}} [[Federico Arnaboldi]] <br/> {{#invoke:flag|icon|USA}} [[Zachary Svajda]] <br/> {{#invoke:flag|icon|FRA}} [[Hugo Grenier]]
+|-valign=top
+|{{#invoke:flag|icon|TPE}} '''[[Ray Ho]]'''<br />{{#invoke:flag|icon|AUT}} '''[[Neil Oberleitner]]'''<br />6–3, 6–4 || {{#invoke:flag|icon|THA}} [[Pruchya Isaro]]<br />{{#invoke:flag|icon|CHN}} [[Wang Aoran]]
+==Cancelled tournaments==
+The following tournaments were formally announced by the ATP before being cancelled.
+{|class=wikitable style=font-size:85%
+!width=75|Week of
+!width=250|Tournament
+|-style="vertical-align:top"
+|January 20||[[BW Open]]<br />[[Ottignies-Louvain-la-Neuve]], Belgium <br /> Hard (i) – Challenger 125
+|-style="vertical-align:top"
+|rowspan=2|March 24||Querétaro Challenger<br />[[Querétaro (city)|Querétaro]], Mexico <br /> Hard – Challenger 125
+|-style="vertical-align:top"
+|Hamilton Challenger<br />[[Hamilton, Bermuda|Hamilton]], Bermuda <br /> Clay – Challenger 75
+|-style="vertical-align:top"
+|September 15||[[Sibiu Open]]<br />[[Sibiu]], Romania <br /> Clay – Challenger 50
+|}

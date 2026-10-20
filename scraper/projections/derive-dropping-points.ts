@@ -1,9 +1,10 @@
 // Computes "dropping points" for each player — the count that will roll off
-// their 52-week rolling-sum window on next Monday's publish.
+// their 52-week rolling-sum window by the publish the live ranking projects to
+// (see drop-horizon.ts: next Monday, or the Monday after a two-week event).
 //
-// Source: `player_recent_matches` (Tennis Abstract). For each player, find
-// tournaments that started ~52 weeks ago, identify the deepest round they
-// reached, look up the corresponding points, and sum across tournaments.
+// Source: `player_recent_matches`. For each player, find the editions whose
+// results leave the ranking before that publish, identify the deepest round
+// they reached, look up the corresponding points, and sum across editions.
 //
 // Used as a fallback to `rankings_snapshots.drop_points` (which is the
 // ATP-published value, captured directly during refresh). WTA's rankings
@@ -11,9 +12,10 @@
 // derivation; for ATP we prefer the published value when present.
 //
 // Known approximations:
-//   - We assume EVERY result counts (not "best 18 + 4 mandatory"). For top
-//     players who play more than 22 events, this slightly overestimates the
-//     drop. For ranks ~30+, the approximation is exact.
+//   - We assume EVERY result counts (not "best 18 + 4 mandatory"), and we do
+//     not promote the next-best result into the freed slot. For top players
+//     who play more than 18 events the true net drop is smaller by their 19th
+//     result — typically 1-65 points.
 //   - Tournament category inference falls back to a default tier when level
 //     code is ambiguous — see category-inference.ts for the rules.
 
@@ -22,91 +24,124 @@ import { sql } from "drizzle-orm";
 import { ROUNDS_IN_ORDER, canonicalizeRound, pointsForRound, type Round } from "../config/points-table";
 import { inferCategory } from "./category-inference";
 import { normSql } from "./tournament-key";
+import { chargesResult, dropHorizon, editionEnd, expiryOf, type CurrentEvent } from "./drop-horizon";
 
 interface Options {
   tour: "atp" | "wta";
   playerIds: number[];
+  /**
+   * Only count results expiring AFTER next Monday. For the ATP, whose
+   * published Dropping column already states what leaves at next Monday's
+   * publish, this returns just the extension a two-week event adds beyond it
+   * (Shanghai 2025 while Shanghai 2026 is under way), so the two can be summed
+   * without charging anything twice.
+   */
+  beyondNextMonday?: boolean;
 }
 
 /**
  * Returns a map of playerId → dropping points (always ≥ 0).
- * Players with no matches in the dropping window get 0.
+ * Players with nothing leaving the ranking get 0.
  */
 export async function deriveDroppingPoints(opts: Options): Promise<Map<number, number>> {
   const result = new Map<number, number>();
   if (opts.playerIds.length === 0) return result;
 
-  // WHAT DROPS THIS WEEK
+  // WHAT DROPS
   //
-  // A result drops when the next edition of that event begins. So the events
-  // dropping now are the ones being PLAYED now — and a player drops last
-  // year's points there whether or not they entered this year (Sinner is not
-  // in the 2026 US Open draw but still loses his 2025 final's 1,300).
+  // Everything that leaves the ranking between this week's official publish
+  // and the publish the live ranking projects to (see drop-horizon.ts):
   //
-  // The previous implementation took every match in a flat 14-day window
-  // centred 364 days back. That failed badly, because Tennis Abstract stamps
-  // every match at an event with the TOURNAMENT START date: the 2025 US Open
-  // is dated 2025-08-25, which sits outside the window
-  // [2025-08-28 .. 2025-09-11] computed on 2026-09-03. Sabalenka's title
-  // defence was therefore invisible, and since the WTA publishes no
-  // drop_points column this derivation is the ONLY source for that tour.
+  //   (a) results whose 52 weeks run out inside (weekStart, horizon] — which,
+  //       in the first week of a two-week event, includes the event after it
+  //       (Wuhan 2025 during Beijing 2026); and
+  //   (b) results from an event whose next edition is being played NOW, which
+  //       replace last year's regardless of the 52-week date. A player drops
+  //       these whether or not they entered this year (Sinner was not in the
+  //       2026 US Open draw but still lost his 2025 final's 1,300).
   //
-  // Verified against live-tennis.eu's live ranking:
-  //   Sabalenka  8575 - 2000 + 130 = 6705  (2025 US Open champion)
-  //   Anisimova  4533 - 1300 +  70 = 3303  (2025 US Open finalist)
-  // Both exact.
+  // Excluded: a result whose event already held its NEXT edition before this
+  // week. The official ranking dropped it then; charging it again on its
+  // 52-week date would double-count.
   //
-  // So: find the events with matches in the current ranking week, then charge
-  // each player their result at the same event one year ago.
-  const today = new Date();
-  const weekStart = isoDate(mostRecentMonday(today));
+  // The previous version implemented only (b), and before that a flat window
+  // 364 days back, which missed every TA row because TA dates all matches
+  // with the tournament START (the 2025 US Open is 2025-08-25). Verified
+  // against live-tennis.eu:
+  //   Sabalenka  8575 - 2000 + 130 = 6705       (2025 US Open champion)
+  //   Gauff      7244 - 390 - 1000 + 10 = 5864  (Beijing + Wuhan 2025)
+  const weekStart = isoDate(mostRecentMonday(new Date()));
+  const weekStartDate = new Date(`${weekStart}T00:00:00Z`);
 
   // Names must be compared NORMALIZED, never as raw strings — see
   // `tournament-key.ts`, which also records why this deliberately does NOT
   // strip tier suffixes (doing so merges the Madrid Challenger into the
   // Madrid Masters, and this function charges points by event identity).
-  //
-  // The previous local copy claimed to bridge "Rome Masters" and "Rome". It
-  // did not: `'\s'` in a JS string is the letter s, so it was rewriting
-  // "bnp paribas open" to "bnp pariba  open", and Postgres reads `\b` as a
-  // backspace rather than a word boundary, so the suffix branch never fired.
   const NORM = normSql;
 
-  const eventsNow = await db.execute<{ tournament_name: string }>(sql`
-    select distinct ${NORM("prm.tournament_name")} as tournament_name
-    from player_recent_matches prm
-    join players p on p.id = prm.player_id
-    where p.tour = ${opts.tour}
-      and prm.played_on >= ${weekStart}
+  // Events on now (or starting within the week), with their first dates in
+  // the current edition. Looked up over 21 days so the second week of a
+  // two-week event still sees its real start.
+  const nowRes = await db.execute(sql`
+    with cur as (
+      select ${NORM("prm.tournament_name")} as key, prm.tournament_name as name,
+             prm.tournament_level as level, prm.round, prm.played_on
+      from player_recent_matches prm
+      join players p on p.id = prm.player_id
+      where p.tour = ${opts.tour}
+        and prm.played_on >= ${isoDate(addDays(weekStartDate, -21))}
+      union all
+      select ${NORM("pum.tournament_name")}, pum.tournament_name, pum.tournament_level,
+             'MD' as round, pum.scheduled_date
+      from player_upcoming_matches pum
+      join players p on p.id = pum.player_id
+      where p.tour = ${opts.tour}
+        and pum.scheduled_date >= ${weekStart}
+        and pum.scheduled_date < ${isoDate(addDays(weekStartDate, 7))}
+    )
+    select key, max(name) as name, max(level) as level,
+           (min(played_on) filter (where round not like 'Q%'))::text as first_md,
+           min(played_on)::text as first_any
+    from cur
+    group by key
+    having max(played_on) >= ${weekStart}
   `);
-  const eventRows =
-    (eventsNow as unknown as { rows: Array<Record<string, unknown>> }).rows ??
-    (eventsNow as unknown as Array<Record<string, unknown>>);
-  const currentEventNames = eventRows
-    .map((r) => String(r.tournament_name))
-    .filter((n) => n && n !== "—");
+  const nowRows = rowsOf(nowRes).map((r) => ({
+    key: String(r.key),
+    name: String(r.name),
+    level: (r.level as string | null) ?? null,
+    firstMainDraw: (r.first_md as string | null) ?? null,
+    firstAny: String(r.first_any),
+  }));
+  // Event key -> first main-draw date of its edition being played now.
+  const mainDrawStartByKey = new Map(
+    nowRows.filter((r) => r.key && r.key !== "—").map((r) => [r.key, r.firstMainDraw] as const),
+  );
+  const currentEvents: CurrentEvent[] = nowRows.map((r) => ({
+    name: r.name,
+    category: inferCategory(opts.tour, r.name, r.level),
+    firstMainDraw: r.firstMainDraw,
+    firstAny: r.firstAny,
+  }));
+  const horizon = dropHorizon(weekStart, currentEvents);
 
-  if (currentEventNames.length === 0) return result;
-
-  // A year ago, generously bracketed: editions move by up to a few weeks
-  // between years, and the stored date may be the tournament start rather
-  // than the match date.
-  const lo = isoDate(addDays(today, -400));
-  const hi = isoDate(addDays(today, -330));
+  // Candidate results: editions from roughly a year before the horizon.
+  const lo = isoDate(addDays(weekStartDate, -400));
+  const hi = isoDate(addDays(new Date(`${horizon}T00:00:00Z`), -330));
 
   // DISTINCT ON dedups the same logical match when several feeds wrote a row
   // for it, preferring the official sources via the source-CASE tiebreak.
   //
-  // Keyed on (player, NORMALISED tournament, round). Every other candidate
-  // key has been tried and fails, because the feeds agree on nothing else
-  // about the same match. For Janice Tjen's Monterrey R32:
+  // Keyed on (player, NORMALISED tournament, edition year, round). Every other
+  // candidate key has been tried and fails, because the feeds agree on nothing
+  // else about the same match. For Janice Tjen's Monterrey R32:
   //
   //   wta_api           "Monterrey"  R32  2026-08-24  "Dayana Yastremska"
   //   tennis_explorer   "Monterrey"  1R   2026-08-25  "Yastremska D."
   //
   //   played_on   differs (one day, or the whole tournament for TA rows)
-  //   opponent    differs in FORMAT, which is what the previous key used, so
-  //               it never collided and both rows survived
+  //   opponent    differs in FORMAT, so an opponent-keyed dedupe never
+  //               collided and both rows survived
   //   round       differs in LABEL ("1R" / "R32"), canonicalised below
   //
   // (player, edition, round) is sound as a unique key because a player plays
@@ -114,60 +149,64 @@ export async function deriveDroppingPoints(opts: Options): Promise<Map<number, n
   // group (the season finals), where several matches share round "RR" and
   // this will keep only one — acceptable, since `earnedAtTournament` already
   // scores by deepest round rather than by RR record.
-  const raw = await db.execute<{
-    player_id: number;
-    tournament_name: string;
-    tournament_key: string;
-    tournament_level: string | null;
-    round: string;
-    won: boolean;
-    played_on: string;
-  }>(sql`
+  //
+  // `ed` gives each edition's date span across the whole tour (for its end
+  // date) and `next_lo` the start of the following year's edition (to skip
+  // results the official ranking already replaced).
+  const raw = await db.execute(sql`
+    with ed as (
+      select ${NORM("prm.tournament_name")} as key,
+             extract(year from prm.played_on)::int as yr,
+             min(prm.played_on)::text as lo, max(prm.played_on)::text as hi
+      from player_recent_matches prm
+      join players p on p.id = prm.player_id
+      where p.tour = ${opts.tour}
+        and prm.played_on >= ${lo}
+      group by 1, 2
+    )
     select distinct on (
-      prm.player_id, ${NORM("prm.tournament_name")}, prm.round
+      prm.player_id, ${NORM("prm.tournament_name")}, extract(year from prm.played_on), prm.round
     )
       prm.player_id, prm.tournament_name,
       ${NORM("prm.tournament_name")} as tournament_key,
-      prm.tournament_level, prm.round, prm.won, prm.played_on
+      extract(year from prm.played_on)::int as yr,
+      prm.tournament_level, prm.round, prm.won,
+      ed.lo as ed_lo, ed.hi as ed_hi,
+      (select min(n.lo) from ed n where n.key = ed.key and n.yr = ed.yr + 1) as next_lo
     from player_recent_matches prm
+    join ed on ed.key = ${NORM("prm.tournament_name")}
+           and ed.yr = extract(year from prm.played_on)::int
     where prm.player_id = any(array[${sql.join(opts.playerIds.map((id) => sql`${id}`), sql`, `)}]::int[])
       and prm.played_on >= ${lo}
       and prm.played_on <= ${hi}
-      and ${NORM("prm.tournament_name")} = any(array[${sql.join(
-        currentEventNames.map((n) => sql`${n}`),
-        sql`, `,
-      )}]::text[])
-    order by prm.player_id, ${NORM("prm.tournament_name")}, prm.round,
+    order by prm.player_id, ${NORM("prm.tournament_name")}, extract(year from prm.played_on), prm.round,
              case prm.source when 'atp_site' then 0 when 'wta_api' then 0 when 'tennis_explorer' then 1 else 2 end
   `);
-  const rawRows =
-    (raw as unknown as { rows: Array<Record<string, unknown>> }).rows ??
-    (raw as unknown as Array<Record<string, unknown>>);
-  const rows = rawRows.map((r) => ({
+  const rows = rowsOf(raw).map((r) => ({
     playerId: Number(r.player_id),
     tournamentName: String(r.tournament_name),
     tournamentKey: String(r.tournament_key),
+    year: Number(r.yr),
     tournamentLevel: (r.tournament_level as string | null) ?? null,
     round: String(r.round),
     won: Boolean(r.won),
-    playedOn: String(r.played_on),
+    edLo: String(r.ed_lo),
+    edHi: String(r.ed_hi),
+    nextLo: r.next_lo == null ? null : String(r.next_lo),
   }));
 
-  // Group by (player, NORMALISED tournament). Each group is the player's
-  // matches at that edition, and the deepest one says what they earned.
+  // Group by (player, edition). Each group is the player's matches at that
+  // edition, and the deepest one says what they earned.
   //
   // This used to group on the RAW name, which meant one edition became one
   // group PER SPELLING and every group's points were added together. With
   // both an official-feed row and a TennisExplorer row for the same event,
   // players were charged twice what they were defending: Sabalenka's 2025 US
   // Open title came to 4,000 rather than 2,000, and Iva Jovic's R64 to 140
-  // rather than 70. Any name-alignment work upstream makes this worse, not
-  // better, because more spellings normalise into the same current-week
-  // event list and therefore more duplicate groups qualify.
-  type Key = string;
-  const groups = new Map<Key, typeof rows>();
+  // rather than 70.
+  const groups = new Map<string, typeof rows>();
   for (const r of rows) {
-    const key = `${r.playerId}::${r.tournamentKey}`;
+    const key = `${r.playerId}::${r.tournamentKey}::${r.year}`;
     const existing = groups.get(key);
     if (existing) existing.push(r);
     else groups.set(key, [r]);
@@ -176,13 +215,30 @@ export async function deriveDroppingPoints(opts: Options): Promise<Map<number, n
   for (const matches of groups.values()) {
     const first = matches[0]!;
     const category = inferCategory(opts.tour, first.tournamentName, first.tournamentLevel);
+    const expiry = expiryOf(editionEnd(first.edLo, first.edHi, category, first.tournamentName));
+    const charge = chargesResult({
+      expiry,
+      weekStart,
+      horizon,
+      replacedNow: mainDrawStartByKey.has(first.tournamentKey),
+      currentMainDrawStart: mainDrawStartByKey.get(first.tournamentKey) ?? null,
+      nextLo: first.nextLo,
+      beyondNextMonday: opts.beyondNextMonday ?? false,
+    });
+    if (!charge) continue;
     const earned = earnedAtTournament(matches.map((m) => ({ round: m.round, won: m.won })), category);
     if (earned === 0) continue;
-    const prior = result.get(first.playerId) ?? 0;
-    result.set(first.playerId, prior + earned);
+    result.set(first.playerId, (result.get(first.playerId) ?? 0) + earned);
   }
 
   return result;
+}
+
+function rowsOf(res: unknown): Array<Record<string, unknown>> {
+  return (
+    (res as { rows?: Array<Record<string, unknown>> }).rows ??
+    (res as Array<Record<string, unknown>>)
+  );
 }
 
 interface MatchOutcome {

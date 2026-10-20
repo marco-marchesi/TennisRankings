@@ -20,6 +20,11 @@ import { canonicalizeRound, ROUNDS_IN_ORDER, type Category, type Round } from ".
 import type { ProjectionStatus } from "./calculator";
 import { inferCategory } from "./category-inference";
 import { normSql } from "./tournament-key";
+import { isTwoWeekEvent } from "./drop-horizon";
+
+// Postgres (ARE) spelling of category-inference.ts's NON_RANKING_PAT. In a
+// Postgres regex \y is the word boundary; \b would be a backspace.
+const NON_RANKING_SQL = String.raw`\y(UTR|Laver Cup|Asian Games|Billie Jean King Cup|Hopman Cup|exhibition|Six Kings|Ultimate Tennis Showdown|UTS|World Tennis League|Next Gen)\y`;
 
 export interface LiveState {
   playerId: number;
@@ -82,6 +87,18 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
     week_start as (
       select date_trunc('week', current_date)::date as monday
     ),
+    edition_start as (
+      -- First MAIN-DRAW date of each edition (qualifying excluded).
+      select p.tour,
+             ${normSql("prm.tournament_name")} as tournament_key,
+             extract(year from prm.played_on)::int as year,
+             min(prm.played_on) as md_start
+      from player_recent_matches prm
+      join players p on p.id = prm.player_id
+      where prm.round not like 'Q%'
+        and prm.played_on >= current_date - 60
+      group by 1, 2, 3
+    ),
     finished_tournaments as (
       -- A tournament whose Final was played BEFORE the current ranking week is
       -- already baked into the settled snapshot, so crediting it again would
@@ -104,6 +121,16 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
       -- title-casing), so a third of the field would have kept being credited
       -- an in-progress US Open after it finished — the exact double-count
       -- this CTE exists to prevent.
+      --
+      -- A DELAYED Final counts as last week's too. The Asian swing's
+      -- single-week events regularly finish on the Monday or Tuesday
+      -- (Hangzhou and Chengdu 2026: finals on Tue 29 Sep), and the ranking
+      -- dated that Monday already includes them — Davidovich Fokina's published
+      -- move for 2026-09-28 is +250, his Chengdu title. Treating those finals
+      -- as "this week" credited Medvedev and Davidovich Fokina a second 250.
+      -- The test: the edition's main draw began before this ranking week, and
+      -- its Final fell no later than the Tuesday. A two-week event's Final is
+      -- at the end of its second week, so it is never caught by this.
       select distinct
         p.tour,
         ${normSql("prm.tournament_name")} as tournament_key,
@@ -111,8 +138,15 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
       from player_recent_matches prm
       join players p on p.id = prm.player_id
       cross join week_start ws
+      left join edition_start es
+        on es.tour = p.tour
+       and es.tournament_key = ${normSql("prm.tournament_name")}
+       and es.year = extract(year from prm.played_on)::int
       where prm.round = 'F'
-        and prm.played_on < ws.monday
+        and (
+          prm.played_on < ws.monday
+          or (prm.played_on <= ws.monday + 1 and es.md_start < ws.monday - 1)
+        )
     ),
     in_progress_matches as (
       select prm.*
@@ -124,6 +158,13 @@ export async function deriveLiveStates(opts: DeriveOptions): Promise<LiveState[]
        and ft.tour = pt.tour
       where prm.played_on >= ${cutoffStr}
         and ft.tournament_key is null
+        -- Exhibitions and team events award nothing and must not become a
+        -- player's "current tournament": a Laver Cup match last weekend
+        -- would otherwise hide the Beijing draw they are now in (the
+        -- upcoming-match path below only runs when no recent match exists).
+        -- Mirrors NON_RANKING_PAT in category-inference.ts.
+        and prm.tournament_level is distinct from 'X'
+        and prm.tournament_name !~* ${NON_RANKING_SQL}
     ),
     latest_match as (
       -- Tie-break on source so when both TA and TE recorded the same date,
@@ -189,9 +230,20 @@ function deriveOne(tour: "atp" | "wta", r: Record<string, unknown>): LiveState {
       // at the entry round for the category — points contribution is 0 but
       // status + dropping subtraction in live_points still apply.
       const entryCategory = inferCategory(tour, nextTournament, nextLevel);
+      // The credit is what the player has SECURED: the loser's points of the
+      // round they are in. At a 96-draw 1000 that is the first-round value
+      // for everyone — unseeded players are in R1, and a seed with a bye who
+      // loses their opener is paid first-round points too (the bye rule).
+      // live-tennis.eu credits Gauff exactly 10 before her Beijing 2026
+      // opener. This used to say R64 (35) for every 1000, and R32 for WTA
+      // Slams because only the ATP "grand_slam" category was matched.
+      const slam = entryCategory === "grand_slam" || entryCategory === "wta_grand_slam";
+      const bigDraw =
+        (entryCategory === "masters_1000" || entryCategory === "wta_1000") &&
+        isTwoWeekEvent(entryCategory, nextTournament);
       const entryRound: Round =
-        entryCategory === "grand_slam" ? "R128"
-        : entryCategory === "masters_1000" || entryCategory === "wta_1000" ? "R64"
+        slam || bigDraw ? "R128"
+        : entryCategory === "masters_1000" || entryCategory === "wta_1000" || entryCategory === "wta_1000_nc" ? "R64"
         : "R32";
       return {
         playerId,

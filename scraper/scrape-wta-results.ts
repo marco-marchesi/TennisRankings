@@ -177,6 +177,7 @@ async function ingestTournament(
       id: t.id,
       year: t.year,
       singlesDrawSize: t.singlesDrawSize,
+      // The main-draw start; parseWtaMatches widens it for qualifying.
       startDate: t.startDate,
       endDate: t.endDate,
     });
@@ -292,7 +293,11 @@ async function main() {
   const limit = Number(argValue(args, "--limit") ?? Infinity);
   const months = argValue(args, "--months");
 
-  const to = argValue(args, "--to") ?? isoDaysAgo(0);
+  // Reach 3 days AHEAD: an event is listed from its main-draw start, so on the
+  // qualifying days the whole event fell outside a window ending today. That
+  // is why WTA Beijing (main draw from 30 Sep 2026) was missing on 29 Sep
+  // while its qualifying had been running since the 28th.
+  const to = argValue(args, "--to") ?? isoDaysAgo(-3);
   const from =
     argValue(args, "--from") ?? (months ? isoMonthsAgo(Number(months)) : isoDaysAgo(21));
 

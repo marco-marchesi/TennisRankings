@@ -101,6 +101,12 @@ export const players = pgTable(
      * `atpId`.
      */
     wtaId: text("wta_id"),
+    /**
+     * TennisExplorer's player id ("nakashima-7ab12"). Learned in
+     * expand-rankings from TE ranking rows that coincide with an official row
+     * (same week, rank and points). Added by drizzle/views/players-te-slug.sql.
+     */
+    teSlug: text("te_slug"),
     bio: text("bio"),
     tour: tour("tour").notNull(),
     active: boolean("active").default(true).notNull(),

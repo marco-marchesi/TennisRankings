@@ -1,0 +1,7471 @@
+[
+ {
+  "city": "bendigo",
+  "name": "Bendigo, Australia",
+  "start": "2022-01-03",
+  "end": "2022-01-09",
+  "tier": 80
+ },
+ {
+  "city": "traralgon",
+  "name": "Traralgon, Australia",
+  "start": "2022-01-03",
+  "end": "2022-01-09",
+  "tier": 80
+ },
+ {
+  "city": "tigre",
+  "name": "Tigre, Argentina",
+  "start": "2022-01-03",
+  "end": "2022-01-09",
+  "tier": 50
+ },
+ {
+  "city": "forli",
+  "name": "Forlì, Italy",
+  "start": "2022-01-03",
+  "end": "2022-01-09",
+  "tier": 50
+ },
+ {
+  "city": "forli",
+  "name": "Forlì, Italy",
+  "start": "2022-01-10",
+  "end": "2022-01-16",
+  "tier": 80
+ },
+ {
+  "city": "blumenau",
+  "name": "Blumenau, Brazil",
+  "start": "2022-01-10",
+  "end": "2022-01-16",
+  "tier": 50
+ },
+ {
+  "city": "forli",
+  "name": "Forlì, Italy",
+  "start": "2022-01-17",
+  "end": "2022-01-23",
+  "tier": 80
+ },
+ {
+  "city": "concepcion",
+  "name": "Concepción, Chile",
+  "start": "2022-01-17",
+  "end": "2022-01-23",
+  "tier": 80
+ },
+ {
+  "city": "quimper",
+  "name": "Quimper, France",
+  "start": "2022-01-24",
+  "end": "2022-01-30",
+  "tier": 80
+ },
+ {
+  "city": "columbus",
+  "name": "Columbus, United States",
+  "start": "2022-01-24",
+  "end": "2022-01-30",
+  "tier": 80
+ },
+ {
+  "city": "santa cruz de la sierra",
+  "name": "Santa Cruz de la Sierra, Bolivia",
+  "start": "2022-01-24",
+  "end": "2022-01-30",
+  "tier": 80
+ },
+ {
+  "city": "cleveland",
+  "name": "Cleveland, United States",
+  "start": "2022-01-31",
+  "end": "2022-02-06",
+  "tier": 80
+ },
+ {
+  "city": "bangalore",
+  "name": "Bangalore, India",
+  "start": "2022-02-07",
+  "end": "2022-02-13",
+  "tier": 80
+ },
+ {
+  "city": "cherbourg",
+  "name": "Cherbourg, France",
+  "start": "2022-02-07",
+  "end": "2022-02-13",
+  "tier": 80
+ },
+ {
+  "city": "bangalore",
+  "name": "Bangalore, India",
+  "start": "2022-02-14",
+  "end": "2022-02-20",
+  "tier": 80
+ },
+ {
+  "city": "forli",
+  "name": "Forlì, Italy",
+  "start": "2022-02-14",
+  "end": "2022-02-20",
+  "tier": 80
+ },
+ {
+  "city": "pau",
+  "name": "Pau, France",
+  "start": "2022-02-21",
+  "end": "2022-02-27",
+  "tier": 100
+ },
+ {
+  "city": "forli",
+  "name": "Forlì, Italy",
+  "start": "2022-02-21",
+  "end": "2022-02-27",
+  "tier": 80
+ },
+ {
+  "city": "las palmas",
+  "name": "Las Palmas, Spain",
+  "start": "2022-02-28",
+  "end": "2022-03-06",
+  "tier": 80
+ },
+ {
+  "city": "turin",
+  "name": "Turin, Italy",
+  "start": "2022-02-28",
+  "end": "2022-03-06",
+  "tier": 80
+ },
+ {
+  "city": "monterrey",
+  "name": "Monterrey, Mexico",
+  "start": "2022-03-07",
+  "end": "2022-03-13",
+  "tier": 100
+ },
+ {
+  "city": "santiago",
+  "name": "Santiago, Chile",
+  "start": "2022-03-07",
+  "end": "2022-03-13",
+  "tier": 80
+ },
+ {
+  "city": "roseto degli abruzzi",
+  "name": "Roseto degli Abruzzi, Italy",
+  "start": "2022-03-07",
+  "end": "2022-03-13",
+  "tier": 80
+ },
+ {
+  "city": "phoenix",
+  "name": "Phoenix, United States",
+  "start": "2022-03-14",
+  "end": "2022-03-20",
+  "tier": 125
+ },
+ {
+  "city": "concepcion",
+  "name": "Concepción, Chile",
+  "start": "2022-03-14",
+  "end": "2022-03-20",
+  "tier": 80
+ },
+ {
+  "city": "roseto degli abruzzi",
+  "name": "Roseto degli Abruzzi, Italy",
+  "start": "2022-03-14",
+  "end": "2022-03-20",
+  "tier": 80
+ },
+ {
+  "city": "lille",
+  "name": "Lille, France",
+  "start": "2022-03-21",
+  "end": "2022-03-27",
+  "tier": 90
+ },
+ {
+  "city": "biel bienne",
+  "name": "Biel/Bienne, Switzerland",
+  "start": "2022-03-21",
+  "end": "2022-03-27",
+  "tier": 80
+ },
+ {
+  "city": "zadar",
+  "name": "Zadar, Croatia",
+  "start": "2022-03-21",
+  "end": "2022-03-27",
+  "tier": 80
+ },
+ {
+  "city": "santa cruz de la sierra",
+  "name": "Santa Cruz de la Sierra, Bolivia",
+  "start": "2022-03-21",
+  "end": "2022-03-27",
+  "tier": 80
+ },
+ {
+  "city": "marbella",
+  "name": "Marbella, Spain",
+  "start": "2022-03-28",
+  "end": "2022-04-03",
+  "tier": 125
+ },
+ {
+  "city": "lugano",
+  "name": "Lugano, Switzerland",
+  "start": "2022-03-28",
+  "end": "2022-04-03",
+  "tier": 80
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2022-03-28",
+  "end": "2022-04-03",
+  "tier": 80
+ },
+ {
+  "city": "saint brieuc",
+  "name": "Saint-Brieuc, France",
+  "start": "2022-03-28",
+  "end": "2022-04-03",
+  "tier": 80
+ },
+ {
+  "city": "pereira",
+  "name": "Pereira, Colombia",
+  "start": "2022-03-28",
+  "end": "2022-04-03",
+  "tier": 80
+ },
+ {
+  "city": "mexico city",
+  "name": "Mexico City, Mexico",
+  "start": "2022-04-04",
+  "end": "2022-04-10",
+  "tier": 125
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2022-04-04",
+  "end": "2022-04-10",
+  "tier": 80
+ },
+ {
+  "city": "sanremo",
+  "name": "Sanremo, Italy",
+  "start": "2022-04-04",
+  "end": "2022-04-10",
+  "tier": 80
+ },
+ {
+  "city": "murcia",
+  "name": "Murcia, Spain",
+  "start": "2022-04-04",
+  "end": "2022-04-10",
+  "tier": 80
+ },
+ {
+  "city": "salinas",
+  "name": "Salinas, Ecuador",
+  "start": "2022-04-04",
+  "end": "2022-04-10",
+  "tier": 80
+ },
+ {
+  "city": "sarasota",
+  "name": "Sarasota, United States",
+  "start": "2022-04-11",
+  "end": "2022-04-17",
+  "tier": 100
+ },
+ {
+  "city": "barletta",
+  "name": "Barletta, Italy",
+  "start": "2022-04-11",
+  "end": "2022-04-17",
+  "tier": 80
+ },
+ {
+  "city": "madrid",
+  "name": "Madrid, Spain",
+  "start": "2022-04-11",
+  "end": "2022-04-17",
+  "tier": 80
+ },
+ {
+  "city": "san luis potosi",
+  "name": "San Luis Potosí, Mexico",
+  "start": "2022-04-11",
+  "end": "2022-04-17",
+  "tier": 80
+ },
+ {
+  "city": "prague",
+  "name": "Prague, Czech Republic",
+  "start": "2022-04-18",
+  "end": "2022-04-24",
+  "tier": 80
+ },
+ {
+  "city": "split",
+  "name": "Split, Croatia",
+  "start": "2022-04-18",
+  "end": "2022-04-24",
+  "tier": 80
+ },
+ {
+  "city": "tallahassee",
+  "name": "Tallahassee, United States",
+  "start": "2022-04-18",
+  "end": "2022-04-24",
+  "tier": 80
+ },
+ {
+  "city": "aguascalientes",
+  "name": "Aguascalientes, Mexico",
+  "start": "2022-04-18",
+  "end": "2022-04-24",
+  "tier": 80
+ },
+ {
+  "city": "ostrava",
+  "name": "Ostrava, Czech Republic",
+  "start": "2022-04-25",
+  "end": "2022-05-01",
+  "tier": 80
+ },
+ {
+  "city": "rome",
+  "name": "Rome, Italy",
+  "start": "2022-04-25",
+  "end": "2022-05-01",
+  "tier": 80
+ },
+ {
+  "city": "savannah",
+  "name": "Savannah, United States",
+  "start": "2022-04-25",
+  "end": "2022-05-01",
+  "tier": 80
+ },
+ {
+  "city": "tigre",
+  "name": "Tigre, Argentina",
+  "start": "2022-04-25",
+  "end": "2022-05-01",
+  "tier": 80
+ },
+ {
+  "city": "cuernavaca",
+  "name": "Cuernavaca, Mexico",
+  "start": "2022-04-25",
+  "end": "2022-05-01",
+  "tier": 80
+ },
+ {
+  "city": "aix en provence",
+  "name": "Aix-en-Provence, France",
+  "start": "2022-05-02",
+  "end": "2022-05-08",
+  "tier": 100
+ },
+ {
+  "city": "mauthausen",
+  "name": "Mauthausen, Austria",
+  "start": "2022-05-02",
+  "end": "2022-05-08",
+  "tier": 100
+ },
+ {
+  "city": "prague",
+  "name": "Prague, Czech Republic",
+  "start": "2022-05-02",
+  "end": "2022-05-08",
+  "tier": 80
+ },
+ {
+  "city": "salvador",
+  "name": "Salvador, Brazil",
+  "start": "2022-05-02",
+  "end": "2022-05-08",
+  "tier": 80
+ },
+ {
+  "city": "bordeaux",
+  "name": "Bordeaux, France",
+  "start": "2022-05-09",
+  "end": "2022-05-15",
+  "tier": 125
+ },
+ {
+  "city": "heilbronn",
+  "name": "Heilbronn, Germany",
+  "start": "2022-05-09",
+  "end": "2022-05-15",
+  "tier": 100
+ },
+ {
+  "city": "zagreb",
+  "name": "Zagreb, Croatia",
+  "start": "2022-05-09",
+  "end": "2022-05-15",
+  "tier": 80
+ },
+ {
+  "city": "shymkent",
+  "name": "Shymkent, Kazakhstan",
+  "start": "2022-05-09",
+  "end": "2022-05-15",
+  "tier": 80
+ },
+ {
+  "city": "coquimbo",
+  "name": "Coquimbo, Chile",
+  "start": "2022-05-09",
+  "end": "2022-05-15",
+  "tier": 80
+ },
+ {
+  "city": "tunis",
+  "name": "Tunis, Tunisia",
+  "start": "2022-05-16",
+  "end": "2022-05-22",
+  "tier": 80
+ },
+ {
+  "city": "shymkent",
+  "name": "Shymkent, Kazakhstan",
+  "start": "2022-05-16",
+  "end": "2022-05-22",
+  "tier": 80
+ },
+ {
+  "city": "francavilla al mare",
+  "name": "Francavilla al Mare, Italy",
+  "start": "2022-05-16",
+  "end": "2022-05-22",
+  "tier": 50
+ },
+ {
+  "city": "vicenza",
+  "name": "Vicenza, Italy",
+  "start": "2022-05-23",
+  "end": "2022-05-29",
+  "tier": 80
+ },
+ {
+  "city": "troisdorf",
+  "name": "Troisdorf, Germany",
+  "start": "2022-05-23",
+  "end": "2022-05-29",
+  "tier": 80
+ },
+ {
+  "city": "forli",
+  "name": "Forlì, Italy",
+  "start": "2022-05-30",
+  "end": "2022-06-05",
+  "tier": 125
+ },
+ {
+  "city": "surbiton",
+  "name": "Surbiton, United Kingdom",
+  "start": "2022-05-30",
+  "end": "2022-06-05",
+  "tier": 125
+ },
+ {
+  "city": "prostejov",
+  "name": "Prostějov, Czech Republic",
+  "start": "2022-05-30",
+  "end": "2022-06-05",
+  "tier": 100
+ },
+ {
+  "city": "little rock",
+  "name": "Little Rock, United States",
+  "start": "2022-05-30",
+  "end": "2022-06-05",
+  "tier": 100
+ },
+ {
+  "city": "poznan",
+  "name": "Poznań, Poland",
+  "start": "2022-05-30",
+  "end": "2022-06-05",
+  "tier": 90
+ },
+ {
+  "city": "nottingham",
+  "name": "Nottingham, United Kingdom",
+  "start": "2022-06-06",
+  "end": "2022-06-12",
+  "tier": 125
+ },
+ {
+  "city": "perugia",
+  "name": "Perugia, Italy",
+  "start": "2022-06-06",
+  "end": "2022-06-12",
+  "tier": 125
+ },
+ {
+  "city": "lyon",
+  "name": "Lyon, France",
+  "start": "2022-06-06",
+  "end": "2022-06-12",
+  "tier": 100
+ },
+ {
+  "city": "orlando",
+  "name": "Orlando, United States",
+  "start": "2022-06-06",
+  "end": "2022-06-12",
+  "tier": 100
+ },
+ {
+  "city": "bratislava",
+  "name": "Bratislava, Slovakia",
+  "start": "2022-06-06",
+  "end": "2022-06-12",
+  "tier": 90
+ },
+ {
+  "city": "ilkley",
+  "name": "Ilkley, United Kingdom",
+  "start": "2022-06-13",
+  "end": "2022-06-19",
+  "tier": 125
+ },
+ {
+  "city": "parma",
+  "name": "Parma, Italy",
+  "start": "2022-06-13",
+  "end": "2022-06-19",
+  "tier": 125
+ },
+ {
+  "city": "blois",
+  "name": "Blois, France",
+  "start": "2022-06-13",
+  "end": "2022-06-19",
+  "tier": 80
+ },
+ {
+  "city": "corrientes",
+  "name": "Corrientes, Argentina",
+  "start": "2022-06-13",
+  "end": "2022-06-19",
+  "tier": 50
+ },
+ {
+  "city": "milan",
+  "name": "Milan, Italy",
+  "start": "2022-06-20",
+  "end": "2022-06-26",
+  "tier": 80
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2022-06-20",
+  "end": "2022-06-26",
+  "tier": 80
+ },
+ {
+  "city": "buenos aires",
+  "name": "Buenos Aires, Argentina",
+  "start": "2022-06-20",
+  "end": "2022-06-26",
+  "tier": 50
+ },
+ {
+  "city": "ludenscheid",
+  "name": "Lüdenscheid, Germany",
+  "start": "2022-06-27",
+  "end": "2022-07-03",
+  "tier": 80
+ },
+ {
+  "city": "malaga",
+  "name": "Málaga, Spain",
+  "start": "2022-06-27",
+  "end": "2022-07-03",
+  "tier": 80
+ },
+ {
+  "city": "cali",
+  "name": "Cali, Colombia",
+  "start": "2022-06-27",
+  "end": "2022-07-03",
+  "tier": 80
+ },
+ {
+  "city": "troyes",
+  "name": "Troyes, France",
+  "start": "2022-06-27",
+  "end": "2022-07-03",
+  "tier": 50
+ },
+ {
+  "city": "braunschweig",
+  "name": "Braunschweig, Germany",
+  "start": "2022-07-04",
+  "end": "2022-07-10",
+  "tier": 125
+ },
+ {
+  "city": "salzburg",
+  "name": "Salzburg, Austria",
+  "start": "2022-07-04",
+  "end": "2022-07-10",
+  "tier": 125
+ },
+ {
+  "city": "porto",
+  "name": "Porto, Portugal",
+  "start": "2022-07-04",
+  "end": "2022-07-10",
+  "tier": 80
+ },
+ {
+  "city": "todi",
+  "name": "Todi, Italy",
+  "start": "2022-07-04",
+  "end": "2022-07-10",
+  "tier": 80
+ },
+ {
+  "city": "bogota",
+  "name": "Bogotá, Colombia",
+  "start": "2022-07-04",
+  "end": "2022-07-10",
+  "tier": 80
+ },
+ {
+  "city": "iasi",
+  "name": "Iași, Romania",
+  "start": "2022-07-11",
+  "end": "2022-07-17",
+  "tier": 100
+ },
+ {
+  "city": "amersfoort",
+  "name": "Amersfoort, Netherlands",
+  "start": "2022-07-11",
+  "end": "2022-07-17",
+  "tier": 80
+ },
+ {
+  "city": "verona",
+  "name": "Verona, Italy",
+  "start": "2022-07-11",
+  "end": "2022-07-17",
+  "tier": 80
+ },
+ {
+  "city": "rome",
+  "name": "Rome, United States",
+  "start": "2022-07-11",
+  "end": "2022-07-17",
+  "tier": 80
+ },
+ {
+  "city": "trieste",
+  "name": "Trieste, Italy",
+  "start": "2022-07-18",
+  "end": "2022-07-24",
+  "tier": 100
+ },
+ {
+  "city": "pozoblanco",
+  "name": "Pozoblanco, Spain",
+  "start": "2022-07-18",
+  "end": "2022-07-24",
+  "tier": 80
+ },
+ {
+  "city": "tampere",
+  "name": "Tampere, Finland",
+  "start": "2022-07-18",
+  "end": "2022-07-24",
+  "tier": 80
+ },
+ {
+  "city": "nur sultan",
+  "name": "Nur-Sultan, Kazakhstan",
+  "start": "2022-07-18",
+  "end": "2022-07-24",
+  "tier": 80
+ },
+ {
+  "city": "indianapolis",
+  "name": "Indianapolis, United States",
+  "start": "2022-07-18",
+  "end": "2022-07-24",
+  "tier": 80
+ },
+ {
+  "city": "zug",
+  "name": "Zug, Switzerland",
+  "start": "2022-07-25",
+  "end": "2022-07-31",
+  "tier": 125
+ },
+ {
+  "city": "segovia",
+  "name": "Segovia, Spain",
+  "start": "2022-07-25",
+  "end": "2022-07-31",
+  "tier": 90
+ },
+ {
+  "city": "san benedetto del tronto",
+  "name": "San Benedetto del Tronto, Italy",
+  "start": "2022-07-25",
+  "end": "2022-07-31",
+  "tier": 80
+ },
+ {
+  "city": "winnipeg",
+  "name": "Winnipeg, Canada",
+  "start": "2022-07-25",
+  "end": "2022-07-31",
+  "tier": 80
+ },
+ {
+  "city": "cordenons",
+  "name": "Cordenons, Italy",
+  "start": "2022-08-01",
+  "end": "2022-08-07",
+  "tier": 80
+ },
+ {
+  "city": "liberec",
+  "name": "Liberec, Czech Republic",
+  "start": "2022-08-01",
+  "end": "2022-08-07",
+  "tier": 80
+ },
+ {
+  "city": "lexington",
+  "name": "Lexington, United States",
+  "start": "2022-08-01",
+  "end": "2022-08-07",
+  "tier": 80
+ },
+ {
+  "city": "san marino",
+  "name": "San Marino, San Marino",
+  "start": "2022-08-08",
+  "end": "2022-08-14",
+  "tier": 90
+ },
+ {
+  "city": "meerbusch",
+  "name": "Meerbusch, Germany",
+  "start": "2022-08-08",
+  "end": "2022-08-14",
+  "tier": 80
+ },
+ {
+  "city": "chicago",
+  "name": "Chicago, United States",
+  "start": "2022-08-08",
+  "end": "2022-08-14",
+  "tier": 80
+ },
+ {
+  "city": "lima",
+  "name": "Lima, Peru",
+  "start": "2022-08-08",
+  "end": "2022-08-14",
+  "tier": 80
+ },
+ {
+  "city": "santo domingo",
+  "name": "Santo Domingo, Dominican Republic",
+  "start": "2022-08-15",
+  "end": "2022-08-21",
+  "tier": 125
+ },
+ {
+  "city": "vancouver",
+  "name": "Vancouver, Canada",
+  "start": "2022-08-15",
+  "end": "2022-08-21",
+  "tier": 125
+ },
+ {
+  "city": "grodzisk mazowiecki",
+  "name": "Grodzisk Mazowiecki, Poland",
+  "start": "2022-08-15",
+  "end": "2022-08-21",
+  "tier": 90
+ },
+ {
+  "city": "banja luka",
+  "name": "Banja Luka, Bosnia and Herzegovina",
+  "start": "2022-08-22",
+  "end": "2022-08-28",
+  "tier": 80
+ },
+ {
+  "city": "granby",
+  "name": "Granby, Canada",
+  "start": "2022-08-22",
+  "end": "2022-08-28",
+  "tier": 80
+ },
+ {
+  "city": "prague",
+  "name": "Prague, Czech Republic",
+  "start": "2022-08-22",
+  "end": "2022-08-28",
+  "tier": 50
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2022-08-22",
+  "end": "2022-08-28",
+  "tier": 50
+ },
+ {
+  "city": "como",
+  "name": "Como, Italy",
+  "start": "2022-08-29",
+  "end": "2022-09-04",
+  "tier": 80
+ },
+ {
+  "city": "mallorca",
+  "name": "Mallorca, Spain",
+  "start": "2022-08-29",
+  "end": "2022-09-04",
+  "tier": 80
+ },
+ {
+  "city": "toulouse",
+  "name": "Toulouse, France",
+  "start": "2022-08-29",
+  "end": "2022-09-04",
+  "tier": 80
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2022-08-29",
+  "end": "2022-09-04",
+  "tier": 50
+ },
+ {
+  "city": "tulln an der donau",
+  "name": "Tulln an der Donau, Austria",
+  "start": "2022-09-05",
+  "end": "2022-09-11",
+  "tier": 100
+ },
+ {
+  "city": "seville",
+  "name": "Seville, Spain",
+  "start": "2022-09-05",
+  "end": "2022-09-11",
+  "tier": 90
+ },
+ {
+  "city": "cassis",
+  "name": "Cassis, France",
+  "start": "2022-09-05",
+  "end": "2022-09-11",
+  "tier": 80
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2022-09-05",
+  "end": "2022-09-11",
+  "tier": 50
+ },
+ {
+  "city": "szczecin",
+  "name": "Szczecin, Poland",
+  "start": "2022-09-12",
+  "end": "2022-09-18",
+  "tier": 125
+ },
+ {
+  "city": "rennes",
+  "name": "Rennes, France",
+  "start": "2022-09-12",
+  "end": "2022-09-18",
+  "tier": 90
+ },
+ {
+  "city": "istanbul",
+  "name": "Istanbul, Turkey",
+  "start": "2022-09-12",
+  "end": "2022-09-18",
+  "tier": 80
+ },
+ {
+  "city": "cary",
+  "name": "Cary, United States",
+  "start": "2022-09-12",
+  "end": "2022-09-18",
+  "tier": 80
+ },
+ {
+  "city": "genoa",
+  "name": "Genoa, Italy",
+  "start": "2022-09-19",
+  "end": "2022-09-25",
+  "tier": 125
+ },
+ {
+  "city": "braga",
+  "name": "Braga, Portugal",
+  "start": "2022-09-19",
+  "end": "2022-09-25",
+  "tier": 80
+ },
+ {
+  "city": "columbus",
+  "name": "Columbus, United States",
+  "start": "2022-09-19",
+  "end": "2022-09-25",
+  "tier": 80
+ },
+ {
+  "city": "sibiu",
+  "name": "Sibiu, Romania",
+  "start": "2022-09-19",
+  "end": "2022-09-25",
+  "tier": 80
+ },
+ {
+  "city": "villa maria",
+  "name": "Villa María, Argentina",
+  "start": "2022-09-19",
+  "end": "2022-09-25",
+  "tier": 80
+ },
+ {
+  "city": "orleans",
+  "name": "Orléans, France",
+  "start": "2022-09-26",
+  "end": "2022-10-02",
+  "tier": 125
+ },
+ {
+  "city": "buenos aires",
+  "name": "Buenos Aires, Argentina",
+  "start": "2022-09-26",
+  "end": "2022-10-02",
+  "tier": 80
+ },
+ {
+  "city": "charleston",
+  "name": "Charleston, United States",
+  "start": "2022-09-26",
+  "end": "2022-10-02",
+  "tier": 80
+ },
+ {
+  "city": "lisbon",
+  "name": "Lisbon, Portugal",
+  "start": "2022-09-26",
+  "end": "2022-10-02",
+  "tier": 80
+ },
+ {
+  "city": "parma",
+  "name": "Parma, Italy",
+  "start": "2022-10-03",
+  "end": "2022-10-09",
+  "tier": 125
+ },
+ {
+  "city": "mouilleron le captif",
+  "name": "Mouilleron-le-Captif, France",
+  "start": "2022-10-03",
+  "end": "2022-10-09",
+  "tier": 90
+ },
+ {
+  "city": "alicante",
+  "name": "Alicante, Spain",
+  "start": "2022-10-03",
+  "end": "2022-10-09",
+  "tier": 80
+ },
+ {
+  "city": "campinas",
+  "name": "Campinas, Brazil",
+  "start": "2022-10-03",
+  "end": "2022-10-09",
+  "tier": 80
+ },
+ {
+  "city": "gwangju",
+  "name": "Gwangju, South Korea",
+  "start": "2022-10-03",
+  "end": "2022-10-09",
+  "tier": 80
+ },
+ {
+  "city": "tiburon",
+  "name": "Tiburon, United States",
+  "start": "2022-10-03",
+  "end": "2022-10-09",
+  "tier": 80
+ },
+ {
+  "city": "seoul",
+  "name": "Seoul, South Korea",
+  "start": "2022-10-10",
+  "end": "2022-10-16",
+  "tier": 110
+ },
+ {
+  "city": "saint tropez",
+  "name": "Saint-Tropez, France",
+  "start": "2022-10-10",
+  "end": "2022-10-16",
+  "tier": 100
+ },
+ {
+  "city": "fairfield",
+  "name": "Fairfield, United States",
+  "start": "2022-10-10",
+  "end": "2022-10-16",
+  "tier": 80
+ },
+ {
+  "city": "ismaning",
+  "name": "Ismaning, Germany",
+  "start": "2022-10-10",
+  "end": "2022-10-16",
+  "tier": 80
+ },
+ {
+  "city": "rio de janeiro",
+  "name": "Rio de Janeiro, Brazil",
+  "start": "2022-10-10",
+  "end": "2022-10-16",
+  "tier": 80
+ },
+ {
+  "city": "busan",
+  "name": "Busan, South Korea",
+  "start": "2022-10-17",
+  "end": "2022-10-23",
+  "tier": 125
+ },
+ {
+  "city": "ambato",
+  "name": "Ambato, Ecuador",
+  "start": "2022-10-17",
+  "end": "2022-10-23",
+  "tier": 80
+ },
+ {
+  "city": "coquimbo",
+  "name": "Coquimbo, Chile",
+  "start": "2022-10-17",
+  "end": "2022-10-23",
+  "tier": 80
+ },
+ {
+  "city": "hamburg",
+  "name": "Hamburg, Germany",
+  "start": "2022-10-17",
+  "end": "2022-10-23",
+  "tier": 80
+ },
+ {
+  "city": "vilnius",
+  "name": "Vilnius, Lithuania",
+  "start": "2022-10-17",
+  "end": "2022-10-23",
+  "tier": 80
+ },
+ {
+  "city": "brest",
+  "name": "Brest, France",
+  "start": "2022-10-24",
+  "end": "2022-10-30",
+  "tier": 90
+ },
+ {
+  "city": "las vegas",
+  "name": "Las Vegas, United States",
+  "start": "2022-10-24",
+  "end": "2022-10-30",
+  "tier": 80
+ },
+ {
+  "city": "lima",
+  "name": "Lima, Peru",
+  "start": "2022-10-24",
+  "end": "2022-10-30",
+  "tier": 80
+ },
+ {
+  "city": "ortisei",
+  "name": "Ortisei, Italy",
+  "start": "2022-10-24",
+  "end": "2022-10-30",
+  "tier": 80
+ },
+ {
+  "city": "playford",
+  "name": "Playford, Australia",
+  "start": "2022-10-24",
+  "end": "2022-10-30",
+  "tier": 80
+ },
+ {
+  "city": "bergamo",
+  "name": "Bergamo, Italy",
+  "start": "2022-10-31",
+  "end": "2022-11-06",
+  "tier": 80
+ },
+ {
+  "city": "charlottesville",
+  "name": "Charlottesville, United States",
+  "start": "2022-10-31",
+  "end": "2022-11-06",
+  "tier": 80
+ },
+ {
+  "city": "guayaquil",
+  "name": "Guayaquil, Ecuador",
+  "start": "2022-10-31",
+  "end": "2022-11-06",
+  "tier": 80
+ },
+ {
+  "city": "sydney",
+  "name": "Sydney, Australia",
+  "start": "2022-10-31",
+  "end": "2022-11-06",
+  "tier": 80
+ },
+ {
+  "city": "yokohama",
+  "name": "Yokohama, Japan",
+  "start": "2022-10-31",
+  "end": "2022-11-06",
+  "tier": 80
+ },
+ {
+  "city": "roanne",
+  "name": "Roanne, France",
+  "start": "2022-11-07",
+  "end": "2022-11-13",
+  "tier": 100
+ },
+ {
+  "city": "bratislava",
+  "name": "Bratislava, Slovakia",
+  "start": "2022-11-07",
+  "end": "2022-11-13",
+  "tier": 90
+ },
+ {
+  "city": "calgary",
+  "name": "Calgary, Canada",
+  "start": "2022-11-07",
+  "end": "2022-11-13",
+  "tier": 80
+ },
+ {
+  "city": "knoxville",
+  "name": "Knoxville, United States",
+  "start": "2022-11-07",
+  "end": "2022-11-13",
+  "tier": 80
+ },
+ {
+  "city": "matsuyama",
+  "name": "Matsuyama, Japan",
+  "start": "2022-11-07",
+  "end": "2022-11-13",
+  "tier": 80
+ },
+ {
+  "city": "montevideo",
+  "name": "Montevideo, Uruguay",
+  "start": "2022-11-07",
+  "end": "2022-11-13",
+  "tier": 80
+ },
+ {
+  "city": "helsinki",
+  "name": "Helsinki, Finland",
+  "start": "2022-11-14",
+  "end": "2022-11-20",
+  "tier": 90
+ },
+ {
+  "city": "champaign",
+  "name": "Champaign, United States",
+  "start": "2022-11-14",
+  "end": "2022-11-20",
+  "tier": 80
+ },
+ {
+  "city": "drummondville",
+  "name": "Drummondville, Canada",
+  "start": "2022-11-14",
+  "end": "2022-11-20",
+  "tier": 80
+ },
+ {
+  "city": "kobe",
+  "name": "Kobe, Japan",
+  "start": "2022-11-14",
+  "end": "2022-11-20",
+  "tier": 80
+ },
+ {
+  "city": "sao leopoldo",
+  "name": "São Leopoldo, Brazil",
+  "start": "2022-11-14",
+  "end": "2022-11-20",
+  "tier": 80
+ },
+ {
+  "city": "temuco",
+  "name": "Temuco, Chile",
+  "start": "2022-11-21",
+  "end": "2022-11-27",
+  "tier": 100
+ },
+ {
+  "city": "valencia",
+  "name": "Valencia, Spain",
+  "start": "2022-11-21",
+  "end": "2022-11-27",
+  "tier": 90
+ },
+ {
+  "city": "andria",
+  "name": "Andria, Italy",
+  "start": "2022-11-21",
+  "end": "2022-11-27",
+  "tier": 80
+ },
+ {
+  "city": "yokkaichi",
+  "name": "Yokkaichi, Japan",
+  "start": "2022-11-21",
+  "end": "2022-11-27",
+  "tier": 80
+ },
+ {
+  "city": "maia",
+  "name": "Maia, Portugal",
+  "start": "2022-11-28",
+  "end": "2022-12-04",
+  "tier": 80
+ },
+ {
+  "city": "maspalomas",
+  "name": "Maspalomas, Spain",
+  "start": "2022-11-28",
+  "end": "2022-12-04",
+  "tier": 80
+ },
+ {
+  "city": "canberra",
+  "name": "Canberra, Australia",
+  "start": "2023-01-02",
+  "end": "2023-01-08",
+  "tier": 100
+ },
+ {
+  "city": "noumea",
+  "name": "Nouméa, New Caledonia",
+  "start": "2023-01-02",
+  "end": "2023-01-08",
+  "tier": 100
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2023-01-02",
+  "end": "2023-01-08",
+  "tier": 75
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2023-01-02",
+  "end": "2023-01-08",
+  "tier": 50
+ },
+ {
+  "city": "tigre",
+  "name": "Tigre, Argentina",
+  "start": "2023-01-02",
+  "end": "2023-01-08",
+  "tier": 50
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2023-01-09",
+  "end": "2023-01-15",
+  "tier": 75
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2023-01-09",
+  "end": "2023-01-15",
+  "tier": 75
+ },
+ {
+  "city": "tigre",
+  "name": "Tigre, Argentina",
+  "start": "2023-01-09",
+  "end": "2023-01-15",
+  "tier": 50
+ },
+ {
+  "city": "tenerife",
+  "name": "Tenerife, Spain",
+  "start": "2023-01-16",
+  "end": "2023-01-22",
+  "tier": 100
+ },
+ {
+  "city": "piracicaba",
+  "name": "Piracicaba, Brazil",
+  "start": "2023-01-16",
+  "end": "2023-01-22",
+  "tier": 75
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2023-01-16",
+  "end": "2023-01-22",
+  "tier": 50
+ },
+ {
+  "city": "ottignies louvain la neuve",
+  "name": "Ottignies-Louvain-la-Neuve, Belgium",
+  "start": "2023-01-23",
+  "end": "2023-01-29",
+  "tier": 125
+ },
+ {
+  "city": "quimper",
+  "name": "Quimper, France",
+  "start": "2023-01-23",
+  "end": "2023-01-29",
+  "tier": 125
+ },
+ {
+  "city": "concepcion",
+  "name": "Concepción, Chile",
+  "start": "2023-01-23",
+  "end": "2023-01-29",
+  "tier": 100
+ },
+ {
+  "city": "koblenz",
+  "name": "Koblenz, Germany",
+  "start": "2023-01-30",
+  "end": "2023-02-05",
+  "tier": 100
+ },
+ {
+  "city": "burnie",
+  "name": "Burnie, Australia",
+  "start": "2023-01-30",
+  "end": "2023-02-05",
+  "tier": 75
+ },
+ {
+  "city": "cleveland",
+  "name": "Cleveland, United States",
+  "start": "2023-01-30",
+  "end": "2023-02-05",
+  "tier": 75
+ },
+ {
+  "city": "tenerife",
+  "name": "Tenerife, Spain",
+  "start": "2023-01-30",
+  "end": "2023-02-05",
+  "tier": 75
+ },
+ {
+  "city": "vilnius",
+  "name": "Vilnius, Lithuania",
+  "start": "2023-02-06",
+  "end": "2023-02-12",
+  "tier": 100
+ },
+ {
+  "city": "tenerife",
+  "name": "Tenerife, Spain",
+  "start": "2023-02-06",
+  "end": "2023-02-12",
+  "tier": 75
+ },
+ {
+  "city": "manama",
+  "name": "Manama, Bahrain",
+  "start": "2023-02-13",
+  "end": "2023-02-19",
+  "tier": 125
+ },
+ {
+  "city": "chennai",
+  "name": "Chennai, India",
+  "start": "2023-02-13",
+  "end": "2023-02-19",
+  "tier": 100
+ },
+ {
+  "city": "cherbourg",
+  "name": "Cherbourg, France",
+  "start": "2023-02-13",
+  "end": "2023-02-19",
+  "tier": 75
+ },
+ {
+  "city": "monterrey",
+  "name": "Monterrey, Mexico",
+  "start": "2023-02-20",
+  "end": "2023-02-26",
+  "tier": 125
+ },
+ {
+  "city": "bangalore",
+  "name": "Bangalore, India",
+  "start": "2023-02-20",
+  "end": "2023-02-26",
+  "tier": 100
+ },
+ {
+  "city": "rome",
+  "name": "Rome, United States",
+  "start": "2023-02-20",
+  "end": "2023-02-26",
+  "tier": 75
+ },
+ {
+  "city": "rovereto",
+  "name": "Rovereto, Italy",
+  "start": "2023-02-20",
+  "end": "2023-02-26",
+  "tier": 75
+ },
+ {
+  "city": "pau",
+  "name": "Pau, France",
+  "start": "2023-02-27",
+  "end": "2023-03-05",
+  "tier": 125
+ },
+ {
+  "city": "pune",
+  "name": "Pune, India",
+  "start": "2023-02-27",
+  "end": "2023-03-05",
+  "tier": 100
+ },
+ {
+  "city": "waco",
+  "name": "Waco, United States",
+  "start": "2023-02-27",
+  "end": "2023-03-05",
+  "tier": 75
+ },
+ {
+  "city": "puerto vallarta",
+  "name": "Puerto Vallarta, Mexico",
+  "start": "2023-03-06",
+  "end": "2023-03-12",
+  "tier": 100
+ },
+ {
+  "city": "antalya",
+  "name": "Antalya, Turkey",
+  "start": "2023-03-06",
+  "end": "2023-03-12",
+  "tier": 75
+ },
+ {
+  "city": "lugano",
+  "name": "Lugano, Switzerland",
+  "start": "2023-03-06",
+  "end": "2023-03-12",
+  "tier": 75
+ },
+ {
+  "city": "santiago",
+  "name": "Santiago, Chile",
+  "start": "2023-03-06",
+  "end": "2023-03-12",
+  "tier": 75
+ },
+ {
+  "city": "phoenix",
+  "name": "Phoenix, United States",
+  "start": "2023-03-13",
+  "end": "2023-03-19",
+  "tier": 175
+ },
+ {
+  "city": "vina del mar",
+  "name": "Viña del Mar, Chile",
+  "start": "2023-03-13",
+  "end": "2023-03-19",
+  "tier": 75
+ },
+ {
+  "city": "szekesfehervar",
+  "name": "Székesfehérvár, Hungary",
+  "start": "2023-03-13",
+  "end": "2023-03-19",
+  "tier": 50
+ },
+ {
+  "city": "biel bienne",
+  "name": "Biel/Bienne, Switzerland",
+  "start": "2023-03-20",
+  "end": "2023-03-26",
+  "tier": 100
+ },
+ {
+  "city": "les franqueses del valles",
+  "name": "Les Franqueses del Vallès, Spain",
+  "start": "2023-03-20",
+  "end": "2023-03-26",
+  "tier": 75
+ },
+ {
+  "city": "saint brieuc",
+  "name": "Saint-Brieuc, France",
+  "start": "2023-03-20",
+  "end": "2023-03-26",
+  "tier": 75
+ },
+ {
+  "city": "zadar",
+  "name": "Zadar, Croatia",
+  "start": "2023-03-20",
+  "end": "2023-03-26",
+  "tier": 75
+ },
+ {
+  "city": "mexico city",
+  "name": "Mexico City, Mexico",
+  "start": "2023-03-27",
+  "end": "2023-04-02",
+  "tier": 125
+ },
+ {
+  "city": "sanremo",
+  "name": "Sanremo, Italy",
+  "start": "2023-03-27",
+  "end": "2023-04-02",
+  "tier": 125
+ },
+ {
+  "city": "lille",
+  "name": "Lille, France",
+  "start": "2023-03-27",
+  "end": "2023-04-02",
+  "tier": 100
+ },
+ {
+  "city": "girona",
+  "name": "Girona, Spain",
+  "start": "2023-03-27",
+  "end": "2023-04-02",
+  "tier": 75
+ },
+ {
+  "city": "barletta",
+  "name": "Barletta, Italy",
+  "start": "2023-04-03",
+  "end": "2023-04-09",
+  "tier": 75
+ },
+ {
+  "city": "murcia",
+  "name": "Murcia, Spain",
+  "start": "2023-04-03",
+  "end": "2023-04-09",
+  "tier": 75
+ },
+ {
+  "city": "san luis potosi",
+  "name": "San Luis Potosí, Mexico",
+  "start": "2023-04-03",
+  "end": "2023-04-09",
+  "tier": 75
+ },
+ {
+  "city": "sarasota",
+  "name": "Sarasota, United States",
+  "start": "2023-04-10",
+  "end": "2023-04-16",
+  "tier": 125
+ },
+ {
+  "city": "madrid",
+  "name": "Madrid, Spain",
+  "start": "2023-04-10",
+  "end": "2023-04-16",
+  "tier": 75
+ },
+ {
+  "city": "leon",
+  "name": "León, Mexico",
+  "start": "2023-04-10",
+  "end": "2023-04-16",
+  "tier": 75
+ },
+ {
+  "city": "split",
+  "name": "Split, Croatia",
+  "start": "2023-04-10",
+  "end": "2023-04-16",
+  "tier": 75
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2023-04-17",
+  "end": "2023-04-23",
+  "tier": 125
+ },
+ {
+  "city": "florianopolis",
+  "name": "Florianópolis, Brazil",
+  "start": "2023-04-17",
+  "end": "2023-04-23",
+  "tier": 75
+ },
+ {
+  "city": "cuernavaca",
+  "name": "Cuernavaca, Mexico",
+  "start": "2023-04-17",
+  "end": "2023-04-23",
+  "tier": 75
+ },
+ {
+  "city": "roseto degli abruzzi",
+  "name": "Roseto degli Abruzzi, Italy",
+  "start": "2023-04-17",
+  "end": "2023-04-23",
+  "tier": 75
+ },
+ {
+  "city": "tallahassee",
+  "name": "Tallahassee, United States",
+  "start": "2023-04-17",
+  "end": "2023-04-23",
+  "tier": 75
+ },
+ {
+  "city": "seoul",
+  "name": "Seoul, South Korea",
+  "start": "2023-04-24",
+  "end": "2023-04-30",
+  "tier": 125
+ },
+ {
+  "city": "ostrava",
+  "name": "Ostrava, Czech Republic",
+  "start": "2023-04-24",
+  "end": "2023-04-30",
+  "tier": 75
+ },
+ {
+  "city": "rome",
+  "name": "Rome, Italy",
+  "start": "2023-04-24",
+  "end": "2023-04-30",
+  "tier": 75
+ },
+ {
+  "city": "savannah",
+  "name": "Savannah, United States",
+  "start": "2023-04-24",
+  "end": "2023-04-30",
+  "tier": 75
+ },
+ {
+  "city": "buenos aires",
+  "name": "Buenos Aires, Argentina",
+  "start": "2023-04-24",
+  "end": "2023-04-30",
+  "tier": 50
+ },
+ {
+  "city": "aix en provence",
+  "name": "Aix-en-Provence, France",
+  "start": "2023-05-01",
+  "end": "2023-05-07",
+  "tier": 175
+ },
+ {
+  "city": "cagliari",
+  "name": "Cagliari, Italy",
+  "start": "2023-05-01",
+  "end": "2023-05-07",
+  "tier": 175
+ },
+ {
+  "city": "gwangju",
+  "name": "Gwangju, South Korea",
+  "start": "2023-05-01",
+  "end": "2023-05-07",
+  "tier": 75
+ },
+ {
+  "city": "prague",
+  "name": "Prague, Czech Republic",
+  "start": "2023-05-01",
+  "end": "2023-05-07",
+  "tier": 75
+ },
+ {
+  "city": "coquimbo",
+  "name": "Coquimbo, Chile",
+  "start": "2023-05-01",
+  "end": "2023-05-07",
+  "tier": 50
+ },
+ {
+  "city": "busan",
+  "name": "Busan, South Korea",
+  "start": "2023-05-08",
+  "end": "2023-05-14",
+  "tier": 125
+ },
+ {
+  "city": "mauthausen",
+  "name": "Mauthausen, Austria",
+  "start": "2023-05-08",
+  "end": "2023-05-14",
+  "tier": 100
+ },
+ {
+  "city": "francavilla al mare",
+  "name": "Francavilla al Mare, Italy",
+  "start": "2023-05-08",
+  "end": "2023-05-14",
+  "tier": 75
+ },
+ {
+  "city": "prague",
+  "name": "Prague, Czech Republic",
+  "start": "2023-05-08",
+  "end": "2023-05-14",
+  "tier": 75
+ },
+ {
+  "city": "bordeaux",
+  "name": "Bordeaux, France",
+  "start": "2023-05-15",
+  "end": "2023-05-21",
+  "tier": 175
+ },
+ {
+  "city": "turin",
+  "name": "Turin, Italy",
+  "start": "2023-05-15",
+  "end": "2023-05-21",
+  "tier": 175
+ },
+ {
+  "city": "tunis",
+  "name": "Tunis, Tunisia",
+  "start": "2023-05-15",
+  "end": "2023-05-21",
+  "tier": 75
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2023-05-15",
+  "end": "2023-05-21",
+  "tier": 75
+ },
+ {
+  "city": "skopje",
+  "name": "Skopje, North Macedonia",
+  "start": "2023-05-22",
+  "end": "2023-05-28",
+  "tier": 75
+ },
+ {
+  "city": "little rock",
+  "name": "Little Rock, United States",
+  "start": "2023-05-29",
+  "end": "2023-06-04",
+  "tier": 75
+ },
+ {
+  "city": "troisdorf",
+  "name": "Troisdorf, Germany",
+  "start": "2023-05-29",
+  "end": "2023-06-04",
+  "tier": 75
+ },
+ {
+  "city": "vicenza",
+  "name": "Vicenza, Italy",
+  "start": "2023-05-29",
+  "end": "2023-06-04",
+  "tier": 75
+ },
+ {
+  "city": "heilbronn",
+  "name": "Heilbronn, Germany",
+  "start": "2023-06-05",
+  "end": "2023-06-11",
+  "tier": 125
+ },
+ {
+  "city": "surbiton",
+  "name": "Surbiton, United Kingdom",
+  "start": "2023-06-05",
+  "end": "2023-06-11",
+  "tier": 125
+ },
+ {
+  "city": "prostejov",
+  "name": "Prostějov, Czech Republic",
+  "start": "2023-06-05",
+  "end": "2023-06-11",
+  "tier": 100
+ },
+ {
+  "city": "tyler",
+  "name": "Tyler, United States",
+  "start": "2023-06-05",
+  "end": "2023-06-11",
+  "tier": 75
+ },
+ {
+  "city": "nottingham",
+  "name": "Nottingham, United Kingdom",
+  "start": "2023-06-12",
+  "end": "2023-06-18",
+  "tier": 125
+ },
+ {
+  "city": "perugia",
+  "name": "Perugia, Italy",
+  "start": "2023-06-12",
+  "end": "2023-06-18",
+  "tier": 125
+ },
+ {
+  "city": "bratislava",
+  "name": "Bratislava, Slovakia",
+  "start": "2023-06-12",
+  "end": "2023-06-18",
+  "tier": 100
+ },
+ {
+  "city": "lyon",
+  "name": "Lyon, France",
+  "start": "2023-06-12",
+  "end": "2023-06-18",
+  "tier": 100
+ },
+ {
+  "city": "palmas del mar",
+  "name": "Palmas del Mar, Puerto Rico",
+  "start": "2023-06-12",
+  "end": "2023-06-18",
+  "tier": 75
+ },
+ {
+  "city": "ilkley",
+  "name": "Ilkley, United Kingdom",
+  "start": "2023-06-19",
+  "end": "2023-06-25",
+  "tier": 125
+ },
+ {
+  "city": "montechiarugolo",
+  "name": "Montechiarugolo, Italy",
+  "start": "2023-06-19",
+  "end": "2023-06-25",
+  "tier": 125
+ },
+ {
+  "city": "poznan",
+  "name": "Poznań, Poland",
+  "start": "2023-06-19",
+  "end": "2023-06-25",
+  "tier": 100
+ },
+ {
+  "city": "blois",
+  "name": "Blois, France",
+  "start": "2023-06-19",
+  "end": "2023-06-25",
+  "tier": 75
+ },
+ {
+  "city": "cali",
+  "name": "Cali, Colombia",
+  "start": "2023-06-19",
+  "end": "2023-06-25",
+  "tier": 75
+ },
+ {
+  "city": "modena",
+  "name": "Modena, Italy",
+  "start": "2023-06-26",
+  "end": "2023-07-02",
+  "tier": 75
+ },
+ {
+  "city": "medellin",
+  "name": "Medellín, Colombia",
+  "start": "2023-06-26",
+  "end": "2023-07-02",
+  "tier": 50
+ },
+ {
+  "city": "bloomfield hills",
+  "name": "Bloomfield Hills, United States",
+  "start": "2023-07-03",
+  "end": "2023-07-09",
+  "tier": 75
+ },
+ {
+  "city": "karlsruhe",
+  "name": "Karlsruhe, Germany",
+  "start": "2023-07-03",
+  "end": "2023-07-09",
+  "tier": 75
+ },
+ {
+  "city": "milan",
+  "name": "Milan, Italy",
+  "start": "2023-07-03",
+  "end": "2023-07-09",
+  "tier": 75
+ },
+ {
+  "city": "troyes",
+  "name": "Troyes, France",
+  "start": "2023-07-03",
+  "end": "2023-07-09",
+  "tier": 50
+ },
+ {
+  "city": "santa fe",
+  "name": "Santa Fe, Argentina",
+  "start": "2023-07-03",
+  "end": "2023-07-09",
+  "tier": 50
+ },
+ {
+  "city": "braunschweig",
+  "name": "Braunschweig, Germany",
+  "start": "2023-07-10",
+  "end": "2023-07-16",
+  "tier": 125
+ },
+ {
+  "city": "salzburg",
+  "name": "Salzburg, Austria",
+  "start": "2023-07-10",
+  "end": "2023-07-16",
+  "tier": 125
+ },
+ {
+  "city": "iasi",
+  "name": "Iași, Romania",
+  "start": "2023-07-10",
+  "end": "2023-07-16",
+  "tier": 100
+ },
+ {
+  "city": "san benedetto del tronto",
+  "name": "San Benedetto del Tronto, Italy",
+  "start": "2023-07-10",
+  "end": "2023-07-16",
+  "tier": 100
+ },
+ {
+  "city": "chicago",
+  "name": "Chicago, United States",
+  "start": "2023-07-10",
+  "end": "2023-07-16",
+  "tier": 75
+ },
+ {
+  "city": "granby",
+  "name": "Granby, Canada",
+  "start": "2023-07-17",
+  "end": "2023-07-23",
+  "tier": 100
+ },
+ {
+  "city": "trieste",
+  "name": "Trieste, Italy",
+  "start": "2023-07-17",
+  "end": "2023-07-23",
+  "tier": 100
+ },
+ {
+  "city": "amersfoort",
+  "name": "Amersfoort, Netherlands",
+  "start": "2023-07-17",
+  "end": "2023-07-23",
+  "tier": 75
+ },
+ {
+  "city": "pozoblanco",
+  "name": "Pozoblanco, Spain",
+  "start": "2023-07-17",
+  "end": "2023-07-23",
+  "tier": 75
+ },
+ {
+  "city": "tampere",
+  "name": "Tampere, Finland",
+  "start": "2023-07-17",
+  "end": "2023-07-23",
+  "tier": 75
+ },
+ {
+  "city": "zug",
+  "name": "Zug, Switzerland",
+  "start": "2023-07-24",
+  "end": "2023-07-30",
+  "tier": 125
+ },
+ {
+  "city": "segovia",
+  "name": "Segovia, Spain",
+  "start": "2023-07-24",
+  "end": "2023-07-30",
+  "tier": 100
+ },
+ {
+  "city": "verona",
+  "name": "Verona, Italy",
+  "start": "2023-07-24",
+  "end": "2023-07-30",
+  "tier": 100
+ },
+ {
+  "city": "salinas",
+  "name": "Salinas, Ecuador",
+  "start": "2023-07-24",
+  "end": "2023-07-30",
+  "tier": 75
+ },
+ {
+  "city": "astana",
+  "name": "Astana, Kazakhstan",
+  "start": "2023-07-24",
+  "end": "2023-07-30",
+  "tier": 50
+ },
+ {
+  "city": "porto",
+  "name": "Porto, Portugal",
+  "start": "2023-07-31",
+  "end": "2023-08-06",
+  "tier": 125
+ },
+ {
+  "city": "san marino",
+  "name": "San Marino, San Marino",
+  "start": "2023-07-31",
+  "end": "2023-08-06",
+  "tier": 125
+ },
+ {
+  "city": "ludenscheid",
+  "name": "Lüdenscheid, Germany",
+  "start": "2023-07-31",
+  "end": "2023-08-06",
+  "tier": 100
+ },
+ {
+  "city": "lexington",
+  "name": "Lexington, United States",
+  "start": "2023-07-31",
+  "end": "2023-08-06",
+  "tier": 75
+ },
+ {
+  "city": "liberec",
+  "name": "Liberec, Czech Republic",
+  "start": "2023-07-31",
+  "end": "2023-08-06",
+  "tier": 75
+ },
+ {
+  "city": "santo domingo",
+  "name": "Santo Domingo, Dominican Republic",
+  "start": "2023-08-07",
+  "end": "2023-08-13",
+  "tier": 125
+ },
+ {
+  "city": "banja luka",
+  "name": "Banja Luka, Bosnia and Herzegovina",
+  "start": "2023-08-07",
+  "end": "2023-08-13",
+  "tier": 100
+ },
+ {
+  "city": "cary",
+  "name": "Cary, United States",
+  "start": "2023-08-07",
+  "end": "2023-08-13",
+  "tier": 75
+ },
+ {
+  "city": "cordenons",
+  "name": "Cordenons, Italy",
+  "start": "2023-08-07",
+  "end": "2023-08-13",
+  "tier": 75
+ },
+ {
+  "city": "meerbusch",
+  "name": "Meerbusch, Germany",
+  "start": "2023-08-07",
+  "end": "2023-08-13",
+  "tier": 75
+ },
+ {
+  "city": "stanford",
+  "name": "Stanford, United States",
+  "start": "2023-08-14",
+  "end": "2023-08-20",
+  "tier": 125
+ },
+ {
+  "city": "grodzisk mazowiecki",
+  "name": "Grodzisk Mazowiecki, Poland",
+  "start": "2023-08-14",
+  "end": "2023-08-20",
+  "tier": 100
+ },
+ {
+  "city": "todi",
+  "name": "Todi, Italy",
+  "start": "2023-08-14",
+  "end": "2023-08-20",
+  "tier": 75
+ },
+ {
+  "city": "winnipeg",
+  "name": "Winnipeg, Canada",
+  "start": "2023-08-14",
+  "end": "2023-08-20",
+  "tier": 75
+ },
+ {
+  "city": "augsburg",
+  "name": "Augsburg, Germany",
+  "start": "2023-08-21",
+  "end": "2023-08-27",
+  "tier": 50
+ },
+ {
+  "city": "lima",
+  "name": "Lima, Peru",
+  "start": "2023-08-21",
+  "end": "2023-08-27",
+  "tier": 50
+ },
+ {
+  "city": "prague",
+  "name": "Prague, Czech Republic",
+  "start": "2023-08-21",
+  "end": "2023-08-27",
+  "tier": 50
+ },
+ {
+  "city": "zhuhai",
+  "name": "Zhuhai, China",
+  "start": "2023-08-21",
+  "end": "2023-08-27",
+  "tier": 50
+ },
+ {
+  "city": "como",
+  "name": "Como, Italy",
+  "start": "2023-08-28",
+  "end": "2023-09-03",
+  "tier": 75
+ },
+ {
+  "city": "mallorca",
+  "name": "Mallorca, Spain",
+  "start": "2023-08-28",
+  "end": "2023-09-03",
+  "tier": 75
+ },
+ {
+  "city": "zhangjiagang",
+  "name": "Zhangjiagang, China",
+  "start": "2023-08-28",
+  "end": "2023-09-03",
+  "tier": 75
+ },
+ {
+  "city": "genoa",
+  "name": "Genoa, Italy",
+  "start": "2023-09-04",
+  "end": "2023-09-10",
+  "tier": 125
+ },
+ {
+  "city": "seville",
+  "name": "Seville, Spain",
+  "start": "2023-09-04",
+  "end": "2023-09-10",
+  "tier": 125
+ },
+ {
+  "city": "shanghai",
+  "name": "Shanghai, China",
+  "start": "2023-09-04",
+  "end": "2023-09-10",
+  "tier": 100
+ },
+ {
+  "city": "tulln",
+  "name": "Tulln, Austria",
+  "start": "2023-09-04",
+  "end": "2023-09-10",
+  "tier": 100
+ },
+ {
+  "city": "cassis",
+  "name": "Cassis, France",
+  "start": "2023-09-04",
+  "end": "2023-09-10",
+  "tier": 75
+ },
+ {
+  "city": "istanbul",
+  "name": "Istanbul, Turkey",
+  "start": "2023-09-04",
+  "end": "2023-09-10",
+  "tier": 75
+ },
+ {
+  "city": "szczecin",
+  "name": "Szczecin, Poland",
+  "start": "2023-09-11",
+  "end": "2023-09-17",
+  "tier": 125
+ },
+ {
+  "city": "rennes",
+  "name": "Rennes, France",
+  "start": "2023-09-11",
+  "end": "2023-09-17",
+  "tier": 100
+ },
+ {
+  "city": "cary",
+  "name": "Cary, United States",
+  "start": "2023-09-11",
+  "end": "2023-09-17",
+  "tier": 75
+ },
+ {
+  "city": "guangzhou",
+  "name": "Guangzhou, China",
+  "start": "2023-09-11",
+  "end": "2023-09-17",
+  "tier": 75
+ },
+ {
+  "city": "santa cruz de la sierra",
+  "name": "Santa Cruz de la Sierra, Bolivia",
+  "start": "2023-09-11",
+  "end": "2023-09-17",
+  "tier": 75
+ },
+ {
+  "city": "bad waltersdorf",
+  "name": "Bad Waltersdorf, Austria",
+  "start": "2023-09-18",
+  "end": "2023-09-24",
+  "tier": 125
+ },
+ {
+  "city": "saint tropez",
+  "name": "Saint-Tropez, France",
+  "start": "2023-09-18",
+  "end": "2023-09-24",
+  "tier": 125
+ },
+ {
+  "city": "antofagasta",
+  "name": "Antofagasta, Chile",
+  "start": "2023-09-18",
+  "end": "2023-09-24",
+  "tier": 100
+ },
+ {
+  "city": "columbus",
+  "name": "Columbus, United States",
+  "start": "2023-09-18",
+  "end": "2023-09-24",
+  "tier": 75
+ },
+ {
+  "city": "sibiu",
+  "name": "Sibiu, Romania",
+  "start": "2023-09-18",
+  "end": "2023-09-24",
+  "tier": 75
+ },
+ {
+  "city": "bogota",
+  "name": "Bogotá, Colombia",
+  "start": "2023-09-25",
+  "end": "2023-10-01",
+  "tier": 125
+ },
+ {
+  "city": "orleans",
+  "name": "Orléans, France",
+  "start": "2023-09-25",
+  "end": "2023-10-01",
+  "tier": 125
+ },
+ {
+  "city": "braga",
+  "name": "Braga, Portugal",
+  "start": "2023-09-25",
+  "end": "2023-10-01",
+  "tier": 75
+ },
+ {
+  "city": "charleston",
+  "name": "Charleston, United States",
+  "start": "2023-09-25",
+  "end": "2023-10-01",
+  "tier": 75
+ },
+ {
+  "city": "alicante",
+  "name": "Alicante, Spain",
+  "start": "2023-10-02",
+  "end": "2023-10-08",
+  "tier": 100
+ },
+ {
+  "city": "campinas",
+  "name": "Campinas, Brazil",
+  "start": "2023-10-02",
+  "end": "2023-10-08",
+  "tier": 100
+ },
+ {
+  "city": "mouilleron le captif",
+  "name": "Mouilleron-le-Captif, France",
+  "start": "2023-10-02",
+  "end": "2023-10-08",
+  "tier": 100
+ },
+ {
+  "city": "lisbon",
+  "name": "Lisbon, Portugal",
+  "start": "2023-10-02",
+  "end": "2023-10-08",
+  "tier": 75
+ },
+ {
+  "city": "tiburon",
+  "name": "Tiburon, United States",
+  "start": "2023-10-02",
+  "end": "2023-10-08",
+  "tier": 75
+ },
+ {
+  "city": "bratislava",
+  "name": "Bratislava, Slovakia",
+  "start": "2023-10-09",
+  "end": "2023-10-15",
+  "tier": 125
+ },
+ {
+  "city": "malaga",
+  "name": "Málaga, Spain",
+  "start": "2023-10-09",
+  "end": "2023-10-15",
+  "tier": 125
+ },
+ {
+  "city": "buenos aires",
+  "name": "Buenos Aires, Argentina",
+  "start": "2023-10-09",
+  "end": "2023-10-15",
+  "tier": 100
+ },
+ {
+  "city": "shenzhen",
+  "name": "Shenzhen, China",
+  "start": "2023-10-09",
+  "end": "2023-10-15",
+  "tier": 100
+ },
+ {
+  "city": "fairfield",
+  "name": "Fairfield, United States",
+  "start": "2023-10-09",
+  "end": "2023-10-15",
+  "tier": 75
+ },
+ {
+  "city": "olbia",
+  "name": "Olbia, Italy",
+  "start": "2023-10-16",
+  "end": "2023-10-22",
+  "tier": 125
+ },
+ {
+  "city": "santa fe",
+  "name": "Santa Fe, Argentina",
+  "start": "2023-10-16",
+  "end": "2023-10-22",
+  "tier": 75
+ },
+ {
+  "city": "shenzhen",
+  "name": "Shenzhen, China",
+  "start": "2023-10-16",
+  "end": "2023-10-22",
+  "tier": 75
+ },
+ {
+  "city": "hamburg",
+  "name": "Hamburg, Germany",
+  "start": "2023-10-16",
+  "end": "2023-10-22",
+  "tier": 50
+ },
+ {
+  "city": "brest",
+  "name": "Brest, France",
+  "start": "2023-10-23",
+  "end": "2023-10-29",
+  "tier": 100
+ },
+ {
+  "city": "curitiba",
+  "name": "Curitiba, Brazil",
+  "start": "2023-10-23",
+  "end": "2023-10-29",
+  "tier": 75
+ },
+ {
+  "city": "playford",
+  "name": "Playford, Australia",
+  "start": "2023-10-23",
+  "end": "2023-10-29",
+  "tier": 75
+ },
+ {
+  "city": "ortisei",
+  "name": "Ortisei, Italy",
+  "start": "2023-10-23",
+  "end": "2023-10-29",
+  "tier": 50
+ },
+ {
+  "city": "bergamo",
+  "name": "Bergamo, Italy",
+  "start": "2023-10-30",
+  "end": "2023-11-05",
+  "tier": 75
+ },
+ {
+  "city": "charlottesville",
+  "name": "Charlottesville, United States",
+  "start": "2023-10-30",
+  "end": "2023-11-05",
+  "tier": 75
+ },
+ {
+  "city": "guayaquil",
+  "name": "Guayaquil, Ecuador",
+  "start": "2023-10-30",
+  "end": "2023-11-05",
+  "tier": 75
+ },
+ {
+  "city": "ismaning",
+  "name": "Ismaning, Germany",
+  "start": "2023-10-30",
+  "end": "2023-11-05",
+  "tier": 75
+ },
+ {
+  "city": "sydney",
+  "name": "Sydney, Australia",
+  "start": "2023-10-30",
+  "end": "2023-11-05",
+  "tier": 75
+ },
+ {
+  "city": "helsinki",
+  "name": "Helsinki, Finland",
+  "start": "2023-11-06",
+  "end": "2023-11-12",
+  "tier": 125
+ },
+ {
+  "city": "calgary",
+  "name": "Calgary, Canada",
+  "start": "2023-11-06",
+  "end": "2023-11-12",
+  "tier": 75
+ },
+ {
+  "city": "knoxville",
+  "name": "Knoxville, United States",
+  "start": "2023-11-06",
+  "end": "2023-11-12",
+  "tier": 75
+ },
+ {
+  "city": "lima",
+  "name": "Lima, Peru",
+  "start": "2023-11-06",
+  "end": "2023-11-12",
+  "tier": 75
+ },
+ {
+  "city": "matsuyama",
+  "name": "Matsuyama, Japan",
+  "start": "2023-11-06",
+  "end": "2023-11-12",
+  "tier": 75
+ },
+ {
+  "city": "montevideo",
+  "name": "Montevideo, Uruguay",
+  "start": "2023-11-13",
+  "end": "2023-11-19",
+  "tier": 100
+ },
+ {
+  "city": "champaign",
+  "name": "Champaign, United States",
+  "start": "2023-11-13",
+  "end": "2023-11-19",
+  "tier": 75
+ },
+ {
+  "city": "danderyd",
+  "name": "Danderyd, Sweden",
+  "start": "2023-11-13",
+  "end": "2023-11-19",
+  "tier": 75
+ },
+ {
+  "city": "drummondville",
+  "name": "Drummondville, Canada",
+  "start": "2023-11-13",
+  "end": "2023-11-19",
+  "tier": 75
+ },
+ {
+  "city": "kobe",
+  "name": "Kobe, Japan",
+  "start": "2023-11-13",
+  "end": "2023-11-19",
+  "tier": 75
+ },
+ {
+  "city": "brasilia",
+  "name": "Brasília, Brazil",
+  "start": "2023-11-20",
+  "end": "2023-11-26",
+  "tier": 100
+ },
+ {
+  "city": "valencia",
+  "name": "Valencia, Spain",
+  "start": "2023-11-20",
+  "end": "2023-11-26",
+  "tier": 100
+ },
+ {
+  "city": "yokohama",
+  "name": "Yokohama, Japan",
+  "start": "2023-11-20",
+  "end": "2023-11-26",
+  "tier": 75
+ },
+ {
+  "city": "maia",
+  "name": "Maia, Portugal",
+  "start": "2023-11-27",
+  "end": "2023-12-03",
+  "tier": 100
+ },
+ {
+  "city": "yokkaichi",
+  "name": "Yokkaichi, Japan",
+  "start": "2023-11-27",
+  "end": "2023-12-03",
+  "tier": 100
+ },
+ {
+  "city": "maspalomas",
+  "name": "Maspalomas, Spain",
+  "start": "2023-11-27",
+  "end": "2023-12-03",
+  "tier": 75
+ },
+ {
+  "city": "temuco",
+  "name": "Temuco, Chile",
+  "start": "2023-11-27",
+  "end": "2023-12-03",
+  "tier": 75
+ },
+ {
+  "city": "canberra",
+  "name": "Canberra, Australia",
+  "start": "2024-01-01",
+  "end": "2024-01-07",
+  "tier": 125
+ },
+ {
+  "city": "noumea",
+  "name": "Nouméa, New Caledonia",
+  "start": "2024-01-01",
+  "end": "2024-01-07",
+  "tier": 100
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2024-01-01",
+  "end": "2024-01-07",
+  "tier": 75
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2024-01-01",
+  "end": "2024-01-07",
+  "tier": 50
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2024-01-08",
+  "end": "2024-01-14",
+  "tier": 75
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2024-01-08",
+  "end": "2024-01-14",
+  "tier": 75
+ },
+ {
+  "city": "buenos aires",
+  "name": "Buenos Aires, Argentina",
+  "start": "2024-01-08",
+  "end": "2024-01-14",
+  "tier": 50
+ },
+ {
+  "city": "tenerife",
+  "name": "Tenerife, Spain",
+  "start": "2024-01-15",
+  "end": "2024-01-21",
+  "tier": 100
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2024-01-15",
+  "end": "2024-01-21",
+  "tier": 75
+ },
+ {
+  "city": "indian wells",
+  "name": "Indian Wells, United States",
+  "start": "2024-01-15",
+  "end": "2024-01-21",
+  "tier": 50
+ },
+ {
+  "city": "buenos aires",
+  "name": "Buenos Aires, Argentina",
+  "start": "2024-01-15",
+  "end": "2024-01-21",
+  "tier": 50
+ },
+ {
+  "city": "ottignies louvain la neuve",
+  "name": "Ottignies-Louvain-la-Neuve, Belgium",
+  "start": "2024-01-22",
+  "end": "2024-01-28",
+  "tier": 125
+ },
+ {
+  "city": "quimper",
+  "name": "Quimper, France",
+  "start": "2024-01-22",
+  "end": "2024-01-28",
+  "tier": 125
+ },
+ {
+  "city": "punta del este",
+  "name": "Punta del Este, Uruguay",
+  "start": "2024-01-22",
+  "end": "2024-01-28",
+  "tier": 75
+ },
+ {
+  "city": "indian wells",
+  "name": "Indian Wells, United States",
+  "start": "2024-01-22",
+  "end": "2024-01-28",
+  "tier": 50
+ },
+ {
+  "city": "koblenz",
+  "name": "Koblenz, Germany",
+  "start": "2024-01-29",
+  "end": "2024-02-04",
+  "tier": 100
+ },
+ {
+  "city": "burnie",
+  "name": "Burnie, Australia",
+  "start": "2024-01-29",
+  "end": "2024-02-04",
+  "tier": 75
+ },
+ {
+  "city": "cleveland",
+  "name": "Cleveland, United States",
+  "start": "2024-01-29",
+  "end": "2024-02-04",
+  "tier": 75
+ },
+ {
+  "city": "piracicaba",
+  "name": "Piracicaba, Brazil",
+  "start": "2024-01-29",
+  "end": "2024-02-04",
+  "tier": 75
+ },
+ {
+  "city": "chennai",
+  "name": "Chennai, India",
+  "start": "2024-02-05",
+  "end": "2024-02-11",
+  "tier": 100
+ },
+ {
+  "city": "burnie",
+  "name": "Burnie, Australia",
+  "start": "2024-02-05",
+  "end": "2024-02-11",
+  "tier": 75
+ },
+ {
+  "city": "nottingham",
+  "name": "Nottingham, United Kingdom",
+  "start": "2024-02-05",
+  "end": "2024-02-11",
+  "tier": 75
+ },
+ {
+  "city": "manama",
+  "name": "Manama, Bahrain",
+  "start": "2024-02-12",
+  "end": "2024-02-18",
+  "tier": 125
+ },
+ {
+  "city": "bangalore",
+  "name": "Bangalore, India",
+  "start": "2024-02-12",
+  "end": "2024-02-18",
+  "tier": 100
+ },
+ {
+  "city": "cherbourg",
+  "name": "Cherbourg, France",
+  "start": "2024-02-12",
+  "end": "2024-02-18",
+  "tier": 75
+ },
+ {
+  "city": "glasgow",
+  "name": "Glasgow, United Kingdom",
+  "start": "2024-02-12",
+  "end": "2024-02-18",
+  "tier": 50
+ },
+ {
+  "city": "pau",
+  "name": "Pau, France",
+  "start": "2024-02-19",
+  "end": "2024-02-25",
+  "tier": 125
+ },
+ {
+  "city": "pune",
+  "name": "Pune, India",
+  "start": "2024-02-19",
+  "end": "2024-02-25",
+  "tier": 100
+ },
+ {
+  "city": "tenerife",
+  "name": "Tenerife, Spain",
+  "start": "2024-02-19",
+  "end": "2024-02-25",
+  "tier": 75
+ },
+ {
+  "city": "lille",
+  "name": "Lille, France",
+  "start": "2024-02-26",
+  "end": "2024-03-03",
+  "tier": 100
+ },
+ {
+  "city": "new delhi",
+  "name": "New Delhi, India",
+  "start": "2024-02-26",
+  "end": "2024-03-03",
+  "tier": 75
+ },
+ {
+  "city": "tenerife",
+  "name": "Tenerife, Spain",
+  "start": "2024-02-26",
+  "end": "2024-03-03",
+  "tier": 75
+ },
+ {
+  "city": "kigali",
+  "name": "Kigali, Rwanda",
+  "start": "2024-02-26",
+  "end": "2024-03-03",
+  "tier": 50
+ },
+ {
+  "city": "lugano",
+  "name": "Lugano, Switzerland",
+  "start": "2024-03-04",
+  "end": "2024-03-10",
+  "tier": 75
+ },
+ {
+  "city": "santa cruz de la sierra",
+  "name": "Santa Cruz de la Sierra, Bolivia",
+  "start": "2024-03-04",
+  "end": "2024-03-10",
+  "tier": 75
+ },
+ {
+  "city": "kigali",
+  "name": "Kigali, Rwanda",
+  "start": "2024-03-04",
+  "end": "2024-03-10",
+  "tier": 50
+ },
+ {
+  "city": "phoenix",
+  "name": "Phoenix, United States",
+  "start": "2024-03-11",
+  "end": "2024-03-17",
+  "tier": 175
+ },
+ {
+  "city": "santiago",
+  "name": "Santiago, Chile",
+  "start": "2024-03-11",
+  "end": "2024-03-17",
+  "tier": 75
+ },
+ {
+  "city": "szekesfehervar",
+  "name": "Székesfehérvár, Hungary",
+  "start": "2024-03-11",
+  "end": "2024-03-17",
+  "tier": 75
+ },
+ {
+  "city": "hamburg",
+  "name": "Hamburg, Germany",
+  "start": "2024-03-11",
+  "end": "2024-03-17",
+  "tier": 50
+ },
+ {
+  "city": "asuncion",
+  "name": "Asunción, Paraguay",
+  "start": "2024-03-18",
+  "end": "2024-03-24",
+  "tier": 75
+ },
+ {
+  "city": "murcia",
+  "name": "Murcia, Spain",
+  "start": "2024-03-18",
+  "end": "2024-03-24",
+  "tier": 75
+ },
+ {
+  "city": "zadar",
+  "name": "Zadar, Croatia",
+  "start": "2024-03-18",
+  "end": "2024-03-24",
+  "tier": 75
+ },
+ {
+  "city": "merida",
+  "name": "Mérida, Mexico",
+  "start": "2024-03-18",
+  "end": "2024-03-24",
+  "tier": 50
+ },
+ {
+  "city": "naples",
+  "name": "Naples, Italy",
+  "start": "2024-03-25",
+  "end": "2024-03-31",
+  "tier": 125
+ },
+ {
+  "city": "girona",
+  "name": "Girona, Spain",
+  "start": "2024-03-25",
+  "end": "2024-03-31",
+  "tier": 100
+ },
+ {
+  "city": "san luis potosi",
+  "name": "San Luis Potosí, Mexico",
+  "start": "2024-03-25",
+  "end": "2024-03-31",
+  "tier": 75
+ },
+ {
+  "city": "sao leopoldo",
+  "name": "São Leopoldo, Brazil",
+  "start": "2024-03-25",
+  "end": "2024-03-31",
+  "tier": 75
+ },
+ {
+  "city": "mexico city",
+  "name": "Mexico City, Mexico",
+  "start": "2024-04-01",
+  "end": "2024-04-07",
+  "tier": 125
+ },
+ {
+  "city": "barcelona",
+  "name": "Barcelona, Spain",
+  "start": "2024-04-01",
+  "end": "2024-04-07",
+  "tier": 75
+ },
+ {
+  "city": "barletta",
+  "name": "Barletta, Italy",
+  "start": "2024-04-01",
+  "end": "2024-04-07",
+  "tier": 75
+ },
+ {
+  "city": "florianopolis",
+  "name": "Florianópolis, Brazil",
+  "start": "2024-04-01",
+  "end": "2024-04-07",
+  "tier": 75
+ },
+ {
+  "city": "busan",
+  "name": "Busan, South Korea",
+  "start": "2024-04-08",
+  "end": "2024-04-14",
+  "tier": 125
+ },
+ {
+  "city": "madrid",
+  "name": "Madrid, Spain",
+  "start": "2024-04-08",
+  "end": "2024-04-14",
+  "tier": 100
+ },
+ {
+  "city": "cuernavaca",
+  "name": "Cuernavaca, Mexico",
+  "start": "2024-04-08",
+  "end": "2024-04-14",
+  "tier": 75
+ },
+ {
+  "city": "sarasota",
+  "name": "Sarasota, United States",
+  "start": "2024-04-08",
+  "end": "2024-04-14",
+  "tier": 75
+ },
+ {
+  "city": "split",
+  "name": "Split, Croatia",
+  "start": "2024-04-08",
+  "end": "2024-04-14",
+  "tier": 75
+ },
+ {
+  "city": "acapulco",
+  "name": "Acapulco, Mexico",
+  "start": "2024-04-15",
+  "end": "2024-04-21",
+  "tier": 125
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2024-04-15",
+  "end": "2024-04-21",
+  "tier": 125
+ },
+ {
+  "city": "gwangju",
+  "name": "Gwangju, South Korea",
+  "start": "2024-04-15",
+  "end": "2024-04-21",
+  "tier": 75
+ },
+ {
+  "city": "tallahassee",
+  "name": "Tallahassee, United States",
+  "start": "2024-04-15",
+  "end": "2024-04-21",
+  "tier": 75
+ },
+ {
+  "city": "san miguel de tucuman",
+  "name": "San Miguel de Tucumán, Argentina",
+  "start": "2024-04-15",
+  "end": "2024-04-21",
+  "tier": 50
+ },
+ {
+  "city": "ostrava",
+  "name": "Ostrava, Czech Republic",
+  "start": "2024-04-22",
+  "end": "2024-04-28",
+  "tier": 75
+ },
+ {
+  "city": "rome",
+  "name": "Rome, Italy",
+  "start": "2024-04-22",
+  "end": "2024-04-28",
+  "tier": 75
+ },
+ {
+  "city": "savannah",
+  "name": "Savannah, United States",
+  "start": "2024-04-22",
+  "end": "2024-04-28",
+  "tier": 75
+ },
+ {
+  "city": "shenzhen",
+  "name": "Shenzhen, China",
+  "start": "2024-04-22",
+  "end": "2024-04-28",
+  "tier": 75
+ },
+ {
+  "city": "concepcion",
+  "name": "Concepción, Chile",
+  "start": "2024-04-22",
+  "end": "2024-04-28",
+  "tier": 50
+ },
+ {
+  "city": "aix en provence",
+  "name": "Aix-en-Provence, France",
+  "start": "2024-04-29",
+  "end": "2024-05-05",
+  "tier": 175
+ },
+ {
+  "city": "cagliari",
+  "name": "Cagliari, Italy",
+  "start": "2024-04-29",
+  "end": "2024-05-05",
+  "tier": 175
+ },
+ {
+  "city": "guangzhou",
+  "name": "Guangzhou, China",
+  "start": "2024-04-29",
+  "end": "2024-05-05",
+  "tier": 75
+ },
+ {
+  "city": "porto alegre",
+  "name": "Porto Alegre, Brazil",
+  "start": "2024-04-29",
+  "end": "2024-05-05",
+  "tier": 50
+ },
+ {
+  "city": "mauthausen",
+  "name": "Mauthausen, Austria",
+  "start": "2024-05-06",
+  "end": "2024-05-12",
+  "tier": 100
+ },
+ {
+  "city": "francavilla al mare",
+  "name": "Francavilla al Mare, Italy",
+  "start": "2024-05-06",
+  "end": "2024-05-12",
+  "tier": 75
+ },
+ {
+  "city": "prague",
+  "name": "Prague, Czech Republic",
+  "start": "2024-05-06",
+  "end": "2024-05-12",
+  "tier": 75
+ },
+ {
+  "city": "wuxi",
+  "name": "Wuxi, China",
+  "start": "2024-05-06",
+  "end": "2024-05-12",
+  "tier": 75
+ },
+ {
+  "city": "santos",
+  "name": "Santos, Brazil",
+  "start": "2024-05-06",
+  "end": "2024-05-12",
+  "tier": 50
+ },
+ {
+  "city": "bordeaux",
+  "name": "Bordeaux, France",
+  "start": "2024-05-13",
+  "end": "2024-05-19",
+  "tier": 175
+ },
+ {
+  "city": "turin",
+  "name": "Turin, Italy",
+  "start": "2024-05-13",
+  "end": "2024-05-19",
+  "tier": 175
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2024-05-13",
+  "end": "2024-05-19",
+  "tier": 75
+ },
+ {
+  "city": "taipei",
+  "name": "Taipei, Taiwan",
+  "start": "2024-05-13",
+  "end": "2024-05-19",
+  "tier": 75
+ },
+ {
+  "city": "tunis",
+  "name": "Tunis, Tunisia",
+  "start": "2024-05-13",
+  "end": "2024-05-19",
+  "tier": 75
+ },
+ {
+  "city": "skopje",
+  "name": "Skopje, North Macedonia",
+  "start": "2024-05-20",
+  "end": "2024-05-26",
+  "tier": 75
+ },
+ {
+  "city": "augsburg",
+  "name": "Augsburg, Germany",
+  "start": "2024-05-20",
+  "end": "2024-05-26",
+  "tier": 50
+ },
+ {
+  "city": "kachreti",
+  "name": "Kachreti, Georgia",
+  "start": "2024-05-20",
+  "end": "2024-05-26",
+  "tier": 50
+ },
+ {
+  "city": "little rock",
+  "name": "Little Rock, United States",
+  "start": "2024-05-27",
+  "end": "2024-06-02",
+  "tier": 75
+ },
+ {
+  "city": "vicenza",
+  "name": "Vicenza, Italy",
+  "start": "2024-05-27",
+  "end": "2024-06-02",
+  "tier": 75
+ },
+ {
+  "city": "surbiton",
+  "name": "Surbiton, United Kingdom",
+  "start": "2024-06-03",
+  "end": "2024-06-09",
+  "tier": 125
+ },
+ {
+  "city": "heilbronn",
+  "name": "Heilbronn, Germany",
+  "start": "2024-06-03",
+  "end": "2024-06-09",
+  "tier": 100
+ },
+ {
+  "city": "prostejov",
+  "name": "Prostějov, Czech Republic",
+  "start": "2024-06-03",
+  "end": "2024-06-09",
+  "tier": 100
+ },
+ {
+  "city": "tyler",
+  "name": "Tyler, United States",
+  "start": "2024-06-03",
+  "end": "2024-06-09",
+  "tier": 75
+ },
+ {
+  "city": "zagreb",
+  "name": "Zagreb, Croatia",
+  "start": "2024-06-03",
+  "end": "2024-06-09",
+  "tier": 75
+ },
+ {
+  "city": "santa fe",
+  "name": "Santa Fe, Argentina",
+  "start": "2024-06-03",
+  "end": "2024-06-09",
+  "tier": 50
+ },
+ {
+  "city": "nottingham",
+  "name": "Nottingham, United Kingdom",
+  "start": "2024-06-10",
+  "end": "2024-06-16",
+  "tier": 125
+ },
+ {
+  "city": "perugia",
+  "name": "Perugia, Italy",
+  "start": "2024-06-10",
+  "end": "2024-06-16",
+  "tier": 125
+ },
+ {
+  "city": "bratislava",
+  "name": "Bratislava, Slovakia",
+  "start": "2024-06-10",
+  "end": "2024-06-16",
+  "tier": 100
+ },
+ {
+  "city": "lyon",
+  "name": "Lyon, France",
+  "start": "2024-06-10",
+  "end": "2024-06-16",
+  "tier": 100
+ },
+ {
+  "city": "lima",
+  "name": "Lima, Peru",
+  "start": "2024-06-10",
+  "end": "2024-06-16",
+  "tier": 50
+ },
+ {
+  "city": "ilkley",
+  "name": "Ilkley, United Kingdom",
+  "start": "2024-06-17",
+  "end": "2024-06-23",
+  "tier": 125
+ },
+ {
+  "city": "sassuolo",
+  "name": "Sassuolo, Italy",
+  "start": "2024-06-17",
+  "end": "2024-06-23",
+  "tier": 125
+ },
+ {
+  "city": "poznan",
+  "name": "Poznań, Poland",
+  "start": "2024-06-17",
+  "end": "2024-06-23",
+  "tier": 75
+ },
+ {
+  "city": "blois",
+  "name": "Blois, France",
+  "start": "2024-06-17",
+  "end": "2024-06-23",
+  "tier": 50
+ },
+ {
+  "city": "santa cruz de la sierra",
+  "name": "Santa Cruz de la Sierra, Bolivia",
+  "start": "2024-06-17",
+  "end": "2024-06-23",
+  "tier": 50
+ },
+ {
+  "city": "milan",
+  "name": "Milan, Italy",
+  "start": "2024-06-24",
+  "end": "2024-06-30",
+  "tier": 75
+ },
+ {
+  "city": "ibague",
+  "name": "Ibagué, Colombia",
+  "start": "2024-06-24",
+  "end": "2024-06-30",
+  "tier": 50
+ },
+ {
+  "city": "bloomfield hills",
+  "name": "Bloomfield Hills, United States",
+  "start": "2024-07-01",
+  "end": "2024-07-07",
+  "tier": 75
+ },
+ {
+  "city": "brasov",
+  "name": "Brașov, Romania",
+  "start": "2024-07-01",
+  "end": "2024-07-07",
+  "tier": 75
+ },
+ {
+  "city": "karlsruhe",
+  "name": "Karlsruhe, Germany",
+  "start": "2024-07-01",
+  "end": "2024-07-07",
+  "tier": 75
+ },
+ {
+  "city": "modena",
+  "name": "Modena, Italy",
+  "start": "2024-07-01",
+  "end": "2024-07-07",
+  "tier": 75
+ },
+ {
+  "city": "troyes",
+  "name": "Troyes, France",
+  "start": "2024-07-01",
+  "end": "2024-07-07",
+  "tier": 50
+ },
+ {
+  "city": "braunschweig",
+  "name": "Braunschweig, Germany",
+  "start": "2024-07-08",
+  "end": "2024-07-14",
+  "tier": 125
+ },
+ {
+  "city": "salzburg",
+  "name": "Salzburg, Austria",
+  "start": "2024-07-08",
+  "end": "2024-07-14",
+  "tier": 125
+ },
+ {
+  "city": "iasi",
+  "name": "Iași, Romania",
+  "start": "2024-07-08",
+  "end": "2024-07-14",
+  "tier": 100
+ },
+ {
+  "city": "trieste",
+  "name": "Trieste, Italy",
+  "start": "2024-07-08",
+  "end": "2024-07-14",
+  "tier": 100
+ },
+ {
+  "city": "winnipeg",
+  "name": "Winnipeg, Canada",
+  "start": "2024-07-08",
+  "end": "2024-07-14",
+  "tier": 75
+ },
+ {
+  "city": "amersfoort",
+  "name": "Amersfoort, Netherlands",
+  "start": "2024-07-15",
+  "end": "2024-07-21",
+  "tier": 75
+ },
+ {
+  "city": "granby",
+  "name": "Granby, Canada",
+  "start": "2024-07-15",
+  "end": "2024-07-21",
+  "tier": 75
+ },
+ {
+  "city": "astana",
+  "name": "Astana, Kazakhstan",
+  "start": "2024-07-15",
+  "end": "2024-07-21",
+  "tier": 50
+ },
+ {
+  "city": "pozoblanco",
+  "name": "Pozoblanco, Spain",
+  "start": "2024-07-15",
+  "end": "2024-07-21",
+  "tier": 50
+ },
+ {
+  "city": "zug",
+  "name": "Zug, Switzerland",
+  "start": "2024-07-22",
+  "end": "2024-07-28",
+  "tier": 125
+ },
+ {
+  "city": "verona",
+  "name": "Verona, Italy",
+  "start": "2024-07-22",
+  "end": "2024-07-28",
+  "tier": 100
+ },
+ {
+  "city": "chicago",
+  "name": "Chicago, United States",
+  "start": "2024-07-22",
+  "end": "2024-07-28",
+  "tier": 75
+ },
+ {
+  "city": "tampere",
+  "name": "Tampere, Finland",
+  "start": "2024-07-22",
+  "end": "2024-07-28",
+  "tier": 75
+ },
+ {
+  "city": "segovia",
+  "name": "Segovia, Spain",
+  "start": "2024-07-22",
+  "end": "2024-07-28",
+  "tier": 50
+ },
+ {
+  "city": "porto",
+  "name": "Porto, Portugal",
+  "start": "2024-07-29",
+  "end": "2024-08-04",
+  "tier": 125
+ },
+ {
+  "city": "san marino",
+  "name": "San Marino, San Marino",
+  "start": "2024-07-29",
+  "end": "2024-08-04",
+  "tier": 125
+ },
+ {
+  "city": "ludenscheid",
+  "name": "Lüdenscheid, Germany",
+  "start": "2024-07-29",
+  "end": "2024-08-04",
+  "tier": 100
+ },
+ {
+  "city": "lexington",
+  "name": "Lexington, United States",
+  "start": "2024-07-29",
+  "end": "2024-08-04",
+  "tier": 75
+ },
+ {
+  "city": "liberec",
+  "name": "Liberec, Czech Republic",
+  "start": "2024-07-29",
+  "end": "2024-08-04",
+  "tier": 75
+ },
+ {
+  "city": "bogota",
+  "name": "Bogotá, Colombia",
+  "start": "2024-08-05",
+  "end": "2024-08-11",
+  "tier": 75
+ },
+ {
+  "city": "lincoln",
+  "name": "Lincoln, United States",
+  "start": "2024-08-05",
+  "end": "2024-08-11",
+  "tier": 75
+ },
+ {
+  "city": "bonn",
+  "name": "Bonn, Germany",
+  "start": "2024-08-05",
+  "end": "2024-08-11",
+  "tier": 75
+ },
+ {
+  "city": "cordenons",
+  "name": "Cordenons, Italy",
+  "start": "2024-08-05",
+  "end": "2024-08-11",
+  "tier": 75
+ },
+ {
+  "city": "santo domingo",
+  "name": "Santo Domingo, Dominican Republic",
+  "start": "2024-08-12",
+  "end": "2024-08-18",
+  "tier": 125
+ },
+ {
+  "city": "cary",
+  "name": "Cary, United States",
+  "start": "2024-08-12",
+  "end": "2024-08-18",
+  "tier": 100
+ },
+ {
+  "city": "grodzisk mazowiecki",
+  "name": "Grodzisk Mazowiecki, Poland",
+  "start": "2024-08-12",
+  "end": "2024-08-18",
+  "tier": 100
+ },
+ {
+  "city": "todi",
+  "name": "Todi, Italy",
+  "start": "2024-08-12",
+  "end": "2024-08-18",
+  "tier": 75
+ },
+ {
+  "city": "dobrich",
+  "name": "Dobrich, Bulgaria",
+  "start": "2024-08-19",
+  "end": "2024-08-25",
+  "tier": 50
+ },
+ {
+  "city": "jinan",
+  "name": "Jinan, China",
+  "start": "2024-08-19",
+  "end": "2024-08-25",
+  "tier": 50
+ },
+ {
+  "city": "como",
+  "name": "Como, Italy",
+  "start": "2024-08-26",
+  "end": "2024-09-01",
+  "tier": 75
+ },
+ {
+  "city": "mallorca",
+  "name": "Mallorca, Spain",
+  "start": "2024-08-26",
+  "end": "2024-09-01",
+  "tier": 75
+ },
+ {
+  "city": "porto",
+  "name": "Porto, Portugal",
+  "start": "2024-08-26",
+  "end": "2024-09-01",
+  "tier": 75
+ },
+ {
+  "city": "zhangjiagang",
+  "name": "Zhangjiagang, China",
+  "start": "2024-08-26",
+  "end": "2024-09-01",
+  "tier": 75
+ },
+ {
+  "city": "genoa",
+  "name": "Genoa, Italy",
+  "start": "2024-09-02",
+  "end": "2024-09-08",
+  "tier": 125
+ },
+ {
+  "city": "seville",
+  "name": "Seville, Spain",
+  "start": "2024-09-02",
+  "end": "2024-09-08",
+  "tier": 125
+ },
+ {
+  "city": "shanghai",
+  "name": "Shanghai, China",
+  "start": "2024-09-02",
+  "end": "2024-09-08",
+  "tier": 100
+ },
+ {
+  "city": "tulln",
+  "name": "Tulln, Austria",
+  "start": "2024-09-02",
+  "end": "2024-09-08",
+  "tier": 100
+ },
+ {
+  "city": "cassis",
+  "name": "Cassis, France",
+  "start": "2024-09-02",
+  "end": "2024-09-08",
+  "tier": 75
+ },
+ {
+  "city": "istanbul",
+  "name": "Istanbul, Türkiye",
+  "start": "2024-09-02",
+  "end": "2024-09-08",
+  "tier": 75
+ },
+ {
+  "city": "szczecin",
+  "name": "Szczecin, Poland",
+  "start": "2024-09-09",
+  "end": "2024-09-15",
+  "tier": 125
+ },
+ {
+  "city": "guangzhou",
+  "name": "Guangzhou, China",
+  "start": "2024-09-09",
+  "end": "2024-09-15",
+  "tier": 100
+ },
+ {
+  "city": "rennes",
+  "name": "Rennes, France",
+  "start": "2024-09-09",
+  "end": "2024-09-15",
+  "tier": 100
+ },
+ {
+  "city": "las vegas",
+  "name": "Las Vegas, United States",
+  "start": "2024-09-09",
+  "end": "2024-09-15",
+  "tier": 75
+ },
+ {
+  "city": "dobrich",
+  "name": "Dobrich, Bulgaria",
+  "start": "2024-09-09",
+  "end": "2024-09-15",
+  "tier": 50
+ },
+ {
+  "city": "bad waltersdorf",
+  "name": "Bad Waltersdorf, Austria",
+  "start": "2024-09-16",
+  "end": "2024-09-22",
+  "tier": 125
+ },
+ {
+  "city": "saint tropez",
+  "name": "Saint-Tropez, France",
+  "start": "2024-09-16",
+  "end": "2024-09-22",
+  "tier": 125
+ },
+ {
+  "city": "cali",
+  "name": "Cali, Colombia",
+  "start": "2024-09-16",
+  "end": "2024-09-22",
+  "tier": 75
+ },
+ {
+  "city": "columbus",
+  "name": "Columbus, United States",
+  "start": "2024-09-16",
+  "end": "2024-09-22",
+  "tier": 75
+ },
+ {
+  "city": "sibiu",
+  "name": "Sibiu, Romania",
+  "start": "2024-09-16",
+  "end": "2024-09-22",
+  "tier": 50
+ },
+ {
+  "city": "orleans",
+  "name": "Orléans, France",
+  "start": "2024-09-23",
+  "end": "2024-09-29",
+  "tier": 125
+ },
+ {
+  "city": "antofagasta",
+  "name": "Antofagasta, Chile",
+  "start": "2024-09-23",
+  "end": "2024-09-29",
+  "tier": 100
+ },
+ {
+  "city": "lisbon",
+  "name": "Lisbon, Portugal",
+  "start": "2024-09-23",
+  "end": "2024-09-29",
+  "tier": 100
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2024-09-23",
+  "end": "2024-09-29",
+  "tier": 100
+ },
+ {
+  "city": "charleston",
+  "name": "Charleston, United States",
+  "start": "2024-09-23",
+  "end": "2024-09-29",
+  "tier": 75
+ },
+ {
+  "city": "villena",
+  "name": "Villena, Spain",
+  "start": "2024-09-30",
+  "end": "2024-10-06",
+  "tier": 100
+ },
+ {
+  "city": "mouilleron le captif",
+  "name": "Mouilleron-le-Captif, France",
+  "start": "2024-09-30",
+  "end": "2024-10-06",
+  "tier": 100
+ },
+ {
+  "city": "braga",
+  "name": "Braga, Portugal",
+  "start": "2024-09-30",
+  "end": "2024-10-06",
+  "tier": 75
+ },
+ {
+  "city": "buenos aires",
+  "name": "Buenos Aires, Argentina",
+  "start": "2024-09-30",
+  "end": "2024-10-06",
+  "tier": 75
+ },
+ {
+  "city": "tiburon",
+  "name": "Tiburon, United States",
+  "start": "2024-09-30",
+  "end": "2024-10-06",
+  "tier": 75
+ },
+ {
+  "city": "hangzhou",
+  "name": "Hangzhou, China",
+  "start": "2024-10-07",
+  "end": "2024-10-13",
+  "tier": 125
+ },
+ {
+  "city": "valencia",
+  "name": "Valencia, Spain",
+  "start": "2024-10-07",
+  "end": "2024-10-13",
+  "tier": 125
+ },
+ {
+  "city": "roanne",
+  "name": "Roanne, France",
+  "start": "2024-10-07",
+  "end": "2024-10-13",
+  "tier": 100
+ },
+ {
+  "city": "villa maria",
+  "name": "Villa María, Argentina",
+  "start": "2024-10-07",
+  "end": "2024-10-13",
+  "tier": 100
+ },
+ {
+  "city": "fairfield",
+  "name": "Fairfield, United States",
+  "start": "2024-10-07",
+  "end": "2024-10-13",
+  "tier": 75
+ },
+ {
+  "city": "olbia",
+  "name": "Olbia, Italy",
+  "start": "2024-10-14",
+  "end": "2024-10-20",
+  "tier": 125
+ },
+ {
+  "city": "campinas",
+  "name": "Campinas, Brazil",
+  "start": "2024-10-14",
+  "end": "2024-10-20",
+  "tier": 100
+ },
+ {
+  "city": "shenzhen",
+  "name": "Shenzhen, China",
+  "start": "2024-10-14",
+  "end": "2024-10-20",
+  "tier": 100
+ },
+ {
+  "city": "calgary",
+  "name": "Calgary, Canada",
+  "start": "2024-10-14",
+  "end": "2024-10-20",
+  "tier": 75
+ },
+ {
+  "city": "saint brieuc",
+  "name": "Saint-Brieuc, France",
+  "start": "2024-10-14",
+  "end": "2024-10-20",
+  "tier": 75
+ },
+ {
+  "city": "taipei",
+  "name": "Taipei, Taiwan",
+  "start": "2024-10-21",
+  "end": "2024-10-27",
+  "tier": 125
+ },
+ {
+  "city": "brest",
+  "name": "Brest, France",
+  "start": "2024-10-21",
+  "end": "2024-10-27",
+  "tier": 100
+ },
+ {
+  "city": "curitiba",
+  "name": "Curitiba, Brazil",
+  "start": "2024-10-21",
+  "end": "2024-10-27",
+  "tier": 100
+ },
+ {
+  "city": "playford",
+  "name": "Playford, Australia",
+  "start": "2024-10-21",
+  "end": "2024-10-27",
+  "tier": 75
+ },
+ {
+  "city": "sioux falls",
+  "name": "Sioux Falls, United States",
+  "start": "2024-10-21",
+  "end": "2024-10-27",
+  "tier": 75
+ },
+ {
+  "city": "bratislava",
+  "name": "Bratislava, Slovakia",
+  "start": "2024-10-28",
+  "end": "2024-11-03",
+  "tier": 125
+ },
+ {
+  "city": "seoul",
+  "name": "Seoul, South Korea",
+  "start": "2024-10-28",
+  "end": "2024-11-03",
+  "tier": 100
+ },
+ {
+  "city": "charlottesville",
+  "name": "Charlottesville, United States",
+  "start": "2024-10-28",
+  "end": "2024-11-03",
+  "tier": 75
+ },
+ {
+  "city": "guayaquil",
+  "name": "Guayaquil, Ecuador",
+  "start": "2024-10-28",
+  "end": "2024-11-03",
+  "tier": 75
+ },
+ {
+  "city": "sydney",
+  "name": "Sydney, Australia",
+  "start": "2024-10-28",
+  "end": "2024-11-03",
+  "tier": 75
+ },
+ {
+  "city": "brazzaville",
+  "name": "Brazzaville, Republic of the Congo",
+  "start": "2024-10-28",
+  "end": "2024-11-03",
+  "tier": 50
+ },
+ {
+  "city": "helsinki",
+  "name": "Helsinki, Finland",
+  "start": "2024-11-04",
+  "end": "2024-11-10",
+  "tier": 125
+ },
+ {
+  "city": "knoxville",
+  "name": "Knoxville, United States",
+  "start": "2024-11-04",
+  "end": "2024-11-10",
+  "tier": 75
+ },
+ {
+  "city": "lima",
+  "name": "Lima, Peru",
+  "start": "2024-11-04",
+  "end": "2024-11-10",
+  "tier": 75
+ },
+ {
+  "city": "matsuyama",
+  "name": "Matsuyama, Japan",
+  "start": "2024-11-04",
+  "end": "2024-11-10",
+  "tier": 75
+ },
+ {
+  "city": "kobe",
+  "name": "Kobe, Japan",
+  "start": "2024-11-11",
+  "end": "2024-11-17",
+  "tier": 100
+ },
+ {
+  "city": "montevideo",
+  "name": "Montevideo, Uruguay",
+  "start": "2024-11-11",
+  "end": "2024-11-17",
+  "tier": 100
+ },
+ {
+  "city": "champaign",
+  "name": "Champaign, United States",
+  "start": "2024-11-11",
+  "end": "2024-11-17",
+  "tier": 75
+ },
+ {
+  "city": "drummondville",
+  "name": "Drummondville, Canada",
+  "start": "2024-11-11",
+  "end": "2024-11-17",
+  "tier": 75
+ },
+ {
+  "city": "lyon",
+  "name": "Lyon, France",
+  "start": "2024-11-11",
+  "end": "2024-11-17",
+  "tier": 75
+ },
+ {
+  "city": "rovereto",
+  "name": "Rovereto, Italy",
+  "start": "2024-11-18",
+  "end": "2024-11-24",
+  "tier": 100
+ },
+ {
+  "city": "sao paulo",
+  "name": "São Paulo, Brazil",
+  "start": "2024-11-18",
+  "end": "2024-11-24",
+  "tier": 75
+ },
+ {
+  "city": "alicante",
+  "name": "Alicante, Spain",
+  "start": "2024-11-18",
+  "end": "2024-11-24",
+  "tier": 75
+ },
+ {
+  "city": "yokohama",
+  "name": "Yokohama, Japan",
+  "start": "2024-11-18",
+  "end": "2024-11-24",
+  "tier": 75
+ },
+ {
+  "city": "puerto vallarta",
+  "name": "Puerto Vallarta, Mexico",
+  "start": "2024-11-18",
+  "end": "2024-11-24",
+  "tier": 50
+ },
+ {
+  "city": "maia",
+  "name": "Maia, Portugal",
+  "start": "2024-11-25",
+  "end": "2024-12-01",
+  "tier": 100
+ },
+ {
+  "city": "temuco",
+  "name": "Temuco, Chile",
+  "start": "2024-11-25",
+  "end": "2024-12-01",
+  "tier": 100
+ },
+ {
+  "city": "yokkaichi",
+  "name": "Yokkaichi, Japan",
+  "start": "2024-11-25",
+  "end": "2024-12-01",
+  "tier": 75
+ },
+ {
+  "city": "manzanillo",
+  "name": "Manzanillo, Mexico",
+  "start": "2024-11-25",
+  "end": "2024-12-01",
+  "tier": 50
+ },
+ {
+  "city": "canberra",
+  "name": "Canberra, Australia",
+  "start": "2024-12-30",
+  "end": "2025-01-05",
+  "tier": 125
+ },
+ {
+  "city": "noumea",
+  "name": "Nouméa, New Caledonia",
+  "start": "2024-12-30",
+  "end": "2025-01-05",
+  "tier": 100
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2024-12-30",
+  "end": "2025-01-05",
+  "tier": 75
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2025-01-06",
+  "end": "2025-01-12",
+  "tier": 75
+ },
+ {
+  "city": "nottingham",
+  "name": "Nottingham, United Kingdom",
+  "start": "2025-01-06",
+  "end": "2025-01-12",
+  "tier": 75
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2025-01-06",
+  "end": "2025-01-12",
+  "tier": 75
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2025-01-13",
+  "end": "2025-01-19",
+  "tier": 100
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2025-01-13",
+  "end": "2025-01-19",
+  "tier": 75
+ },
+ {
+  "city": "tigre",
+  "name": "Tigre, Argentina",
+  "start": "2025-01-13",
+  "end": "2025-01-19",
+  "tier": 50
+ },
+ {
+  "city": "quimper",
+  "name": "Quimper, France",
+  "start": "2025-01-20",
+  "end": "2025-01-26",
+  "tier": 125
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2025-01-20",
+  "end": "2025-01-26",
+  "tier": 100
+ },
+ {
+  "city": "punta del este",
+  "name": "Punta del Este, Uruguay",
+  "start": "2025-01-20",
+  "end": "2025-01-26",
+  "tier": 75
+ },
+ {
+  "city": "koblenz",
+  "name": "Koblenz, Germany",
+  "start": "2025-01-27",
+  "end": "2025-02-02",
+  "tier": 100
+ },
+ {
+  "city": "piracicaba",
+  "name": "Piracicaba, Brazil",
+  "start": "2025-01-27",
+  "end": "2025-02-02",
+  "tier": 100
+ },
+ {
+  "city": "brisbane",
+  "name": "Brisbane, Australia",
+  "start": "2025-01-27",
+  "end": "2025-02-02",
+  "tier": 75
+ },
+ {
+  "city": "cleveland",
+  "name": "Cleveland, United States",
+  "start": "2025-01-27",
+  "end": "2025-02-02",
+  "tier": 75
+ },
+ {
+  "city": "lille",
+  "name": "Lille, France",
+  "start": "2025-02-03",
+  "end": "2025-02-09",
+  "tier": 125
+ },
+ {
+  "city": "rosario",
+  "name": "Rosario, Argentina",
+  "start": "2025-02-03",
+  "end": "2025-02-09",
+  "tier": 125
+ },
+ {
+  "city": "chennai",
+  "name": "Chennai, India",
+  "start": "2025-02-03",
+  "end": "2025-02-09",
+  "tier": 100
+ },
+ {
+  "city": "brisbane",
+  "name": "Brisbane, Australia",
+  "start": "2025-02-03",
+  "end": "2025-02-09",
+  "tier": 75
+ },
+ {
+  "city": "tenerife",
+  "name": "Tenerife, Spain",
+  "start": "2025-02-03",
+  "end": "2025-02-09",
+  "tier": 75
+ },
+ {
+  "city": "manama",
+  "name": "Manama, Bahrain",
+  "start": "2025-02-10",
+  "end": "2025-02-16",
+  "tier": 125
+ },
+ {
+  "city": "new delhi",
+  "name": "New Delhi, India",
+  "start": "2025-02-10",
+  "end": "2025-02-16",
+  "tier": 75
+ },
+ {
+  "city": "tenerife",
+  "name": "Tenerife, Spain",
+  "start": "2025-02-10",
+  "end": "2025-02-16",
+  "tier": 75
+ },
+ {
+  "city": "pau",
+  "name": "Pau, France",
+  "start": "2025-02-17",
+  "end": "2025-02-23",
+  "tier": 125
+ },
+ {
+  "city": "pune",
+  "name": "Pune, India",
+  "start": "2025-02-17",
+  "end": "2025-02-23",
+  "tier": 100
+ },
+ {
+  "city": "glasgow",
+  "name": "Glasgow, United Kingdom",
+  "start": "2025-02-17",
+  "end": "2025-02-23",
+  "tier": 75
+ },
+ {
+  "city": "brazzaville",
+  "name": "Brazzaville, Republic of the Congo",
+  "start": "2025-02-17",
+  "end": "2025-02-23",
+  "tier": 50
+ },
+ {
+  "city": "bangalore",
+  "name": "Bangalore, India",
+  "start": "2025-02-24",
+  "end": "2025-03-02",
+  "tier": 125
+ },
+ {
+  "city": "san diego",
+  "name": "San Diego, United States",
+  "start": "2025-02-24",
+  "end": "2025-03-02",
+  "tier": 100
+ },
+ {
+  "city": "kigali",
+  "name": "Kigali, Rwanda",
+  "start": "2025-02-24",
+  "end": "2025-03-02",
+  "tier": 75
+ },
+ {
+  "city": "lugano",
+  "name": "Lugano, Switzerland",
+  "start": "2025-02-24",
+  "end": "2025-03-02",
+  "tier": 75
+ },
+ {
+  "city": "kigali",
+  "name": "Kigali, Rwanda",
+  "start": "2025-03-03",
+  "end": "2025-03-09",
+  "tier": 100
+ },
+ {
+  "city": "cordoba",
+  "name": "Córdoba, Argentina",
+  "start": "2025-03-03",
+  "end": "2025-03-09",
+  "tier": 75
+ },
+ {
+  "city": "thionville",
+  "name": "Thionville, France",
+  "start": "2025-03-03",
+  "end": "2025-03-09",
+  "tier": 75
+ },
+ {
+  "city": "hersonissos",
+  "name": "Hersonissos, Greece",
+  "start": "2025-03-03",
+  "end": "2025-03-09",
+  "tier": 50
+ },
+ {
+  "city": "phoenix",
+  "name": "Phoenix, United States",
+  "start": "2025-03-10",
+  "end": "2025-03-16",
+  "tier": 175
+ },
+ {
+  "city": "punta cana",
+  "name": "Punta Cana, Dominican Republic",
+  "start": "2025-03-10",
+  "end": "2025-03-16",
+  "tier": 175
+ },
+ {
+  "city": "cherbourg",
+  "name": "Cherbourg, France",
+  "start": "2025-03-10",
+  "end": "2025-03-16",
+  "tier": 75
+ },
+ {
+  "city": "santiago",
+  "name": "Santiago, Chile",
+  "start": "2025-03-10",
+  "end": "2025-03-16",
+  "tier": 75
+ },
+ {
+  "city": "hersonissos",
+  "name": "Hersonissos, Greece",
+  "start": "2025-03-10",
+  "end": "2025-03-16",
+  "tier": 50
+ },
+ {
+  "city": "asuncion",
+  "name": "Asunción, Paraguay",
+  "start": "2025-03-17",
+  "end": "2025-03-23",
+  "tier": 75
+ },
+ {
+  "city": "merida",
+  "name": "Mérida, Mexico",
+  "start": "2025-03-17",
+  "end": "2025-03-23",
+  "tier": 75
+ },
+ {
+  "city": "murcia",
+  "name": "Murcia, Spain",
+  "start": "2025-03-17",
+  "end": "2025-03-23",
+  "tier": 75
+ },
+ {
+  "city": "zadar",
+  "name": "Zadar, Croatia",
+  "start": "2025-03-17",
+  "end": "2025-03-23",
+  "tier": 75
+ },
+ {
+  "city": "naples",
+  "name": "Naples, Italy",
+  "start": "2025-03-24",
+  "end": "2025-03-30",
+  "tier": 125
+ },
+ {
+  "city": "morelia",
+  "name": "Morelia, Mexico",
+  "start": "2025-03-24",
+  "end": "2025-03-30",
+  "tier": 125
+ },
+ {
+  "city": "girona",
+  "name": "Girona, Spain",
+  "start": "2025-03-24",
+  "end": "2025-03-30",
+  "tier": 100
+ },
+ {
+  "city": "concepcion",
+  "name": "Concepción, Chile",
+  "start": "2025-03-24",
+  "end": "2025-03-30",
+  "tier": 75
+ },
+ {
+  "city": "menorca",
+  "name": "Menorca, Spain",
+  "start": "2025-03-31",
+  "end": "2025-04-06",
+  "tier": 100
+ },
+ {
+  "city": "barletta",
+  "name": "Barletta, Italy",
+  "start": "2025-03-31",
+  "end": "2025-04-06",
+  "tier": 75
+ },
+ {
+  "city": "campinas",
+  "name": "Campinas, Brazil",
+  "start": "2025-03-31",
+  "end": "2025-04-06",
+  "tier": 75
+ },
+ {
+  "city": "cuernavaca",
+  "name": "Cuernavaca, Mexico",
+  "start": "2025-03-31",
+  "end": "2025-04-06",
+  "tier": 75
+ },
+ {
+  "city": "mexico city",
+  "name": "Mexico City, Mexico",
+  "start": "2025-04-07",
+  "end": "2025-04-13",
+  "tier": 125
+ },
+ {
+  "city": "madrid",
+  "name": "Madrid, Spain",
+  "start": "2025-04-07",
+  "end": "2025-04-13",
+  "tier": 100
+ },
+ {
+  "city": "monza",
+  "name": "Monza, Italy",
+  "start": "2025-04-07",
+  "end": "2025-04-13",
+  "tier": 100
+ },
+ {
+  "city": "sarasota",
+  "name": "Sarasota, United States",
+  "start": "2025-04-07",
+  "end": "2025-04-13",
+  "tier": 75
+ },
+ {
+  "city": "busan",
+  "name": "Busan, South Korea",
+  "start": "2025-04-14",
+  "end": "2025-04-20",
+  "tier": 125
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2025-04-14",
+  "end": "2025-04-20",
+  "tier": 125
+ },
+ {
+  "city": "san luis potosi",
+  "name": "San Luis Potosí, Mexico",
+  "start": "2025-04-14",
+  "end": "2025-04-20",
+  "tier": 75
+ },
+ {
+  "city": "tallahassee",
+  "name": "Tallahassee, United States",
+  "start": "2025-04-14",
+  "end": "2025-04-20",
+  "tier": 75
+ },
+ {
+  "city": "abidjan",
+  "name": "Abidjan, Ivory Coast",
+  "start": "2025-04-14",
+  "end": "2025-04-20",
+  "tier": 50
+ },
+ {
+  "city": "gwangju",
+  "name": "Gwangju, South Korea",
+  "start": "2025-04-21",
+  "end": "2025-04-27",
+  "tier": 75
+ },
+ {
+  "city": "savannah",
+  "name": "Savannah, United States",
+  "start": "2025-04-21",
+  "end": "2025-04-27",
+  "tier": 75
+ },
+ {
+  "city": "abidjan",
+  "name": "Abidjan, Ivory Coast",
+  "start": "2025-04-21",
+  "end": "2025-04-27",
+  "tier": 50
+ },
+ {
+  "city": "rome",
+  "name": "Rome, Italy",
+  "start": "2025-04-21",
+  "end": "2025-04-27",
+  "tier": 50
+ },
+ {
+  "city": "san miguel de tucuman",
+  "name": "San Miguel de Tucumán, Argentina",
+  "start": "2025-04-21",
+  "end": "2025-04-27",
+  "tier": 50
+ },
+ {
+  "city": "aix en provence",
+  "name": "Aix-en-Provence, France",
+  "start": "2025-04-28",
+  "end": "2025-05-04",
+  "tier": 175
+ },
+ {
+  "city": "estoril",
+  "name": "Estoril, Portugal",
+  "start": "2025-04-28",
+  "end": "2025-05-04",
+  "tier": 175
+ },
+ {
+  "city": "mauthausen",
+  "name": "Mauthausen, Austria",
+  "start": "2025-04-28",
+  "end": "2025-05-04",
+  "tier": 100
+ },
+ {
+  "city": "nansha",
+  "name": "Nansha, China",
+  "start": "2025-04-28",
+  "end": "2025-05-04",
+  "tier": 75
+ },
+ {
+  "city": "ostrava",
+  "name": "Ostrava, Czech Republic",
+  "start": "2025-04-28",
+  "end": "2025-05-04",
+  "tier": 75
+ },
+ {
+  "city": "porto alegre",
+  "name": "Porto Alegre, Brazil",
+  "start": "2025-04-28",
+  "end": "2025-05-04",
+  "tier": 50
+ },
+ {
+  "city": "wuxi",
+  "name": "Wuxi, China",
+  "start": "2025-05-05",
+  "end": "2025-05-11",
+  "tier": 100
+ },
+ {
+  "city": "francavilla al mare",
+  "name": "Francavilla al Mare, Italy",
+  "start": "2025-05-05",
+  "end": "2025-05-11",
+  "tier": 75
+ },
+ {
+  "city": "prague",
+  "name": "Prague, Czech Republic",
+  "start": "2025-05-05",
+  "end": "2025-05-11",
+  "tier": 75
+ },
+ {
+  "city": "santos",
+  "name": "Santos, Brazil",
+  "start": "2025-05-05",
+  "end": "2025-05-11",
+  "tier": 50
+ },
+ {
+  "city": "bordeaux",
+  "name": "Bordeaux, France",
+  "start": "2025-05-12",
+  "end": "2025-05-18",
+  "tier": 175
+ },
+ {
+  "city": "turin",
+  "name": "Turin, Italy",
+  "start": "2025-05-12",
+  "end": "2025-05-18",
+  "tier": 175
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2025-05-12",
+  "end": "2025-05-18",
+  "tier": 100
+ },
+ {
+  "city": "tunis",
+  "name": "Tunis, Tunisia",
+  "start": "2025-05-12",
+  "end": "2025-05-18",
+  "tier": 75
+ },
+ {
+  "city": "zagreb",
+  "name": "Zagreb, Croatia",
+  "start": "2025-05-12",
+  "end": "2025-05-18",
+  "tier": 75
+ },
+ {
+  "city": "bogota",
+  "name": "Bogotá, Colombia",
+  "start": "2025-05-12",
+  "end": "2025-05-18",
+  "tier": 50
+ },
+ {
+  "city": "skopje",
+  "name": "Skopje, North Macedonia",
+  "start": "2025-05-19",
+  "end": "2025-05-25",
+  "tier": 75
+ },
+ {
+  "city": "tbilisi",
+  "name": "Tbilisi, Georgia",
+  "start": "2025-05-19",
+  "end": "2025-05-25",
+  "tier": 50
+ },
+ {
+  "city": "little rock",
+  "name": "Little Rock, United States",
+  "start": "2025-05-26",
+  "end": "2025-06-01",
+  "tier": 75
+ },
+ {
+  "city": "vicenza",
+  "name": "Vicenza, Italy",
+  "start": "2025-05-26",
+  "end": "2025-06-01",
+  "tier": 75
+ },
+ {
+  "city": "chisinau",
+  "name": "Chișinău, Moldova",
+  "start": "2025-05-26",
+  "end": "2025-06-01",
+  "tier": 50
+ },
+ {
+  "city": "birmingham",
+  "name": "Birmingham, United Kingdom",
+  "start": "2025-06-02",
+  "end": "2025-06-08",
+  "tier": 125
+ },
+ {
+  "city": "heilbronn",
+  "name": "Heilbronn, Germany",
+  "start": "2025-06-02",
+  "end": "2025-06-08",
+  "tier": 100
+ },
+ {
+  "city": "prostejov",
+  "name": "Prostějov, Czech Republic",
+  "start": "2025-06-02",
+  "end": "2025-06-08",
+  "tier": 100
+ },
+ {
+  "city": "tyler",
+  "name": "Tyler, United States",
+  "start": "2025-06-02",
+  "end": "2025-06-08",
+  "tier": 75
+ },
+ {
+  "city": "ilkley",
+  "name": "Ilkley, United Kingdom",
+  "start": "2025-06-09",
+  "end": "2025-06-15",
+  "tier": 125
+ },
+ {
+  "city": "perugia",
+  "name": "Perugia, Italy",
+  "start": "2025-06-09",
+  "end": "2025-06-15",
+  "tier": 125
+ },
+ {
+  "city": "bratislava",
+  "name": "Bratislava, Slovakia",
+  "start": "2025-06-09",
+  "end": "2025-06-15",
+  "tier": 100
+ },
+ {
+  "city": "lyon",
+  "name": "Lyon, France",
+  "start": "2025-06-09",
+  "end": "2025-06-15",
+  "tier": 100
+ },
+ {
+  "city": "santa fe",
+  "name": "Santa Fe, Argentina",
+  "start": "2025-06-09",
+  "end": "2025-06-15",
+  "tier": 50
+ },
+ {
+  "city": "nottingham",
+  "name": "Nottingham, United Kingdom",
+  "start": "2025-06-16",
+  "end": "2025-06-22",
+  "tier": 125
+ },
+ {
+  "city": "sassuolo",
+  "name": "Sassuolo, Italy",
+  "start": "2025-06-16",
+  "end": "2025-06-22",
+  "tier": 125
+ },
+ {
+  "city": "poznan",
+  "name": "Poznań, Poland",
+  "start": "2025-06-16",
+  "end": "2025-06-22",
+  "tier": 100
+ },
+ {
+  "city": "royan",
+  "name": "Royan, France",
+  "start": "2025-06-16",
+  "end": "2025-06-22",
+  "tier": 50
+ },
+ {
+  "city": "santa cruz de la sierra",
+  "name": "Santa Cruz de la Sierra, Bolivia",
+  "start": "2025-06-16",
+  "end": "2025-06-22",
+  "tier": 50
+ },
+ {
+  "city": "milan",
+  "name": "Milan, Italy",
+  "start": "2025-06-23",
+  "end": "2025-06-29",
+  "tier": 75
+ },
+ {
+  "city": "lima",
+  "name": "Lima, Peru",
+  "start": "2025-06-23",
+  "end": "2025-06-29",
+  "tier": 50
+ },
+ {
+  "city": "cary",
+  "name": "Cary, United States",
+  "start": "2025-06-30",
+  "end": "2025-07-06",
+  "tier": 75
+ },
+ {
+  "city": "brasov",
+  "name": "Brașov, Romania",
+  "start": "2025-06-30",
+  "end": "2025-07-06",
+  "tier": 75
+ },
+ {
+  "city": "modena",
+  "name": "Modena, Italy",
+  "start": "2025-06-30",
+  "end": "2025-07-06",
+  "tier": 75
+ },
+ {
+  "city": "troyes",
+  "name": "Troyes, France",
+  "start": "2025-06-30",
+  "end": "2025-07-06",
+  "tier": 50
+ },
+ {
+  "city": "braunschweig",
+  "name": "Braunschweig, Germany",
+  "start": "2025-07-07",
+  "end": "2025-07-13",
+  "tier": 125
+ },
+ {
+  "city": "newport",
+  "name": "Newport, United States",
+  "start": "2025-07-07",
+  "end": "2025-07-13",
+  "tier": 125
+ },
+ {
+  "city": "iasi",
+  "name": "Iași, Romania",
+  "start": "2025-07-07",
+  "end": "2025-07-13",
+  "tier": 100
+ },
+ {
+  "city": "trieste",
+  "name": "Trieste, Italy",
+  "start": "2025-07-07",
+  "end": "2025-07-13",
+  "tier": 100
+ },
+ {
+  "city": "winnipeg",
+  "name": "Winnipeg, Canada",
+  "start": "2025-07-07",
+  "end": "2025-07-13",
+  "tier": 75
+ },
+ {
+  "city": "nottingham",
+  "name": "Nottingham, United Kingdom",
+  "start": "2025-07-07",
+  "end": "2025-07-13",
+  "tier": 50
+ },
+ {
+  "city": "san marino",
+  "name": "San Marino, San Marino",
+  "start": "2025-07-14",
+  "end": "2025-07-20",
+  "tier": 125
+ },
+ {
+  "city": "bunschoten",
+  "name": "Bunschoten, Netherlands",
+  "start": "2025-07-14",
+  "end": "2025-07-20",
+  "tier": 75
+ },
+ {
+  "city": "granby",
+  "name": "Granby, Canada",
+  "start": "2025-07-14",
+  "end": "2025-07-20",
+  "tier": 75
+ },
+ {
+  "city": "pozoblanco",
+  "name": "Pozoblanco, Spain",
+  "start": "2025-07-14",
+  "end": "2025-07-20",
+  "tier": 75
+ },
+ {
+  "city": "zug",
+  "name": "Zug, Switzerland",
+  "start": "2025-07-21",
+  "end": "2025-07-27",
+  "tier": 125
+ },
+ {
+  "city": "bloomfield hills",
+  "name": "Bloomfield Hills, United States",
+  "start": "2025-07-21",
+  "end": "2025-07-27",
+  "tier": 100
+ },
+ {
+  "city": "tampere",
+  "name": "Tampere, Finland",
+  "start": "2025-07-21",
+  "end": "2025-07-27",
+  "tier": 75
+ },
+ {
+  "city": "segovia",
+  "name": "Segovia, Spain",
+  "start": "2025-07-21",
+  "end": "2025-07-27",
+  "tier": 75
+ },
+ {
+  "city": "porto",
+  "name": "Porto, Portugal",
+  "start": "2025-07-28",
+  "end": "2025-08-03",
+  "tier": 100
+ },
+ {
+  "city": "hagen",
+  "name": "Hagen, Germany",
+  "start": "2025-07-28",
+  "end": "2025-08-03",
+  "tier": 75
+ },
+ {
+  "city": "lexington",
+  "name": "Lexington, United States",
+  "start": "2025-07-28",
+  "end": "2025-08-03",
+  "tier": 75
+ },
+ {
+  "city": "liberec",
+  "name": "Liberec, Czech Republic",
+  "start": "2025-07-28",
+  "end": "2025-08-03",
+  "tier": 75
+ },
+ {
+  "city": "astana",
+  "name": "Astana, Kazakhstan",
+  "start": "2025-07-28",
+  "end": "2025-08-03",
+  "tier": 50
+ },
+ {
+  "city": "grodzisk mazowiecki",
+  "name": "Grodzisk Mazowiecki, Poland",
+  "start": "2025-08-04",
+  "end": "2025-08-10",
+  "tier": 75
+ },
+ {
+  "city": "bonn",
+  "name": "Bonn, Germany",
+  "start": "2025-08-04",
+  "end": "2025-08-10",
+  "tier": 75
+ },
+ {
+  "city": "chicago",
+  "name": "Chicago, United States",
+  "start": "2025-08-04",
+  "end": "2025-08-10",
+  "tier": 75
+ },
+ {
+  "city": "cordenons",
+  "name": "Cordenons, Italy",
+  "start": "2025-08-04",
+  "end": "2025-08-10",
+  "tier": 75
+ },
+ {
+  "city": "cancun",
+  "name": "Cancún, Mexico",
+  "start": "2025-08-11",
+  "end": "2025-08-17",
+  "tier": 125
+ },
+ {
+  "city": "sumter",
+  "name": "Sumter, United States",
+  "start": "2025-08-11",
+  "end": "2025-08-17",
+  "tier": 125
+ },
+ {
+  "city": "barranquilla",
+  "name": "Barranquilla, Colombia",
+  "start": "2025-08-11",
+  "end": "2025-08-17",
+  "tier": 75
+ },
+ {
+  "city": "todi",
+  "name": "Todi, Italy",
+  "start": "2025-08-11",
+  "end": "2025-08-17",
+  "tier": 75
+ },
+ {
+  "city": "hersonissos",
+  "name": "Hersonissos, Greece",
+  "start": "2025-08-11",
+  "end": "2025-08-17",
+  "tier": 50
+ },
+ {
+  "city": "sofia",
+  "name": "Sofia, Bulgaria",
+  "start": "2025-08-11",
+  "end": "2025-08-17",
+  "tier": 50
+ },
+ {
+  "city": "sofia",
+  "name": "Sofia, Bulgaria",
+  "start": "2025-08-18",
+  "end": "2025-08-24",
+  "tier": 75
+ },
+ {
+  "city": "augsburg",
+  "name": "Augsburg, Germany",
+  "start": "2025-08-18",
+  "end": "2025-08-24",
+  "tier": 50
+ },
+ {
+  "city": "hersonissos",
+  "name": "Hersonissos, Greece",
+  "start": "2025-08-18",
+  "end": "2025-08-24",
+  "tier": 50
+ },
+ {
+  "city": "como",
+  "name": "Como, Italy",
+  "start": "2025-08-25",
+  "end": "2025-08-31",
+  "tier": 75
+ },
+ {
+  "city": "manacor",
+  "name": "Manacor, Spain",
+  "start": "2025-08-25",
+  "end": "2025-08-31",
+  "tier": 75
+ },
+ {
+  "city": "porto",
+  "name": "Porto, Portugal",
+  "start": "2025-08-25",
+  "end": "2025-08-31",
+  "tier": 75
+ },
+ {
+  "city": "zhangjiagang",
+  "name": "Zhangjiagang, China",
+  "start": "2025-08-25",
+  "end": "2025-08-31",
+  "tier": 75
+ },
+ {
+  "city": "seville",
+  "name": "Seville, Spain",
+  "start": "2025-09-01",
+  "end": "2025-09-07",
+  "tier": 125
+ },
+ {
+  "city": "genoa",
+  "name": "Genoa, Italy",
+  "start": "2025-09-01",
+  "end": "2025-09-07",
+  "tier": 125
+ },
+ {
+  "city": "tulln",
+  "name": "Tulln, Austria",
+  "start": "2025-09-01",
+  "end": "2025-09-07",
+  "tier": 100
+ },
+ {
+  "city": "shanghai",
+  "name": "Shanghai, China",
+  "start": "2025-09-01",
+  "end": "2025-09-07",
+  "tier": 100
+ },
+ {
+  "city": "cassis",
+  "name": "Cassis, France",
+  "start": "2025-09-01",
+  "end": "2025-09-07",
+  "tier": 75
+ },
+ {
+  "city": "istanbul",
+  "name": "Istanbul, Turkey",
+  "start": "2025-09-01",
+  "end": "2025-09-07",
+  "tier": 75
+ },
+ {
+  "city": "szczecin",
+  "name": "Szczecin, Poland",
+  "start": "2025-09-08",
+  "end": "2025-09-14",
+  "tier": 125
+ },
+ {
+  "city": "guangzhou",
+  "name": "Guangzhou, China",
+  "start": "2025-09-08",
+  "end": "2025-09-14",
+  "tier": 100
+ },
+ {
+  "city": "rennes",
+  "name": "Rennes, France",
+  "start": "2025-09-08",
+  "end": "2025-09-14",
+  "tier": 100
+ },
+ {
+  "city": "winston salem",
+  "name": "Winston-Salem, United States",
+  "start": "2025-09-08",
+  "end": "2025-09-14",
+  "tier": 75
+ },
+ {
+  "city": "biella",
+  "name": "Biella, Italy",
+  "start": "2025-09-08",
+  "end": "2025-09-14",
+  "tier": 50
+ },
+ {
+  "city": "targu mures",
+  "name": "Târgu Mureș, Romania",
+  "start": "2025-09-08",
+  "end": "2025-09-14",
+  "tier": 50
+ },
+ {
+  "city": "bad waltersdorf",
+  "name": "Bad Waltersdorf, Austria",
+  "start": "2025-09-15",
+  "end": "2025-09-21",
+  "tier": 125
+ },
+ {
+  "city": "saint tropez",
+  "name": "Saint-Tropez, France",
+  "start": "2025-09-15",
+  "end": "2025-09-21",
+  "tier": 125
+ },
+ {
+  "city": "columbus",
+  "name": "Columbus, United States",
+  "start": "2025-09-15",
+  "end": "2025-09-21",
+  "tier": 75
+ },
+ {
+  "city": "villa maria",
+  "name": "Villa María, Argentina",
+  "start": "2025-09-15",
+  "end": "2025-09-21",
+  "tier": 75
+ },
+ {
+  "city": "targu mures",
+  "name": "Târgu Mureș, Romania",
+  "start": "2025-09-15",
+  "end": "2025-09-21",
+  "tier": 50
+ },
+ {
+  "city": "orleans",
+  "name": "Orléans, France",
+  "start": "2025-09-22",
+  "end": "2025-09-28",
+  "tier": 125
+ },
+ {
+  "city": "jingshan",
+  "name": "Jingshan, China",
+  "start": "2025-09-22",
+  "end": "2025-09-28",
+  "tier": 100
+ },
+ {
+  "city": "lisbon",
+  "name": "Lisbon, Portugal",
+  "start": "2025-09-22",
+  "end": "2025-09-28",
+  "tier": 100
+ },
+ {
+  "city": "buenos aires",
+  "name": "Buenos Aires, Argentina",
+  "start": "2025-09-22",
+  "end": "2025-09-28",
+  "tier": 75
+ },
+ {
+  "city": "las vegas",
+  "name": "Las Vegas, United States",
+  "start": "2025-09-22",
+  "end": "2025-09-28",
+  "tier": 75
+ },
+ {
+  "city": "villena",
+  "name": "Villena, Spain",
+  "start": "2025-09-29",
+  "end": "2025-10-05",
+  "tier": 100
+ },
+ {
+  "city": "antofagasta",
+  "name": "Antofagasta, Chile",
+  "start": "2025-09-29",
+  "end": "2025-10-05",
+  "tier": 75
+ },
+ {
+  "city": "braga",
+  "name": "Braga, Portugal",
+  "start": "2025-09-29",
+  "end": "2025-10-05",
+  "tier": 75
+ },
+ {
+  "city": "mouilleron le captif",
+  "name": "Mouilleron-le-Captif, France",
+  "start": "2025-09-29",
+  "end": "2025-10-05",
+  "tier": 75
+ },
+ {
+  "city": "tiburon",
+  "name": "Tiburon, United States",
+  "start": "2025-09-29",
+  "end": "2025-10-05",
+  "tier": 75
+ },
+ {
+  "city": "jinan",
+  "name": "Jinan, China",
+  "start": "2025-10-06",
+  "end": "2025-10-12",
+  "tier": 125
+ },
+ {
+  "city": "valencia",
+  "name": "Valencia, Spain",
+  "start": "2025-10-06",
+  "end": "2025-10-12",
+  "tier": 125
+ },
+ {
+  "city": "roanne",
+  "name": "Roanne, France",
+  "start": "2025-10-06",
+  "end": "2025-10-12",
+  "tier": 100
+ },
+ {
+  "city": "cali",
+  "name": "Cali, Colombia",
+  "start": "2025-10-06",
+  "end": "2025-10-12",
+  "tier": 75
+ },
+ {
+  "city": "hersonissos",
+  "name": "Hersonissos, Greece",
+  "start": "2025-10-06",
+  "end": "2025-10-12",
+  "tier": 50
+ },
+ {
+  "city": "fairfield",
+  "name": "Fairfield, United States",
+  "start": "2025-10-06",
+  "end": "2025-10-12",
+  "tier": 50
+ },
+ {
+  "city": "olbia",
+  "name": "Olbia, Italy",
+  "start": "2025-10-13",
+  "end": "2025-10-19",
+  "tier": 125
+ },
+ {
+  "city": "curitiba",
+  "name": "Curitiba, Brazil",
+  "start": "2025-10-13",
+  "end": "2025-10-19",
+  "tier": 75
+ },
+ {
+  "city": "lincoln",
+  "name": "Lincoln, United States",
+  "start": "2025-10-13",
+  "end": "2025-10-19",
+  "tier": 75
+ },
+ {
+  "city": "shenzhen",
+  "name": "Shenzhen, China",
+  "start": "2025-10-13",
+  "end": "2025-10-19",
+  "tier": 75
+ },
+ {
+  "city": "hersonissos",
+  "name": "Hersonissos, Greece",
+  "start": "2025-10-13",
+  "end": "2025-10-19",
+  "tier": 50
+ },
+ {
+  "city": "sauipe",
+  "name": "Sauipe, Brazil",
+  "start": "2025-10-20",
+  "end": "2025-10-26",
+  "tier": 125
+ },
+ {
+  "city": "brest",
+  "name": "Brest, France",
+  "start": "2025-10-20",
+  "end": "2025-10-26",
+  "tier": 100
+ },
+ {
+  "city": "sioux falls",
+  "name": "Sioux Falls, United States",
+  "start": "2025-10-20",
+  "end": "2025-10-26",
+  "tier": 100
+ },
+ {
+  "city": "suzhou",
+  "name": "Suzhou, China",
+  "start": "2025-10-20",
+  "end": "2025-10-26",
+  "tier": 75
+ },
+ {
+  "city": "hamburg",
+  "name": "Hamburg, Germany",
+  "start": "2025-10-20",
+  "end": "2025-10-26",
+  "tier": 50
+ },
+ {
+  "city": "bratislava",
+  "name": "Bratislava, Slovakia",
+  "start": "2025-10-27",
+  "end": "2025-11-02",
+  "tier": 125
+ },
+ {
+  "city": "seoul",
+  "name": "Seoul, South Korea",
+  "start": "2025-10-27",
+  "end": "2025-11-02",
+  "tier": 100
+ },
+ {
+  "city": "charlottesville",
+  "name": "Charlottesville, United States",
+  "start": "2025-10-27",
+  "end": "2025-11-02",
+  "tier": 75
+ },
+ {
+  "city": "lima",
+  "name": "Lima, Peru",
+  "start": "2025-10-27",
+  "end": "2025-11-02",
+  "tier": 75
+ },
+ {
+  "city": "monastir",
+  "name": "Monastir, Tunisia",
+  "start": "2025-10-27",
+  "end": "2025-11-02",
+  "tier": 50
+ },
+ {
+  "city": "helsinki",
+  "name": "Helsinki, Finland",
+  "start": "2025-11-03",
+  "end": "2025-11-09",
+  "tier": 125
+ },
+ {
+  "city": "taipei",
+  "name": "Taipei, Taiwan",
+  "start": "2025-11-03",
+  "end": "2025-11-09",
+  "tier": 100
+ },
+ {
+  "city": "lima",
+  "name": "Lima, Peru",
+  "start": "2025-11-03",
+  "end": "2025-11-09",
+  "tier": 75
+ },
+ {
+  "city": "matsuyama",
+  "name": "Matsuyama, Japan",
+  "start": "2025-11-03",
+  "end": "2025-11-09",
+  "tier": 75
+ },
+ {
+  "city": "knoxville",
+  "name": "Knoxville, United States",
+  "start": "2025-11-03",
+  "end": "2025-11-09",
+  "tier": 50
+ },
+ {
+  "city": "montevideo",
+  "name": "Montevideo, Uruguay",
+  "start": "2025-11-10",
+  "end": "2025-11-16",
+  "tier": 100
+ },
+ {
+  "city": "brisbane",
+  "name": "Brisbane, Australia",
+  "start": "2025-11-10",
+  "end": "2025-11-16",
+  "tier": 75
+ },
+ {
+  "city": "champaign",
+  "name": "Champaign, United States",
+  "start": "2025-11-10",
+  "end": "2025-11-16",
+  "tier": 75
+ },
+ {
+  "city": "drummondville",
+  "name": "Drummondville, Canada",
+  "start": "2025-11-10",
+  "end": "2025-11-16",
+  "tier": 75
+ },
+ {
+  "city": "kobe",
+  "name": "Kobe, Japan",
+  "start": "2025-11-10",
+  "end": "2025-11-16",
+  "tier": 75
+ },
+ {
+  "city": "lyon",
+  "name": "Lyon, France",
+  "start": "2025-11-10",
+  "end": "2025-11-16",
+  "tier": 75
+ },
+ {
+  "city": "bergamo",
+  "name": "Bergamo, Italy",
+  "start": "2025-11-17",
+  "end": "2025-11-23",
+  "tier": 100
+ },
+ {
+  "city": "florianopolis",
+  "name": "Florianópolis, Brazil",
+  "start": "2025-11-17",
+  "end": "2025-11-23",
+  "tier": 75
+ },
+ {
+  "city": "guayaquil",
+  "name": "Guayaquil, Ecuador",
+  "start": "2025-11-17",
+  "end": "2025-11-23",
+  "tier": 75
+ },
+ {
+  "city": "alicante",
+  "name": "Alicante, Spain",
+  "start": "2025-11-17",
+  "end": "2025-11-23",
+  "tier": 75
+ },
+ {
+  "city": "yokohama",
+  "name": "Yokohama, Japan",
+  "start": "2025-11-17",
+  "end": "2025-11-23",
+  "tier": 75
+ },
+ {
+  "city": "sydney",
+  "name": "Sydney, Australia",
+  "start": "2025-11-17",
+  "end": "2025-11-23",
+  "tier": 75
+ },
+ {
+  "city": "soma bay",
+  "name": "Soma Bay, Egypt",
+  "start": "2025-11-17",
+  "end": "2025-11-23",
+  "tier": 50
+ },
+ {
+  "city": "maia",
+  "name": "Maia, Portugal",
+  "start": "2025-11-24",
+  "end": "2025-11-30",
+  "tier": 100
+ },
+ {
+  "city": "temuco",
+  "name": "Temuco, Chile",
+  "start": "2025-11-24",
+  "end": "2025-11-30",
+  "tier": 100
+ },
+ {
+  "city": "bogota",
+  "name": "Bogotá, Colombia",
+  "start": "2025-11-24",
+  "end": "2025-11-30",
+  "tier": 75
+ },
+ {
+  "city": "playford",
+  "name": "Playford, Australia",
+  "start": "2025-11-24",
+  "end": "2025-11-30",
+  "tier": 75
+ },
+ {
+  "city": "athens",
+  "name": "Athens, Greece",
+  "start": "2025-11-24",
+  "end": "2025-11-30",
+  "tier": 50
+ },
+ {
+  "city": "islamabad",
+  "name": "Islamabad, Pakistan",
+  "start": "2025-11-24",
+  "end": "2025-11-30",
+  "tier": 50
+ },
+ {
+  "city": "manama",
+  "name": "Manama, Bahrain",
+  "start": "2025-11-24",
+  "end": "2025-11-30",
+  "tier": 50
+ },
+ {
+  "city": "bengaluru",
+  "name": "Bengaluru, India",
+  "start": "2026-01-05",
+  "end": "2026-01-10",
+  "tier": 125
+ },
+ {
+  "city": "canberra",
+  "name": "Canberra, Australia",
+  "start": "2026-01-05",
+  "end": "2026-01-10",
+  "tier": 125
+ },
+ {
+  "city": "noumea",
+  "name": "Noumea, New Caledonia",
+  "start": "2026-01-05",
+  "end": "2026-01-10",
+  "tier": 75
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2026-01-05",
+  "end": "2026-01-10",
+  "tier": 50
+ },
+ {
+  "city": "nottingham",
+  "name": "Nottingham, Great Britain",
+  "start": "2026-01-05",
+  "end": "2026-01-10",
+  "tier": 50
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2026-01-12",
+  "end": "2026-01-17",
+  "tier": 75
+ },
+ {
+  "city": "buenos aires",
+  "name": "Buenos Aires, Argentina",
+  "start": "2026-01-12",
+  "end": "2026-01-17",
+  "tier": 50
+ },
+ {
+  "city": "glasgow",
+  "name": "Glasgow, Great Britain",
+  "start": "2026-01-12",
+  "end": "2026-01-17",
+  "tier": 50
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2026-01-19",
+  "end": "2026-01-25",
+  "tier": 100
+ },
+ {
+  "city": "itajai",
+  "name": "Itajai, Brazil",
+  "start": "2026-01-19",
+  "end": "2026-01-25",
+  "tier": 75
+ },
+ {
+  "city": "soma bay",
+  "name": "Soma Bay, Egypt",
+  "start": "2026-01-19",
+  "end": "2026-01-26",
+  "tier": 75
+ },
+ {
+  "city": "phan thiet",
+  "name": "Phan Thiet, Vietnam",
+  "start": "2026-01-19",
+  "end": "2026-01-25",
+  "tier": 50
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2026-01-26",
+  "end": "2026-02-01",
+  "tier": 75
+ },
+ {
+  "city": "phan thiet",
+  "name": "Phan Thiet, Vietnam",
+  "start": "2026-01-26",
+  "end": "2026-02-01",
+  "tier": 50
+ },
+ {
+  "city": "manama",
+  "name": "Manama, Bahrain",
+  "start": "2026-01-27",
+  "end": "2026-02-01",
+  "tier": 125
+ },
+ {
+  "city": "quimper",
+  "name": "Quimper, France",
+  "start": "2026-01-27",
+  "end": "2026-02-01",
+  "tier": 125
+ },
+ {
+  "city": "san diego",
+  "name": "San Diego, United States",
+  "start": "2026-01-27",
+  "end": "2026-02-01",
+  "tier": 100
+ },
+ {
+  "city": "concepcion",
+  "name": "Concepcion, Chile",
+  "start": "2026-01-27",
+  "end": "2026-02-01",
+  "tier": 100
+ },
+ {
+  "city": "rosario",
+  "name": "Rosario, Argentina",
+  "start": "2026-02-02",
+  "end": "2026-02-08",
+  "tier": 125
+ },
+ {
+  "city": "brisbane",
+  "name": "Brisbane, Australia",
+  "start": "2026-02-02",
+  "end": "2026-02-08",
+  "tier": 75
+ },
+ {
+  "city": "cleveland",
+  "name": "Cleveland, United States",
+  "start": "2026-02-02",
+  "end": "2026-02-08",
+  "tier": 75
+ },
+ {
+  "city": "tenerife",
+  "name": "Tenerife, Spain",
+  "start": "2026-02-02",
+  "end": "2026-02-08",
+  "tier": 75
+ },
+ {
+  "city": "koblenz",
+  "name": "Koblenz, Germany",
+  "start": "2026-02-02",
+  "end": "2026-02-08",
+  "tier": 50
+ },
+ {
+  "city": "cesenatico",
+  "name": "Cesenatico, Italy",
+  "start": "2026-02-02",
+  "end": "2026-02-08",
+  "tier": 50
+ },
+ {
+  "city": "pau",
+  "name": "Pau, France",
+  "start": "2026-02-09",
+  "end": "2026-02-15",
+  "tier": 125
+ },
+ {
+  "city": "brisbane",
+  "name": "Brisbane, Australia",
+  "start": "2026-02-09",
+  "end": "2026-02-15",
+  "tier": 75
+ },
+ {
+  "city": "tenerife",
+  "name": "Tenerife, Spain",
+  "start": "2026-02-09",
+  "end": "2026-02-15",
+  "tier": 75
+ },
+ {
+  "city": "chennai",
+  "name": "Chennai, India",
+  "start": "2026-02-09",
+  "end": "2026-02-15",
+  "tier": 50
+ },
+ {
+  "city": "baton rouge",
+  "name": "Baton Rouge, United States",
+  "start": "2026-02-09",
+  "end": "2026-02-15",
+  "tier": 50
+ },
+ {
+  "city": "lille",
+  "name": "Lille, France",
+  "start": "2026-02-16",
+  "end": "2026-02-22",
+  "tier": 125
+ },
+ {
+  "city": "metepec",
+  "name": "Metepec, Mexico",
+  "start": "2026-02-16",
+  "end": "2026-02-22",
+  "tier": 75
+ },
+ {
+  "city": "new delhi",
+  "name": "New Delhi, India",
+  "start": "2026-02-16",
+  "end": "2026-02-22",
+  "tier": 75
+ },
+ {
+  "city": "tigre",
+  "name": "Tigre, Argentina",
+  "start": "2026-02-16",
+  "end": "2026-02-22",
+  "tier": 50
+ },
+ {
+  "city": "saint brieuc",
+  "name": "St. Brieuc, France",
+  "start": "2026-02-23",
+  "end": "2026-03-01",
+  "tier": 100
+ },
+ {
+  "city": "pune",
+  "name": "Pune, India",
+  "start": "2026-02-23",
+  "end": "2026-03-01",
+  "tier": 75
+ },
+ {
+  "city": "lugano",
+  "name": "Lugano, Switzerland",
+  "start": "2026-02-23",
+  "end": "2026-03-01",
+  "tier": 75
+ },
+ {
+  "city": "tigre",
+  "name": "Tigre, Argentina",
+  "start": "2026-02-23",
+  "end": "2026-03-01",
+  "tier": 50
+ },
+ {
+  "city": "thionville",
+  "name": "Thionville, France",
+  "start": "2026-03-02",
+  "end": "2026-03-08",
+  "tier": 100
+ },
+ {
+  "city": "brasilia",
+  "name": "Brasilia, Brazil",
+  "start": "2026-03-02",
+  "end": "2026-03-08",
+  "tier": 75
+ },
+ {
+  "city": "kigali",
+  "name": "Kigali , Rwanda",
+  "start": "2026-03-02",
+  "end": "2026-03-08",
+  "tier": 75
+ },
+ {
+  "city": "fujairah",
+  "name": "Fujairah, United Arab Emirates",
+  "start": "2026-03-02",
+  "end": "2026-03-08",
+  "tier": 50
+ },
+ {
+  "city": "hersonissos",
+  "name": "Hersonissos, Greece",
+  "start": "2026-03-02",
+  "end": "2026-03-08",
+  "tier": 50
+ },
+ {
+  "city": "kigali",
+  "name": "Kigali, Rwanda",
+  "start": "2026-03-09",
+  "end": "2026-03-15",
+  "tier": 100
+ },
+ {
+  "city": "santiago",
+  "name": "Santiago, Chile",
+  "start": "2026-03-09",
+  "end": "2026-03-15",
+  "tier": 75
+ },
+ {
+  "city": "cherbourg",
+  "name": "Cherbourg, France",
+  "start": "2026-03-09",
+  "end": "2026-03-15",
+  "tier": 75
+ },
+ {
+  "city": "hersonissos",
+  "name": "Hersonissos , Greece",
+  "start": "2026-03-09",
+  "end": "2026-03-15",
+  "tier": 50
+ },
+ {
+  "city": "phoenix",
+  "name": "Phoenix, United States",
+  "start": "2026-03-10",
+  "end": "2026-03-15",
+  "tier": 175
+ },
+ {
+  "city": "cap cana",
+  "name": "Cap Cana, Dominican Republic",
+  "start": "2026-03-10",
+  "end": "2026-03-15",
+  "tier": 175
+ },
+ {
+  "city": "morelos",
+  "name": "Morelos, Mexico",
+  "start": "2026-03-16",
+  "end": "2026-03-22",
+  "tier": 75
+ },
+ {
+  "city": "asuncion",
+  "name": "Asuncion, Paraguay",
+  "start": "2026-03-16",
+  "end": "2026-03-22",
+  "tier": 75
+ },
+ {
+  "city": "murcia",
+  "name": "Murcia, Spain",
+  "start": "2026-03-16",
+  "end": "2026-03-22",
+  "tier": 75
+ },
+ {
+  "city": "zadar",
+  "name": "Zadar, Croatia",
+  "start": "2026-03-16",
+  "end": "2026-03-22",
+  "tier": 75
+ },
+ {
+  "city": "morelia",
+  "name": "Morelia , Mexico",
+  "start": "2026-03-23",
+  "end": "2026-03-28",
+  "tier": 125
+ },
+ {
+  "city": "naples",
+  "name": "Naples, Italy",
+  "start": "2026-03-23",
+  "end": "2026-03-29",
+  "tier": 125
+ },
+ {
+  "city": "sao paulo",
+  "name": "Sao Paulo, Brazil",
+  "start": "2026-03-23",
+  "end": "2026-03-29",
+  "tier": 100
+ },
+ {
+  "city": "alicante",
+  "name": "Alicante, Spain",
+  "start": "2026-03-23",
+  "end": "2026-03-29",
+  "tier": 100
+ },
+ {
+  "city": "bucaramanga",
+  "name": "Bucaramanga, Colombia",
+  "start": "2026-03-23",
+  "end": "2026-03-28",
+  "tier": 50
+ },
+ {
+  "city": "yokkaichi",
+  "name": "Yokkaichi, Japan",
+  "start": "2026-03-23",
+  "end": "2026-03-29",
+  "tier": 50
+ },
+ {
+  "city": "split",
+  "name": "Split, Croatia",
+  "start": "2026-03-23",
+  "end": "2026-03-29",
+  "tier": 50
+ },
+ {
+  "city": "menorca",
+  "name": "Menorca, Spain",
+  "start": "2026-03-30",
+  "end": "2026-04-05",
+  "tier": 100
+ },
+ {
+  "city": "san luis potosi",
+  "name": "San Luis Potosi, Mexico",
+  "start": "2026-03-30",
+  "end": "2026-04-05",
+  "tier": 75
+ },
+ {
+  "city": "sao leopoldo",
+  "name": "Sao Leopoldo, Brazil",
+  "start": "2026-03-30",
+  "end": "2026-04-05",
+  "tier": 75
+ },
+ {
+  "city": "barletta",
+  "name": "Barletta, Italy",
+  "start": "2026-03-30",
+  "end": "2026-04-05",
+  "tier": 75
+ },
+ {
+  "city": "miyazaki",
+  "name": "Miyazaki, Japan",
+  "start": "2026-03-30",
+  "end": "2026-04-05",
+  "tier": 50
+ },
+ {
+  "city": "mexico city",
+  "name": "Mexico City, Mexico",
+  "start": "2026-04-06",
+  "end": "2026-04-12",
+  "tier": 125
+ },
+ {
+  "city": "monza",
+  "name": "Monza, Italy",
+  "start": "2026-04-06",
+  "end": "2026-04-12",
+  "tier": 125
+ },
+ {
+  "city": "campinas",
+  "name": "Campinas, Brazil",
+  "start": "2026-04-06",
+  "end": "2026-04-12",
+  "tier": 75
+ },
+ {
+  "city": "sarasota",
+  "name": "Sarasota, United States",
+  "start": "2026-04-06",
+  "end": "2026-04-12",
+  "tier": 75
+ },
+ {
+  "city": "madrid",
+  "name": "Madrid, Spain",
+  "start": "2026-04-06",
+  "end": "2026-04-12",
+  "tier": 75
+ },
+ {
+  "city": "wuning",
+  "name": "Wuning, China",
+  "start": "2026-04-06",
+  "end": "2026-04-12",
+  "tier": 50
+ },
+ {
+  "city": "busan",
+  "name": "Busan, South Korea",
+  "start": "2026-04-13",
+  "end": "2026-04-19",
+  "tier": 125
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras, Portugal",
+  "start": "2026-04-13",
+  "end": "2026-04-19",
+  "tier": 125
+ },
+ {
+  "city": "santa cruz",
+  "name": "Santa Cruz, Bolivia",
+  "start": "2026-04-13",
+  "end": "2026-04-18",
+  "tier": 75
+ },
+ {
+  "city": "tallahassee",
+  "name": "Tallahassee, United States",
+  "start": "2026-04-13",
+  "end": "2026-04-19",
+  "tier": 75
+ },
+ {
+  "city": "wuning",
+  "name": "Wuning, China",
+  "start": "2026-04-13",
+  "end": "2026-04-19",
+  "tier": 50
+ },
+ {
+  "city": "gwangju",
+  "name": "Gwangju, South Korea",
+  "start": "2026-04-20",
+  "end": "2026-04-26",
+  "tier": 75
+ },
+ {
+  "city": "savannah",
+  "name": "Savannah, United States",
+  "start": "2026-04-20",
+  "end": "2026-04-26",
+  "tier": 75
+ },
+ {
+  "city": "rome",
+  "name": "Rome, Italy",
+  "start": "2026-04-20",
+  "end": "2026-04-26",
+  "tier": 75
+ },
+ {
+  "city": "abidjan",
+  "name": "Abidjan, Ivory Coast",
+  "start": "2026-04-20",
+  "end": "2026-04-26",
+  "tier": 50
+ },
+ {
+  "city": "shymkent",
+  "name": "Shymkent, Kazakhstan",
+  "start": "2026-04-20",
+  "end": "2026-04-25",
+  "tier": 50
+ },
+ {
+  "city": "mauthausen",
+  "name": "Mauthausen, Austria",
+  "start": "2026-04-27",
+  "end": "2026-05-03",
+  "tier": 100
+ },
+ {
+  "city": "abidjan",
+  "name": "Abidjan, Ivory Coast",
+  "start": "2026-04-27",
+  "end": "2026-05-03",
+  "tier": 75
+ },
+ {
+  "city": "jiujiang",
+  "name": "Jiujiang, China",
+  "start": "2026-04-27",
+  "end": "2026-05-03",
+  "tier": 75
+ },
+ {
+  "city": "ostrava",
+  "name": "Ostrava, Czechia",
+  "start": "2026-04-27",
+  "end": "2026-05-03",
+  "tier": 75
+ },
+ {
+  "city": "shymkent",
+  "name": "Shymkent , Kazakhstan",
+  "start": "2026-04-27",
+  "end": "2026-05-03",
+  "tier": 50
+ },
+ {
+  "city": "aix en provence",
+  "name": "Aix-en-Provence, France",
+  "start": "2026-04-28",
+  "end": "2026-05-03",
+  "tier": 175
+ },
+ {
+  "city": "cagliari",
+  "name": "Cagliari, Italy",
+  "start": "2026-04-28",
+  "end": "2026-05-03",
+  "tier": 175
+ },
+ {
+  "city": "wuxi",
+  "name": "Wuxi, China",
+  "start": "2026-05-04",
+  "end": "2026-05-10",
+  "tier": 100
+ },
+ {
+  "city": "francavilla al mare",
+  "name": "Francavilla al Mare, Italy",
+  "start": "2026-05-04",
+  "end": "2026-05-10",
+  "tier": 75
+ },
+ {
+  "city": "brazzaville",
+  "name": "Brazzaville, Republic of Congo",
+  "start": "2026-05-04",
+  "end": "2026-05-10",
+  "tier": 50
+ },
+ {
+  "city": "santos",
+  "name": "Santos, Brazil",
+  "start": "2026-05-04",
+  "end": "2026-05-10",
+  "tier": 50
+ },
+ {
+  "city": "oeiras",
+  "name": "Oeiras , Portugal",
+  "start": "2026-05-11",
+  "end": "2026-05-16",
+  "tier": 100
+ },
+ {
+  "city": "tunis",
+  "name": "Tunis, Tunisia",
+  "start": "2026-05-11",
+  "end": "2026-05-16",
+  "tier": 75
+ },
+ {
+  "city": "zagreb",
+  "name": "Zagreb, Croatia",
+  "start": "2026-05-11",
+  "end": "2026-05-16",
+  "tier": 75
+ },
+ {
+  "city": "cordoba",
+  "name": "Cordoba, Argentina",
+  "start": "2026-05-11",
+  "end": "2026-05-16",
+  "tier": 50
+ },
+ {
+  "city": "bengaluru",
+  "name": "Bengaluru, India",
+  "start": "2026-05-11",
+  "end": "2026-05-16",
+  "tier": 50
+ },
+ {
+  "city": "bordeaux",
+  "name": "Bordeaux, France",
+  "start": "2026-05-12",
+  "end": "2026-05-17",
+  "tier": 175
+ },
+ {
+  "city": "valencia",
+  "name": "Valencia, Spain",
+  "start": "2026-05-12",
+  "end": "2026-05-17",
+  "tier": 175
+ },
+ {
+  "city": "istanbul",
+  "name": "Istanbul, Turkiye",
+  "start": "2026-05-18",
+  "end": "2026-05-23",
+  "tier": 75
+ },
+ {
+  "city": "bengaluru",
+  "name": "Bengaluru, India",
+  "start": "2026-05-18",
+  "end": "2026-05-23",
+  "tier": 50
+ },
+ {
+  "city": "cervia",
+  "name": "Cervia, Italy",
+  "start": "2026-05-18",
+  "end": "2026-05-23",
+  "tier": 50
+ },
+ {
+  "city": "chisinau",
+  "name": "Chisinau, Moldova",
+  "start": "2026-05-25",
+  "end": "2026-05-31",
+  "tier": 100
+ },
+ {
+  "city": "little rock",
+  "name": "Little Rock, United States",
+  "start": "2026-05-25",
+  "end": "2026-05-31",
+  "tier": 75
+ },
+ {
+  "city": "vicenza",
+  "name": "Vicenza, Italy",
+  "start": "2026-05-25",
+  "end": "2026-05-31",
+  "tier": 75
+ },
+ {
+  "city": "centurion",
+  "name": "Centurion, South Africa",
+  "start": "2026-05-25",
+  "end": "2026-05-31",
+  "tier": 50
+ },
+ {
+  "city": "kosice",
+  "name": "Kosice, Slovak Republic",
+  "start": "2026-05-25",
+  "end": "2026-05-31",
+  "tier": 50
+ },
+ {
+  "city": "perugia",
+  "name": "Perugia, Italy",
+  "start": "2026-06-01",
+  "end": "2026-06-07",
+  "tier": 125
+ },
+ {
+  "city": "birmingham",
+  "name": "Birmingham, Great Britain",
+  "start": "2026-06-01",
+  "end": "2026-06-07",
+  "tier": 125
+ },
+ {
+  "city": "heilbronn bad rappenau",
+  "name": "Heilbronn - Bad Rappenau, Germany",
+  "start": "2026-06-01",
+  "end": "2026-06-07",
+  "tier": 100
+ },
+ {
+  "city": "prostejov",
+  "name": "Prostejov, Czechia",
+  "start": "2026-06-01",
+  "end": "2026-06-07",
+  "tier": 100
+ },
+ {
+  "city": "tyler",
+  "name": "Tyler, United States",
+  "start": "2026-06-01",
+  "end": "2026-06-07",
+  "tier": 75
+ },
+ {
+  "city": "centurion",
+  "name": "Centurion, South Africa",
+  "start": "2026-06-01",
+  "end": "2026-06-07",
+  "tier": 50
+ },
+ {
+  "city": "ilkley",
+  "name": "Ilkley, Great Britain",
+  "start": "2026-06-08",
+  "end": "2026-06-14",
+  "tier": 125
+ },
+ {
+  "city": "bratislava",
+  "name": "Bratislava, Slovak Republic",
+  "start": "2026-06-08",
+  "end": "2026-06-14",
+  "tier": 100
+ },
+ {
+  "city": "lyon",
+  "name": "Lyon, France",
+  "start": "2026-06-08",
+  "end": "2026-06-14",
+  "tier": 100
+ },
+ {
+  "city": "cattolica",
+  "name": "Cattolica, Italy",
+  "start": "2026-06-08",
+  "end": "2026-06-14",
+  "tier": 75
+ },
+ {
+  "city": "san miguel de tucuman",
+  "name": "San Miguel de Tucuman , Argentina",
+  "start": "2026-06-08",
+  "end": "2026-06-14",
+  "tier": 50
+ },
+ {
+  "city": "nottingham",
+  "name": "Nottingham, Great Britain",
+  "start": "2026-06-13",
+  "end": "2026-06-20",
+  "tier": 125
+ },
+ {
+  "city": "parma",
+  "name": "Parma, Italy",
+  "start": "2026-06-15",
+  "end": "2026-06-20",
+  "tier": 125
+ },
+ {
+  "city": "poznan",
+  "name": "Poznan, Poland",
+  "start": "2026-06-15",
+  "end": "2026-06-20",
+  "tier": 100
+ },
+ {
+  "city": "dublin",
+  "name": "Dublin, Ireland",
+  "start": "2026-06-15",
+  "end": "2026-06-20",
+  "tier": 75
+ },
+ {
+  "city": "asuncion",
+  "name": "Asuncion , Paraguay",
+  "start": "2026-06-15",
+  "end": "2026-06-20",
+  "tier": 50
+ },
+ {
+  "city": "royan",
+  "name": "Royan, France",
+  "start": "2026-06-15",
+  "end": "2026-06-20",
+  "tier": 50
+ },
+ {
+  "city": "targu mures",
+  "name": "Targu Mures, Romania",
+  "start": "2026-06-22",
+  "end": "2026-06-27",
+  "tier": 75
+ },
+ {
+  "city": "piracicaba",
+  "name": "Piracicaba, Brazil",
+  "start": "2026-06-22",
+  "end": "2026-06-28",
+  "tier": 50
+ },
+ {
+  "city": "plovdiv",
+  "name": "Plovdiv, Bulgaria",
+  "start": "2026-06-22",
+  "end": "2026-06-27",
+  "tier": 50
+ },
+ {
+  "city": "cary",
+  "name": "Cary, United States",
+  "start": "2026-06-29",
+  "end": "2026-07-05",
+  "tier": 75
+ },
+ {
+  "city": "milan",
+  "name": "Milan, Italy",
+  "start": "2026-06-29",
+  "end": "2026-07-05",
+  "tier": 75
+ },
+ {
+  "city": "brasov",
+  "name": "Brasov, Romania",
+  "start": "2026-06-29",
+  "end": "2026-07-05",
+  "tier": 75
+ },
+ {
+  "city": "quito",
+  "name": "Quito, Ecuador",
+  "start": "2026-06-29",
+  "end": "2026-07-05",
+  "tier": 50
+ },
+ {
+  "city": "troyes",
+  "name": "Troyes, France",
+  "start": "2026-06-29",
+  "end": "2026-07-05",
+  "tier": 50
+ },
+ {
+  "city": "newport",
+  "name": "Newport, United States",
+  "start": "2026-07-06",
+  "end": "2026-07-12",
+  "tier": 125
+ },
+ {
+  "city": "braunschweig",
+  "name": "Braunschweig, Germany",
+  "start": "2026-07-06",
+  "end": "2026-07-12",
+  "tier": 125
+ },
+ {
+  "city": "iasi",
+  "name": "Iasi, Romania",
+  "start": "2026-07-06",
+  "end": "2026-07-12",
+  "tier": 100
+ },
+ {
+  "city": "bogota",
+  "name": "Bogota, Colombia",
+  "start": "2026-07-06",
+  "end": "2026-07-12",
+  "tier": 75
+ },
+ {
+  "city": "trieste",
+  "name": "Trieste, Italy",
+  "start": "2026-07-06",
+  "end": "2026-07-12",
+  "tier": 75
+ },
+ {
+  "city": "liege",
+  "name": "Liege, Belgium",
+  "start": "2026-07-06",
+  "end": "2026-07-12",
+  "tier": 50
+ },
+ {
+  "city": "nottingham",
+  "name": "Nottingham, Great Britain",
+  "start": "2026-07-06",
+  "end": "2026-07-12",
+  "tier": 50
+ },
+ {
+  "city": "granby",
+  "name": "Granby, Canada",
+  "start": "2026-07-13",
+  "end": "2026-07-19",
+  "tier": 75
+ },
+ {
+  "city": "lincoln",
+  "name": "Lincoln, United States",
+  "start": "2026-07-13",
+  "end": "2026-07-19",
+  "tier": 75
+ },
+ {
+  "city": "bunschoten",
+  "name": "Bunschoten, Netherlands",
+  "start": "2026-07-13",
+  "end": "2026-07-19",
+  "tier": 75
+ },
+ {
+  "city": "pozoblanco",
+  "name": "Pozoblanco, Spain",
+  "start": "2026-07-13",
+  "end": "2026-07-19",
+  "tier": 75
+ },
+ {
+  "city": "cordenons",
+  "name": "Cordenons, Italy",
+  "start": "2026-07-13",
+  "end": "2026-07-19",
+  "tier": 75
+ },
+ {
+  "city": "bloomfield hills",
+  "name": "Bloomfield Hills, United States",
+  "start": "2026-07-20",
+  "end": "2026-07-26",
+  "tier": 125
+ },
+ {
+  "city": "zug",
+  "name": "Zug, Switzerland",
+  "start": "2026-07-20",
+  "end": "2026-07-26",
+  "tier": 125
+ },
+ {
+  "city": "winnipeg",
+  "name": "Winnipeg, Canada",
+  "start": "2026-07-20",
+  "end": "2026-07-26",
+  "tier": 75
+ },
+ {
+  "city": "segovia",
+  "name": "Segovia, Spain",
+  "start": "2026-07-20",
+  "end": "2026-07-26",
+  "tier": 75
+ },
+ {
+  "city": "tampere",
+  "name": "Tampere, Finland",
+  "start": "2026-07-20",
+  "end": "2026-07-26",
+  "tier": 75
+ },
+ {
+  "city": "vancouver",
+  "name": "Vancouver, Canada",
+  "start": "2026-07-27",
+  "end": "2026-08-02",
+  "tier": 125
+ },
+ {
+  "city": "san marino",
+  "name": "San Marino, San Marino",
+  "start": "2026-07-27",
+  "end": "2026-08-02",
+  "tier": 125
+ },
+ {
+  "city": "bonn",
+  "name": "Bonn, Germany",
+  "start": "2026-07-27",
+  "end": "2026-08-02",
+  "tier": 75
+ },
+ {
+  "city": "liberec",
+  "name": "Liberec, Czechia",
+  "start": "2026-07-27",
+  "end": "2026-08-02",
+  "tier": 75
+ },
+ {
+  "city": "samsun",
+  "name": "Samsun, Turkiye",
+  "start": "2026-07-27",
+  "end": "2026-08-02",
+  "tier": 50
+ },
+ {
+  "city": "hagen",
+  "name": "Hagen, Germany",
+  "start": "2026-08-03",
+  "end": "2026-08-09",
+  "tier": 100
+ },
+ {
+  "city": "lexington",
+  "name": "Lexington, United States",
+  "start": "2026-08-03",
+  "end": "2026-08-09",
+  "tier": 75
+ },
+ {
+  "city": "grodzisk mazowiecki",
+  "name": "Grodzisk Mazowiecki, Poland",
+  "start": "2026-08-03",
+  "end": "2026-08-09",
+  "tier": 75
+ },
+ {
+  "city": "istanbul",
+  "name": "Istanbul, Turkiye",
+  "start": "2026-08-03",
+  "end": "2026-08-09",
+  "tier": 50
+ },
+ {
+  "city": "plovdiv",
+  "name": "Plovdiv, Bulgaria",
+  "start": "2026-08-03",
+  "end": "2026-08-09",
+  "tier": 50
+ },
+ {
+  "city": "brownsburg",
+  "name": "Brownsburg, United States",
+  "start": "2026-08-10",
+  "end": "2026-08-16",
+  "tier": 75
+ },
+ {
+  "city": "hamburg",
+  "name": "Hamburg, Germany",
+  "start": "2026-08-10",
+  "end": "2026-08-16",
+  "tier": 75
+ },
+ {
+  "city": "todi",
+  "name": "Todi, Italy",
+  "start": "2026-08-10",
+  "end": "2026-08-16",
+  "tier": 75
+ },
+ {
+  "city": "astana",
+  "name": "Astana, Kazakhstan",
+  "start": "2026-08-10",
+  "end": "2026-08-16",
+  "tier": 50
+ },
+ {
+  "city": "kingston",
+  "name": "Kingston, Jamaica",
+  "start": "2026-08-17",
+  "end": "2026-08-22",
+  "tier": 75
+ },
+ {
+  "city": "prague",
+  "name": "Prague, Czechia",
+  "start": "2026-08-17",
+  "end": "2026-08-22",
+  "tier": 75
+ },
+ {
+  "city": "sion",
+  "name": "Sion, Switzerland",
+  "start": "2026-08-17",
+  "end": "2026-08-22",
+  "tier": 50
+ },
+ {
+  "city": "roehampton",
+  "name": "Roehampton, Great Britain",
+  "start": "2026-08-17",
+  "end": "2026-08-22",
+  "tier": 50
+ },
+ {
+  "city": "cancun",
+  "name": "Cancun, Mexico",
+  "start": "2026-08-18",
+  "end": "2026-08-23",
+  "tier": 125
+ },
+ {
+  "city": "quebec city",
+  "name": "Quebec City, Canada",
+  "start": "2026-08-18",
+  "end": "2026-08-23",
+  "tier": 125
+ },
+ {
+  "city": "kingston",
+  "name": "Kingston, Jamaica",
+  "start": "2026-08-24",
+  "end": "2026-08-29",
+  "tier": 75
+ },
+ {
+  "city": "roehampton 2",
+  "name": "Roehampton 2, Great Britain",
+  "start": "2026-08-24",
+  "end": "2026-08-29",
+  "tier": 50
+ },
+ {
+  "city": "augsburg",
+  "name": "Augsburg, Germany",
+  "start": "2026-08-24",
+  "end": "2026-08-29",
+  "tier": 50
+ },
+ {
+  "city": "zhangjiagang",
+  "name": "Zhangjiagang, China",
+  "start": "2026-08-31",
+  "end": "2026-09-06",
+  "tier": 75
+ },
+ {
+  "city": "como",
+  "name": "Como, Italy",
+  "start": "2026-08-31",
+  "end": "2026-09-06",
+  "tier": 75
+ },
+ {
+  "city": "porto",
+  "name": "Porto, Portugal",
+  "start": "2026-08-31",
+  "end": "2026-09-06",
+  "tier": 75
+ },
+ {
+  "city": "plovdiv",
+  "name": "Plovdiv, Bulgaria",
+  "start": "2026-08-31",
+  "end": "2026-09-06",
+  "tier": 50
+ },
+ {
+  "city": "manacor",
+  "name": "Manacor, Spain",
+  "start": "2026-09-01",
+  "end": "2026-09-06",
+  "tier": 75
+ },
+ {
+  "city": "genoa",
+  "name": "Genoa, Italy",
+  "start": "2026-09-07",
+  "end": "2026-09-13",
+  "tier": 125
+ },
+ {
+  "city": "seville",
+  "name": "Seville, Spain",
+  "start": "2026-09-07",
+  "end": "2026-09-13",
+  "tier": 125
+ },
+ {
+  "city": "shanghai",
+  "name": "Shanghai, China",
+  "start": "2026-09-07",
+  "end": "2026-09-13",
+  "tier": 100
+ },
+ {
+  "city": "tulln",
+  "name": "Tulln, Austria",
+  "start": "2026-09-07",
+  "end": "2026-09-13",
+  "tier": 100
+ },
+ {
+  "city": "istanbul",
+  "name": "Istanbul, Turkiye",
+  "start": "2026-09-07",
+  "end": "2026-09-13",
+  "tier": 75
+ },
+ {
+  "city": "cassis",
+  "name": "Cassis, France",
+  "start": "2026-09-07",
+  "end": "2026-09-13",
+  "tier": 75
+ },
+ {
+  "city": "phan thiet",
+  "name": "Phan Thiet, Vietnam",
+  "start": "2026-09-07",
+  "end": "2026-09-13",
+  "tier": 50
+ },
+ {
+  "city": "tiburon",
+  "name": "Tiburon, United States",
+  "start": "2026-09-14",
+  "end": "2026-09-20",
+  "tier": 125
+ },
+ {
+  "city": "szczecin",
+  "name": "Szczecin, Poland",
+  "start": "2026-09-14",
+  "end": "2026-09-20",
+  "tier": 125
+ },
+ {
+  "city": "guangzhou",
+  "name": "Guangzhou, China",
+  "start": "2026-09-14",
+  "end": "2026-09-20",
+  "tier": 100
+ },
+ {
+  "city": "rennes",
+  "name": "Rennes, France",
+  "start": "2026-09-14",
+  "end": "2026-09-20",
+  "tier": 100
+ },
+ {
+  "city": "phan thiet",
+  "name": "Phan Thiet, Vietnam",
+  "start": "2026-09-14",
+  "end": "2026-09-20",
+  "tier": 50
+ },
+ {
+  "city": "biella",
+  "name": "Biella, Italy",
+  "start": "2026-09-14",
+  "end": "2026-09-20",
+  "tier": 50
+ },
+ {
+  "city": "saint tropez",
+  "name": "Saint-Tropez, France",
+  "start": "2026-09-21",
+  "end": "2026-09-27",
+  "tier": 125
+ },
+ {
+  "city": "buenos aires",
+  "name": "Buenos Aires, Argentina",
+  "start": "2026-09-21",
+  "end": "2026-09-27",
+  "tier": 75
+ },
+ {
+  "city": "san diego",
+  "name": "San Diego, United States",
+  "start": "2026-09-21",
+  "end": "2026-09-27",
+  "tier": 75
+ },
+ {
+  "city": "genoa",
+  "name": "Genoa , Italy",
+  "start": "2026-09-21",
+  "end": "2026-09-27",
+  "tier": 75
+ },
+ {
+  "city": "plovdiv",
+  "name": "Plovdiv, Bulgaria",
+  "start": "2026-09-21",
+  "end": "2026-09-27",
+  "tier": 75
+ },
+ {
+  "city": "porto",
+  "name": "Porto, Portugal",
+  "start": "2026-09-28",
+  "end": "2026-10-04",
+  "tier": 125
+ },
+ {
+  "city": "curitiba",
+  "name": "Curitiba, Brazil",
+  "start": "2026-09-28",
+  "end": "2026-10-04",
+  "tier": 75
+ },
+ {
+  "city": "columbus",
+  "name": "Columbus, United States",
+  "start": "2026-09-28",
+  "end": "2026-10-04",
+  "tier": 75
+ },
+ {
+  "city": "mouilleron le captif",
+  "name": "Mouilleron le Captif, France",
+  "start": "2026-09-28",
+  "end": "2026-10-04",
+  "tier": 75
+ },
+ {
+  "city": "bari",
+  "name": "Bari, Italy",
+  "start": "2026-09-28",
+  "end": "2026-10-04",
+  "tier": 50
+ },
+ {
+  "city": "jingshan",
+  "name": "Jingshan, China",
+  "start": "2026-09-29",
+  "end": "2026-10-04",
+  "tier": 100
+ },
+ {
+  "city": "villena",
+  "name": "Villena, Spain",
+  "start": "2026-10-05",
+  "end": "2026-10-11",
+  "tier": 100
+ },
+ {
+  "city": "antofagasta",
+  "name": "Antofagasta, Chile",
+  "start": "2026-10-05",
+  "end": "2026-10-11",
+  "tier": 75
+ },
+ {
+  "city": "braga",
+  "name": "Braga, Portugal",
+  "start": "2026-10-05",
+  "end": "2026-10-11",
+  "tier": 75
+ },
+ {
+  "city": "wuning",
+  "name": "Wuning, China",
+  "start": "2026-10-05",
+  "end": "2026-10-11",
+  "tier": 50
+ },
+ {
+  "city": "palermo",
+  "name": "Palermo, Italy",
+  "start": "2026-10-05",
+  "end": "2026-10-11",
+  "tier": 50
+ },
+ {
+  "city": "jinan",
+  "name": "Jinan, China",
+  "start": "2026-10-12",
+  "end": "2026-10-18",
+  "tier": 125
+ },
+ {
+  "city": "olbia",
+  "name": "Olbia, Italy",
+  "start": "2026-10-12",
+  "end": "2026-10-18",
+  "tier": 125
+ },
+ {
+  "city": "roanne",
+  "name": "Roanne, France",
+  "start": "2026-10-12",
+  "end": "2026-10-18",
+  "tier": 100
+ },
+ {
+  "city": "maia",
+  "name": "Maia, Portugal",
+  "start": "2026-10-12",
+  "end": "2026-10-18",
+  "tier": 100
+ },
+ {
+  "city": "santa cruz de la sierra",
+  "name": "Santa Cruz de la Sierra, Bolivia",
+  "start": "2026-10-12",
+  "end": "2026-10-18",
+  "tier": 75
+ },
+ {
+  "city": "catania",
+  "name": "Catania, Italy",
+  "start": "2026-10-12",
+  "end": "2026-10-18",
+  "tier": 50
+ },
+ {
+  "city": "lisbon",
+  "name": "Lisbon, Portugal",
+  "start": "2026-10-19",
+  "end": "2026-10-25",
+  "tier": 100
+ },
+ {
+  "city": "fort worth",
+  "name": "Fort Worth, United States",
+  "start": "2026-10-19",
+  "end": "2026-10-25",
+  "tier": 75
+ },
+ {
+  "city": "guangzhou nansha",
+  "name": "Guangzhou Nansha, China",
+  "start": "2026-10-19",
+  "end": "2026-10-25",
+  "tier": 75
+ },
+ {
+  "city": "cali",
+  "name": "Cali, Colombia",
+  "start": "2026-10-19",
+  "end": "2026-10-25",
+  "tier": 75
+ },
+ {
+  "city": "florence",
+  "name": "Florence, Italy",
+  "start": "2026-10-19",
+  "end": "2026-10-25",
+  "tier": 50
+ },
+ {
+  "city": "seoul",
+  "name": "Seoul, South Korea",
+  "start": "2026-10-26",
+  "end": "2026-11-01",
+  "tier": 125
+ },
+ {
+  "city": "sioux falls",
+  "name": "Sioux Falls, United States",
+  "start": "2026-10-26",
+  "end": "2026-11-01",
+  "tier": 100
+ },
+ {
+  "city": "brest",
+  "name": "Brest, France",
+  "start": "2026-10-26",
+  "end": "2026-11-01",
+  "tier": 100
+ },
+ {
+  "city": "guayaquil",
+  "name": "Guayaquil, Ecuador",
+  "start": "2026-10-26",
+  "end": "2026-11-01",
+  "tier": 75
+ },
+ {
+  "city": "ningbo",
+  "name": "Ningbo, China",
+  "start": "2026-10-26",
+  "end": "2026-11-01",
+  "tier": 75
+ },
+ {
+  "city": "costa do sauipe",
+  "name": "Costa do Sauipe, Brazil",
+  "start": "2026-11-02",
+  "end": "2026-11-08",
+  "tier": 125
+ },
+ {
+  "city": "taipei",
+  "name": "Taipei, Chinese Taipei",
+  "start": "2026-11-02",
+  "end": "2026-11-08",
+  "tier": 100
+ },
+ {
+  "city": "bratislava",
+  "name": "Bratislava, Slovak Republic",
+  "start": "2026-11-02",
+  "end": "2026-11-08",
+  "tier": 100
+ },
+ {
+  "city": "charlottesville",
+  "name": "Charlottesville, United States",
+  "start": "2026-11-02",
+  "end": "2026-11-08",
+  "tier": 75
+ },
+ {
+  "city": "villa maria",
+  "name": "Villa Maria, Argentina",
+  "start": "2026-11-02",
+  "end": "2026-11-08",
+  "tier": 50
+ },
+ {
+  "city": "taranto",
+  "name": "Taranto, Italy",
+  "start": "2026-11-02",
+  "end": "2026-11-08",
+  "tier": 50
+ },
+ {
+  "city": "orleans",
+  "name": "Orleans, France",
+  "start": "2026-11-09",
+  "end": "2026-11-15",
+  "tier": 125
+ },
+ {
+  "city": "brisbane",
+  "name": "Brisbane, Australia",
+  "start": "2026-11-09",
+  "end": "2026-11-15",
+  "tier": 75
+ },
+ {
+  "city": "lima",
+  "name": "Lima, Peru",
+  "start": "2026-11-09",
+  "end": "2026-11-15",
+  "tier": 75
+ },
+ {
+  "city": "knoxville",
+  "name": "Knoxville, United States",
+  "start": "2026-11-09",
+  "end": "2026-11-15",
+  "tier": 75
+ },
+ {
+  "city": "matsuyama",
+  "name": "Matsuyama, Japan",
+  "start": "2026-11-09",
+  "end": "2026-11-15",
+  "tier": 75
+ },
+ {
+  "city": "monastir",
+  "name": "Monastir, Tunisia",
+  "start": "2026-11-09",
+  "end": "2026-11-15",
+  "tier": 50
+ },
+ {
+  "city": "hersonissos",
+  "name": "Hersonissos, Greece",
+  "start": "2026-11-09",
+  "end": "2026-11-15",
+  "tier": 50
+ },
+ {
+  "city": "helsinki",
+  "name": "Helsinki, Finland",
+  "start": "2026-11-16",
+  "end": "2026-11-22",
+  "tier": 125
+ },
+ {
+  "city": "metz",
+  "name": "Metz, France",
+  "start": "2026-11-16",
+  "end": "2026-11-22",
+  "tier": 125
+ },
+ {
+  "city": "champaign",
+  "name": "Champaign, United States",
+  "start": "2026-11-16",
+  "end": "2026-11-22",
+  "tier": 50
+ },
+ {
+  "city": "drummondville",
+  "name": "Drummondville, Canada",
+  "start": "2026-11-16",
+  "end": "2026-11-22",
+  "tier": 75
+ },
+ {
+  "city": "kobe",
+  "name": "Kobe, Japan",
+  "start": "2026-11-16",
+  "end": "2026-11-22",
+  "tier": 75
+ },
+ {
+  "city": "sydney",
+  "name": "Sydney, Australia",
+  "start": "2026-11-16",
+  "end": "2026-11-22",
+  "tier": 75
+ },
+ {
+  "city": "montevideo",
+  "name": "Montevideo, Uruguay",
+  "start": "2026-11-16",
+  "end": "2026-11-22",
+  "tier": 75
+ },
+ {
+  "city": "playford",
+  "name": "Playford, Australia",
+  "start": "2026-11-23",
+  "end": "2026-11-29",
+  "tier": 75
+ },
+ {
+  "city": "florianopolis",
+  "name": "Florianopolis, Brazil",
+  "start": "2026-11-23",
+  "end": "2026-11-29",
+  "tier": 75
+ },
+ {
+  "city": "yokohama",
+  "name": "Yokohama, Japan",
+  "start": "2026-11-23",
+  "end": "2026-11-29",
+  "tier": 75
+ },
+ {
+  "city": "monastir",
+  "name": "Monastir, Tunisia",
+  "start": "2026-11-23",
+  "end": "2026-11-29",
+  "tier": 50
+ },
+ {
+  "city": "hersonissos",
+  "name": "Hersonissos, Greece",
+  "start": "2026-11-23",
+  "end": "2026-11-29",
+  "tier": 50
+ },
+ {
+  "city": "san salvador",
+  "name": "San Salvador, El Salvador",
+  "start": "2026-11-23",
+  "end": "2026-11-29",
+  "tier": 50
+ },
+ {
+  "city": "temuco",
+  "name": "Temuco, Chile",
+  "start": "2026-11-30",
+  "end": "2026-12-06",
+  "tier": 75
+ },
+ {
+  "city": "bogota",
+  "name": "Bogota, Colombia",
+  "start": "2026-11-30",
+  "end": "2026-12-06",
+  "tier": 75
+ },
+ {
+  "city": "soma bay",
+  "name": "Soma Bay, Egypt",
+  "start": "2026-11-30",
+  "end": "2026-12-06",
+  "tier": 50
+ },
+ {
+  "city": "chisinau",
+  "name": "Chisinau, Moldova",
+  "start": "2026-11-30",
+  "end": "2026-12-06",
+  "tier": 50
+ },
+ {
+  "city": "hersonissos",
+  "name": "Hersonissos, Greece",
+  "start": "2026-11-30",
+  "end": "2026-12-06",
+  "tier": 50
+ },
+ {
+  "city": "trnava q",
+  "name": "Trnava Q, Slovak Republic",
+  "start": "2026-11-30",
+  "end": "2026-12-06",
+  "tier": 50
+ },
+ {
+  "city": "la paz",
+  "name": "La Paz, Bolivia",
+  "start": "2026-12-07",
+  "end": "2026-12-13",
+  "tier": 50
+ },
+ {
+  "city": "monastir",
+  "name": "Monastir, Tunisia",
+  "start": "2026-12-07",
+  "end": "2026-12-13",
+  "tier": 50
+ },
+ {
+  "city": "rio de janeiro",
+  "name": "Rio de Janeiro, Brazil",
+  "start": "2026-12-07",
+  "end": "2026-12-13",
+  "tier": 50
+ },
+ {
+  "city": "copenhagen",
+  "name": "Copenhagen, Denmark",
+  "start": "2026-12-07",
+  "end": "2026-12-13",
+  "tier": 50
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2026-12-07",
+  "end": "2026-12-13",
+  "tier": 50
+ },
+ {
+  "city": "la paz",
+  "name": "La Paz, Bolivia",
+  "start": "2026-12-14",
+  "end": "2026-12-20",
+  "tier": 50
+ },
+ {
+  "city": "nova lima",
+  "name": "Nova Lima, Brazil",
+  "start": "2026-12-14",
+  "end": "2026-12-20",
+  "tier": 50
+ },
+ {
+  "city": "guanzate",
+  "name": "Guanzate, Italy",
+  "start": "2026-12-14",
+  "end": "2026-12-20",
+  "tier": 50
+ },
+ {
+  "city": "nonthaburi",
+  "name": "Nonthaburi, Thailand",
+  "start": "2026-12-14",
+  "end": "2026-12-20",
+  "tier": 50
+ },
+ {
+  "city": "blumenau",
+  "name": "Blumenau, Brazil",
+  "start": "2026-12-14",
+  "end": "2026-12-20",
+  "tier": 50
+ }
+]

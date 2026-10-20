@@ -37,6 +37,14 @@ describe("parseWtaRankings (contract test against real wtatennis.com HTML)", () 
    * so no WTA ranking was written between 2026-05 and 2026-09. This fixture
    * is a post-fix capture; asserting 200 keeps that regression visible.
    */
+  // See the ATP test of the same name: slug-only resolution duplicated every
+  // player whose WTA spelling differed from ours ("Vaidehee" / "Vaidehi").
+  it("carries wtatennis.com's player id on every row", () => {
+    expect(snap.entries.every((e) => /^\d+$/.test(e.externalId ?? ""))).toBe(true);
+    expect(snap.entries.find((e) => e.fullName === "Aryna Sabalenka")?.externalId).toBe("320760");
+    expect(new Set(snap.entries.map((e) => e.externalId)).size).toBe(snap.entries.length);
+  });
+
   it("parses a fully expanded page (200 rows, not the unexpanded 50)", () => {
     expect(snap.entries.length).toBeGreaterThanOrEqual(200);
   });

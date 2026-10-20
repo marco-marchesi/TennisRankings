@@ -10,7 +10,7 @@ import type { Category } from "../config/points-table";
 // docs/ranking-rules.md:171 says there are 16 ATP 500s. This set had 13 —
 // Basel, Munich and Almaty were missing, so those events degraded to
 // atp_250 and a title there was credited 250 instead of 500.
-const ATP_500_TOURNAMENTS = new Set([
+export const ATP_500_TOURNAMENTS = new Set([
   "Acapulco", "Almaty", "Barcelona", "Basel", "Beijing", "Doha", "Dubai",
   "Halle", "Hamburg", "Munich", "Queen's Club", "Rio de Janeiro", "Rotterdam",
   "Tokyo", "Vienna", "Washington",
@@ -49,7 +49,7 @@ const WTA_1000_COMBINED = new Set([
   "Cincinnati", "Beijing",
 ]);
 // WTA non-combined 1000s (best 1 of 3 separate slot) — winner earns 900 pts
-const WTA_1000_NC = new Set(["Doha", "Dubai", "Wuhan"]);
+export const WTA_1000_NC = new Set(["Doha", "Dubai", "Wuhan"]);
 
 function matchesAny(name: string, set: Set<string>): boolean {
   for (const t of set) if (name.includes(t)) return true;
@@ -74,11 +74,41 @@ const WTA_API_EXACT_LEVELS: Record<string, Category> = {
   "WTA 125": "wta_125",
 };
 
+// Events that award no ranking points. TennisExplorer lists them alongside
+// tour events with no tier, so they used to fall through to atp_250/wta_250:
+// a Laver Cup or UTR exhibition result was scored as a 250 and, being the
+// player's most recent match, even became their "current tournament".
+const NON_RANKING_PAT =
+  /\bUTR\b|\bLaver Cup\b|\bAsian Games\b|\bBillie Jean King Cup\b|\bHopman Cup\b|\bexhibition\b|\bSix Kings\b|\bUltimate Tennis Showdown\b|\bUTS\b|\bWorld Tennis League\b|\bNext Gen\b/i;
+
+const CH_TIERS: Record<string, Category> = {
+  "50": "ch_50", "75": "ch_75", "100": "ch_100", "125": "ch_125", "175": "ch_175",
+};
+
+export function isNonRankingEvent(name: string): boolean {
+  return NON_RANKING_PAT.test(name);
+}
+
 export function inferCategory(
   tour: "atp" | "wta",
   tournamentName: string,
   level: string | null,
 ): Category {
+  // Tiers the TennisExplorer writer resolves at insert time
+  // (scraper/te-tournament-level.ts): "X", "ITF", "CH50".."CH175".
+  if (level === "X" || isNonRankingEvent(tournamentName)) return "non_ranking";
+  const ch = level?.match(/^CH(\d+)$/);
+  if (ch && CH_TIERS[ch[1]!]) return CH_TIERS[ch[1]!]!;
+  if (level === "ITF" || /\bITF\b/i.test(tournamentName)) return "itf";
+  // A Challenger the calendar could not place (or a row written before tiers
+  // were resolved). ch_75 is the modal tier — 105 of 259 events on the 2026
+  // calendar — and far closer than the atp_250 this used to fall through to.
+  // Challengers are men's events: on the WTA side such a row can only be a
+  // cross-tour misattribution, so it scores nothing.
+  if (level === "CH" || /\bchallenger\b/i.test(tournamentName)) {
+    return tour === "wta" ? "non_ranking" : "ch_75";
+  }
+
   if (tour === "wta" && level) {
     const exact = WTA_API_EXACT_LEVELS[level];
     if (exact) return exact;

@@ -5,8 +5,16 @@ export const RankingEntry = z.object({
   slug: z.string().min(1),
   fullName: z.string().min(2).max(120),
   countryCode: z.string().length(3).nullable(),
+  // The tour's own player id: atptour.com's "s0ag" from the profile href,
+  // wtatennis.com's "320760" from data-player-id. snapshot.ts resolves players
+  // by it first, so a spelling change on the tour site no longer spawns a
+  // second player row.
+  externalId: z.string().min(1).max(20).nullable().optional(),
   points: z.number().int().min(0).max(20000),
-  tournamentsPlayed: z.number().int().min(0).max(40).nullable(),
+  // 80, not 40: below the top 100 challenger regulars exceed 40 events in a
+  // 52-week window (seen on atptour.com's rankRange=1-400 page, 2026-09-28),
+  // and a cap of 40 rejected the whole snapshot over one row.
+  tournamentsPlayed: z.number().int().min(0).max(80).nullable(),
   // Optional: ATP/WTA pages display the player's integer age in a dedicated
   // cell. We capture it so the write layer can derive a stable dateOfBirth
   // (approximated to Jan 1 of birth year) for filtering by age band in UI.

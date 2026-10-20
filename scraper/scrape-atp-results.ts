@@ -34,7 +34,7 @@
  *   pnpm scraper:atp-results -- --from-db 2026 --limit 5
  *   pnpm scraper:atp-results -- --current --dry
  */
-import { chromium } from "@playwright/test";
+import { gotoPastChallenge, withPage } from "./browser";
 import { and, eq, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { fetchAtpResults, type AtpResultMatch } from "./sources/atp-results";
@@ -64,37 +64,43 @@ interface RunSummary {
   failures: string[];
 }
 
+const NON_RANKING_SLUGS = /^(laver-cup|davis-cup|multiple-locations|hopman-cup|next-gen-atp-finals)$/;
+
 /** Discover the in-progress tournament(s) from the ATP scores landing page. */
 async function discoverCurrent(): Promise<Target[]> {
-  const browser = await chromium.launch({ headless: true });
-  try {
-    const ctx = await browser.newContext({
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      viewport: { width: 1400, height: 1000 },
-    });
-    const page = await ctx.newPage();
-    await page.goto("https://www.atptour.com/en/scores/current", {
-      waitUntil: "domcontentloaded",
-      timeout: 60_000,
-    });
-    await page.waitForTimeout(4000);
-    const hrefs: string[] = await page
-      .locator("a[href]")
-      .evaluateAll((els) =>
-        els.map((e) => e.getAttribute("href") ?? "").filter((h) => h.length > 0),
-      );
-    const seen = new Map<string, Target>();
-    const year = new Date().getUTCFullYear();
-    for (const h of hrefs) {
-      const m = h.match(/\/(?:scores\/current|tournaments)\/([^/]+)\/(\d+)\//);
-      if (m) seen.set(m[2]!, { tournamentId: m[2]!, slug: m[1]!, year });
-    }
-    return [...seen.values()];
-  } finally {
-    await browser.close();
+  // Through the shared launcher (system Chrome first): bundled Chromium gets
+  // Cloudflare's interstitial here, whose page has no tournament links at
+  // all, and that is why this reported "0 in-progress tournament(s)
+  // discovered" during the Beijing / Tokyo week instead of failing.
+  const hrefs = await withPage(
+    async (page) => {
+      await gotoPastChallenge(page, "https://www.atptour.com/en/scores/current");
+      // The tournament tiles are rendered client-side. A fixed 4 s wait was
+      // not always enough: the scheduled 2026-09-30 08:11 run collected no
+      // links at all while an interactive run minutes later found all four
+      // events. Wait for the links themselves.
+      await page
+        .waitForFunction(
+          () => document.querySelectorAll('a[href*="/scores/current/"]').length > 0,
+          undefined,
+          { timeout: 30_000 },
+        )
+        .catch(() => {});
+      return page
+        .locator("a[href]")
+        .evaluateAll((els) =>
+          els.map((e) => e.getAttribute("href") ?? "").filter((h) => h.length > 0),
+        );
+    },
+    { width: 1400, height: 1000 },
+  );
+  const seen = new Map<string, Target>();
+  const year = new Date().getUTCFullYear();
+  for (const h of hrefs) {
+    const m = h.match(/\/(?:scores\/current|tournaments)\/([^/]+)\/(\d+)\//);
+    if (m) seen.set(m[2]!, { tournamentId: m[2]!, slug: m[1]!, year });
   }
+  return [...seen.values()];
 }
 
 /**
@@ -133,6 +139,7 @@ async function idsFromDb(year: number): Promise<Target[]> {
 }
 
 interface PlayerLookup {
+  byAtpId: Map<string, number>;
   bySlug: Map<string, number>;
   all: Array<{ id: number; fullName: string }>;
 }
@@ -143,22 +150,26 @@ async function loadAtpPlayers(): Promise<PlayerLookup> {
       id: schema.players.id,
       slug: schema.players.slug,
       fullName: schema.players.fullName,
+      atpId: schema.players.atpId,
     })
     .from(schema.players)
     .where(eq(schema.players.tour, "atp"));
   const bySlug = new Map<string, number>();
-  for (const r of rows) bySlug.set(r.slug, r.id);
-  return { bySlug, all: rows.map((r) => ({ id: r.id, fullName: r.fullName })) };
+  const byAtpId = new Map<string, number>();
+  for (const r of rows) {
+    bySlug.set(r.slug, r.id);
+    if (r.atpId) byAtpId.set(r.atpId.toLowerCase(), r.id);
+  }
+  return { byAtpId, bySlug, all: rows.map((r) => ({ id: r.id, fullName: r.fullName })) };
 }
 
 /**
  * Resolve one ATP result player to a players.id.
  *
- * NOTE ON IDENTITY: the ATP player id (e.g. "z355") is the right key, but
- * `players` has no column to store it, and adding one needs a `db:push` that
- * would also DROP the auth tables removed from the schema - a destructive
- * migration that should be run deliberately, not as a side effect of this
- * scraper. So for now resolution goes slug-first, then a strict name match.
+ * IDENTITY: the ATP player id ("z355") first. `players.atp_id` is filled by
+ * the official rankings scrape (snapshot.ts) for everyone in the top 500;
+ * slug and then a strict name match remain as fallbacks for players below
+ * that, who are mostly Challenger qualifiers.
  *
  * `namesMatch` is called with `{ fuzzy: false }`: this WRITES data, and the
  * fuzzy branch pairs genuinely different players ("Ekaterina Maklakova" with
@@ -170,7 +181,13 @@ function resolvePlayer(
   atpSlug: string,
   fullName: string,
   summary: RunSummary,
+  atpId?: string,
 ): number | null {
+  const byId = atpId ? lookup.byAtpId.get(atpId.toLowerCase()) : undefined;
+  if (byId != null) {
+    summary.playersMatchedBySlug++;
+    return byId;
+  }
   const bySlug = lookup.bySlug.get(atpSlug);
   if (bySlug != null) {
     summary.playersMatchedBySlug++;
@@ -240,7 +257,7 @@ async function ingestTournament(
     for (let side = 0; side < 2; side++) {
       const me = m.players[side]!;
       const them = m.players[1 - side]!;
-      const playerId = resolvePlayer(lookup, me.atpSlug, me.fullName, summary);
+      const playerId = resolvePlayer(lookup, me.atpSlug, me.fullName, summary, me.atpId);
       if (playerId == null) continue;
       rows.push({
         playerId,
@@ -314,8 +331,22 @@ async function main() {
     targets = await idsFromDb(y);
     console.log(`[atp-results] ${targets.length} tournament id(s) derived from stored Tennis Abstract ids for ${y}`);
   } else {
-    targets = await discoverCurrent();
-    console.log(`[atp-results] ${targets.length} in-progress tournament(s) discovered`);
+    const found = await discoverCurrent();
+    // Team events award no ranking points and use round-robin formats the
+    // results parser rightly refuses to guess at: the Davis Cup Finals group
+    // stage ("multiple-locations", 8097) failed on "Round Robin", and the
+    // Laver Cup (9210) parsed to 0 matches. Skip them instead of failing.
+    targets = found.filter((t) => !NON_RANKING_SLUGS.test(t.slug));
+    const skipped = found.filter((t) => NON_RANKING_SLUGS.test(t.slug));
+    console.log(
+      `[atp-results] ${targets.length} in-progress tournament(s) discovered` +
+        (skipped.length ? `; skipped non-ranking: ${skipped.map((t) => t.slug).join(", ")}` : ""),
+    );
+    // In season there is always an ATP event on. Finding none means the
+    // landing page did not load properly — say so rather than "nothing to do".
+    if (targets.length === 0 && found.length === 0) {
+      throw new Error("[atp-results] discovered no tournaments on /en/scores/current");
+    }
   }
 
   if (targets.length === 0) {

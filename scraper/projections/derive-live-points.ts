@@ -118,6 +118,16 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
 
   // 2. Pull every match this week for these players. DISTINCT ON to dedupe
   //    rows that exist in both TA and TE (prefer TE).
+  //
+  //    Qualifying is played on the Fri-Sun BEFORE the Monday main-draw start
+  //    and is not in the settled Monday total, so Q rounds count from the
+  //    preceding Friday. Only real match dates expose this: the WTA source
+  //    used to clamp qualifying forward to the main-draw start, which hid it.
+  const qualifyingFrom = (() => {
+    const d = new Date(`${weekStart}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - 3);
+    return d.toISOString().slice(0, 10);
+  })();
   const matches = await db.execute<{
     player_id: number;
     tournament_name: string;
@@ -131,7 +141,8 @@ export async function deriveLivePoints(opts: RunOpts): Promise<LivePointsRow[]> 
       prm.round, prm.won, prm.played_on::text as played_on
     from player_recent_matches prm
     where prm.player_id = any(array[${sql.join(allPlayerIds.map((id) => sql`${id}`), sql`, `)}]::int[])
-      and prm.played_on >= ${weekStart}
+      and (prm.played_on >= ${weekStart}
+           or (prm.round like 'Q%' and prm.played_on >= ${qualifyingFrom}))
     order by prm.player_id, prm.played_on, lower(prm.opponent_name),
              case prm.source when 'atp_site' then 0 when 'wta_api' then 0 when 'tennis_explorer' then 1 else 2 end
   `);
@@ -282,15 +293,24 @@ function mostRecentMondayUtc(): string {
 /**
  * Canonical grouping key for a tournament name.
  *
- * Lower-cases and strips the tier/tour suffixes the feeds disagree on, so
- * "Us Open" / "US Open", "Rome" / "Rome Masters" and
- * "Cincinnati" / "Cincinnati WTA" collapse to one event. Comparison only -
- * never stored.
+ * Lower-cases and strips the tour marker and any parenthetical the feeds
+ * disagree on, so "Us Open" / "US Open", "Cincinnati" / "Cincinnati WTA" and
+ * "Tokyo" / "Tokyo (Japan Open)" collapse to one event. Tier words
+ * ("Masters", "challenger", "ITF") are kept, as in normSql. Comparison only
+ * - never stored.
  */
 export function normaliseTournamentKey(name: string): string {
   return name
     .toLowerCase()
-    .replace(/\s+(masters|wta|atp|itf|challenger).*$/i, "")
+    // TennisExplorer "Tokyo (Japan Open)" vs atptour.com "Tokyo": the same
+    // event, and without this they formed two groups and the player was
+    // credited once per feed.
+    .replace(/\s*\([^)]*\)/g, "")
+    // Tour marker only, as normSql does (tournament-key.ts explains why tier
+    // words must not be stripped). This line used to hold a literal BACKSPACE
+    // byte where \b was meant, so the suffix never matched and
+    // "Cincinnati WTA" / "Cincinnati" were credited as two events.
+    .replace(/\s+(wta|atp)\b.*$/i, "")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }

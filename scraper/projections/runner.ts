@@ -83,6 +83,9 @@ export async function runProjections(opts: RunOptions): Promise<ProjectionRunRes
   const derivedDropping = await deriveDroppingPoints({
     tour: opts.tour,
     playerIds,
+    // ATP: the published column covers next Monday; derive only what a
+    // two-week event adds beyond it.
+    beyondNextMonday: opts.tour === "atp",
   });
 
   // 3. Wipe the previous run for this ENTIRE tour, not just the players we are
@@ -126,8 +129,12 @@ export async function runProjections(opts: RunOptions): Promise<ProjectionRunRes
     //   doesn't publish this column). Use the history-derived value as the
     //   best approximation. Known caveat: this overestimates for Slam-result
     //   roll-offs that haven't reached their next edition yet.
+    //   ATP beyond next Monday: during the first week of a two-week Masters
+    //   the live ranking already drops last year's edition, which ATP's
+    //   column will only show a week later. That extension is derived and
+    //   added (deriveDroppingPoints with beyondNextMonday).
     const dropping = opts.tour === "atp"
-      ? (snap.dropPoints ?? 0)
+      ? (snap.dropPoints ?? 0) + (derivedDropping.get(state.playerId) ?? 0)
       : (derivedDropping.get(state.playerId) ?? 0);
 
     const projection = computeProjection({

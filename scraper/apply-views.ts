@@ -27,6 +27,7 @@ import { db } from "@/db";
  */
 const FILES = [
   "players-extra-cols.sql",
+  "players-te-slug.sql",
   "leaderboards.sql",
   "player-upcoming-matches.sql",
   "live-projections-live-cols.sql",

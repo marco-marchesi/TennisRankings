@@ -46,6 +46,8 @@ export function parseAtpRankings({ html, weekOf, isRace = false }: ParseInput): 
     if (!fullName) return;
 
     const slugFromUrl = href.match(/\/players\/([^/]+)\//)?.[1] ?? "";
+    // "/en/players/jannik-sinner/s0ag/overview" -> "s0ag"
+    const externalId = href.match(/\/players\/[^/]+\/([a-z0-9]+)\//i)?.[1]?.toLowerCase() ?? null;
     const slug = slugFromUrl || slugify(fullName);
     if (!slug) return;
 
@@ -85,6 +87,7 @@ export function parseAtpRankings({ html, weekOf, isRace = false }: ParseInput): 
         slug,
         fullName,
         countryCode,
+        externalId,
         points,
         tournamentsPlayed,
         age,

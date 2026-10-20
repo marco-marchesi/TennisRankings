@@ -37,7 +37,11 @@ interface RunSummary {
   rankMovesCaptured: number;
 }
 
-export async function expandRankings(tour: Tour): Promise<RunSummary> {
+export async function expandRankings(
+  tour: Tour,
+  /** Rebuild a PAST week from TE's archive (`--date 2026-09-21`). */
+  opts: { date?: string } = {},
+): Promise<RunSummary> {
   const summary: RunSummary = {
     tour,
     weekOf: null,
@@ -50,29 +54,87 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
   };
 
   // 1. Pull the full top-N from TE (16 pages × 50 rows for top-800).
-  const teRows = await fetchRanking(tour, TOP_N);
+  const te = await fetchRanking(tour, TOP_N, opts.date);
+  const teRows = te.rows;
   if (teRows.length === 0) return summary;
   summary.rowsTouched = teRows.length;
 
-  // 2. Anchor to the most-recently-scraped ATP/WTA week so top-800 rows
-  //    share a `week_of` bucket with the top-100 official rows. Lets the UI
-  //    query "this week's rankings" with no UNION.
-  const anchorRow = await db
-    .select({ w: sql<string>`max(${schema.rankingsSnapshots.weekOf})` })
-    .from(schema.rankingsSnapshots)
-    .where(
-      and(eq(schema.rankingsSnapshots.tour, tour), eq(schema.rankingsSnapshots.isRace, false)),
+  // 2. Write into the week TE SAYS it is showing, and only when that is the
+  //    latest OFFICIAL week.
+  //
+  //    This used to anchor to max(week_of) in our own table. When the official
+  //    refresh failed (Cloudflare, 2026-09-14 and 2026-09-28), max(week_of)
+  //    was still the PREVIOUS week, so TE's new list was written on top of the
+  //    old official top 100 — and because TE's ranks 84 / 86 / 95 / 100 were
+  //    held by different players than the official ones, two players ended up
+  //    sharing each of those ranks. Refusing loudly is better: the official
+  //    refresh now fails loudly too, and the fix belongs there.
+  const officialWeekRow = await db.execute<{ w: string | null }>(sql`
+    select max(week_of)::text as w from rankings_snapshots
+    where tour = ${tour} and is_race = false and scrape_run_id is not null
+      and (${opts.date ?? null}::date is null or week_of = ${opts.date ?? null}::date)
+  `);
+  const officialWeek =
+    (((officialWeekRow as unknown as { rows?: Array<{ w: string | null }> }).rows ??
+      (officialWeekRow as unknown as Array<{ w: string | null }>))[0]?.w) ?? null;
+  if (!te.weekOf) {
+    throw new Error(`[expand-rankings] ${tour}: could not read TennisExplorer's ranking date`);
+  }
+  if (te.weekOf !== officialWeek) {
+    throw new Error(
+      `[expand-rankings] ${tour}: TennisExplorer shows the ${te.weekOf} ranking but the latest ` +
+        `OFFICIAL week is ${officialWeek ?? "none"} — refusing to mix two weeks in one bucket. ` +
+        `Re-run once both sources show the same week.`,
     );
-  const writeWeek = anchorRow[0]?.w ?? new Date().toISOString().slice(0, 10);
+  }
+  const writeWeek = te.weekOf;
   summary.weekOf = writeWeek;
+
+  //    TE only EXTENDS the official list. Ranks the official scrape covered
+  //    (ATP 1-500, WTA 1-500) and players it placed are left alone entirely —
+  //    including not resolving their names, which is where TE's rotated
+  //    "Belen Teichmann Jil" style names used to spawn phantom players.
+  type OfficialRow = { player_id: number; rank: number; points: number; full_name: string };
+  const officialRes = await db.execute<OfficialRow>(sql`
+    select rs.player_id, rs.rank, rs.points, p.full_name
+    from rankings_snapshots rs join players p on p.id = rs.player_id
+    where rs.tour = ${tour} and rs.is_race = false and rs.week_of = ${writeWeek}
+      and rs.scrape_run_id is not null
+  `);
+  const officialRows =
+    (officialRes as unknown as { rows?: OfficialRow[] }).rows ??
+    (officialRes as unknown as OfficialRow[]);
+  const officialIds = new Set(officialRows.map((r) => Number(r.player_id)));
+  const officialDepth = officialRows.reduce((m, r) => Math.max(m, Number(r.rank)), 0);
+
+  // Remove this week's TE-derived rows that the official list now covers.
+  // They are leftovers from before TE was limited to ranks beyond the
+  // official depth, and they are exactly the rows that put a second player on
+  // an official rank (e.g. the "Belen Teichmann Jil" phantom at #184). Only
+  // when the official week is complete — rows it wrote carry scrape_run_id
+  // (snapshot.ts), so a genuine official row is never matched here.
+  if (officialRows.length >= 100 && officialDepth > 0) {
+    await db.execute(sql`
+      delete from rankings_snapshots
+      where tour = ${tour} and is_race = false and week_of = ${writeWeek}
+        and scrape_run_id is null and rank <= ${officialDepth}
+    `);
+  }
 
   // 3. Build lookup maps (slug, slug-suffix, normalized-name) for the players
   //    we already have in this tour.
   const existingPlayers = await db
-    .select({ id: schema.players.id, slug: schema.players.slug, fullName: schema.players.fullName })
+    .select({
+      id: schema.players.id,
+      slug: schema.players.slug,
+      fullName: schema.players.fullName,
+      teSlug: schema.players.teSlug,
+    })
     .from(schema.players)
     .where(eq(schema.players.tour, tour));
   const slugToId = new Map<string, number>();
+  const teSlugToId = new Map<string, number>();
+  for (const p of existingPlayers) if (p.teSlug) teSlugToId.set(p.teSlug, p.id);
   const suffixSlugToId = new Map<string, number[]>();
   const nameToId = new Map<string, number>();
   const sortedNameToId = new Map<string, number>();
@@ -97,8 +159,12 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
   const now = new Date();
   const touchedPlayerIds: number[] = [];
 
+  await learnTeSlugs(tour, teRows, officialRows);
+
   for (const r of teRows) {
+    if (r.rank <= officialDepth) continue;
     const playerId = await resolveOrCreatePlayer(r, tour, {
+      teSlugToId,
       slugToId,
       suffixSlugToId,
       nameToId,
@@ -108,11 +174,14 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
       summary,
     });
     if (playerId == null) continue;
+    // Already placed by the official list at a rank within its depth: TE's
+    // rank for them is from a different source and must not add a second one.
+    if (officialIds.has(playerId)) continue;
     touchedPlayerIds.push(playerId);
 
-    // Insert (or update) the snapshot. Never clobber top-100 rows that came
-    // from the authoritative ATP/WTA scrape — they own dropPoints/nextBest
-    // and our TE-derived row doesn't have those.
+    // Insert (or update) the snapshot. Never clobber rows that came from the
+    // authoritative ATP/WTA scrape (scrape_run_id set) — they own
+    // dropPoints/nextBest and our TE-derived row doesn't have those.
     await db
       .insert(schema.rankingsSnapshots)
       .values({
@@ -132,8 +201,8 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
           schema.rankingsSnapshots.isRace,
         ],
         set: {
-          rank: sql`case when ${schema.rankingsSnapshots.rank} > 100 or ${schema.rankingsSnapshots.rank} is null then excluded.rank else ${schema.rankingsSnapshots.rank} end`,
-          points: sql`case when ${schema.rankingsSnapshots.rank} > 100 or ${schema.rankingsSnapshots.rank} is null then excluded.points else ${schema.rankingsSnapshots.points} end`,
+          rank: sql`case when ${schema.rankingsSnapshots.scrapeRunId} is null then excluded.rank else ${schema.rankingsSnapshots.rank} end`,
+          points: sql`case when ${schema.rankingsSnapshots.scrapeRunId} is null then excluded.points else ${schema.rankingsSnapshots.points} end`,
           // Always overwrite rank_move — TE is the only source for it,
           // so a fresh scrape's value is always more current.
           rankMove: sql`excluded.rank_move`,
@@ -143,7 +212,20 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
     if (r.rankMove != null) summary.rankMovesCaptured++;
   }
 
-  if (touchedPlayerIds.length > 0) {
+  // Drop this week's TE rows that this fetch did not produce — rows written
+  // from a different week's list (the 2026-09-21 ATP bucket held TE's 09-28
+  // list) or for a player TE no longer places. Makes a week's TE layer exactly
+  // what TE published for it, so re-running is idempotent.
+  if (touchedPlayerIds.length >= 100) {
+    await db.execute(sql`
+      delete from rankings_snapshots
+      where tour = ${tour} and is_race = false and week_of = ${writeWeek}
+        and scrape_run_id is null
+        and not (player_id = any(array[${sql.join(touchedPlayerIds.map((id) => sql`${id}`), sql`, `)}]::int[]))
+    `);
+  }
+
+  if (touchedPlayerIds.length > 0 && !opts.date) {
     await db
       .update(schema.players)
       .set({ lastSeenInRankingsAt: now })
@@ -153,7 +235,59 @@ export async function expandRankings(tour: Tour): Promise<RunSummary> {
   return summary;
 }
 
+/**
+ * Record TennisExplorer's player id on the official players it lists.
+ *
+ * Only on proof: same week, same rank AND same points as an official row, and
+ * at least one shared name token. That combination cannot pair two different
+ * players, which the name-only paths above can. scrape-daily-matches uses
+ * these ids to tell a known player from a same-surname, same-initial player we
+ * do not hold (Brandon vs Bryce Nakashima: TE lists both as "Nakashima B.").
+ */
+async function learnTeSlugs(
+  tour: Tour,
+  teRows: Array<{ rank: number; points: number; teSlug: string; displayName: string }>,
+  officialRows: Array<{ player_id: number; rank: number; points: number; full_name: string }>,
+): Promise<number> {
+  const words = (s: string) =>
+    new Set(
+      s
+        .normalize("NFKD")
+        .replace(/[̀-ͯ]/g, "")
+        .toLowerCase()
+        .split(/[^a-z]+/)
+        .filter((w) => w.length >= 3),
+    );
+  const byRank = new Map<number, typeof officialRows>();
+  for (const o of officialRows) {
+    const list = byRank.get(Number(o.rank)) ?? [];
+    list.push(o);
+    byRank.set(Number(o.rank), list);
+  }
+  const pairs: Array<{ id: number; slug: string }> = [];
+  for (const r of teRows) {
+    if (!r.teSlug) continue;
+    const te = words(r.displayName);
+    const hits = (byRank.get(r.rank) ?? []).filter(
+      (o) => Number(o.points) === r.points && [...words(o.full_name)].some((w) => te.has(w)),
+    );
+    if (hits.length === 1) pairs.push({ id: Number(hits[0]!.player_id), slug: r.teSlug });
+  }
+  for (const { id, slug } of pairs) {
+    // A slug belongs to one player: release it from anyone else first.
+    await db.execute(sql`
+      update players set te_slug = null
+      where te_slug = ${slug} and id <> ${id} and tour = ${tour}
+    `);
+    await db.execute(sql`update players set te_slug = ${slug} where id = ${id}`);
+  }
+  console.log(`[expand-rankings] ${tour.toUpperCase()}: learned ${pairs.length} TennisExplorer player id(s)`);
+  return pairs.length;
+}
+
 interface ResolveCtx {
+  /** TennisExplorer player id -> ours (players.te_slug). */
+  teSlugToId: Map<string, number>;
   slugToId: Map<string, number>;
   suffixSlugToId: Map<string, number[]>;
   nameToId: Map<string, number>;
@@ -176,6 +310,16 @@ async function resolveOrCreatePlayer(
   tour: Tour,
   ctx: ResolveCtx,
 ): Promise<number | null> {
+  // 0. TennisExplorer's own player id, when we have learned it. Strongest of
+  //    all: it survives every spelling TE uses. Without it, rebuilding a past
+  //    week re-created "Abedallah Shelbayh" beside the merged "Abdullah
+  //    Shelbayh", whose TE id was already known.
+  const byTeSlug = ctx.teSlugToId.get(r.teSlug);
+  if (byTeSlug != null) {
+    ctx.summary.playersMatchedBySlug++;
+    return byTeSlug;
+  }
+
   // 1. Direct slug match — strongest, used when TE's slug already matches.
   const direct = ctx.slugToId.get(r.teSlug);
   if (direct != null) {
@@ -256,6 +400,7 @@ async function resolveOrCreatePlayer(
       countryCode: null, // TE flag class is 2-letter; our DB is 3-letter ISO
       tour,
       slugStableAt: ctx.now,
+      teSlug: r.teSlug || null,
       lastSeenInRankingsAt: ctx.now,
     })
     .onConflictDoUpdate({
@@ -301,8 +446,18 @@ async function main() {
   const args = process.argv.slice(2);
   const tourArg = args.find((a) => a === "atp" || a === "wta") as Tour | undefined;
   const tours: Tour[] = tourArg ? [tourArg] : ["atp", "wta"];
+  const dateIdx = args.indexOf("--date");
+  const date = dateIdx >= 0 ? args[dateIdx + 1] : undefined;
+  let failed = 0;
   for (const t of tours) {
-    const s = await expandRankings(t);
+    let s: RunSummary;
+    try {
+      s = await expandRankings(t, { date });
+    } catch (err) {
+      failed++;
+      console.error(err instanceof Error ? err.message : err);
+      continue;
+    }
     console.log(
       `[expand-rankings] ${t.toUpperCase()}: week=${s.weekOf}  rows=${s.rowsTouched}  ` +
         `inserted=${s.playersInserted}  matchedBySlug=${s.playersMatchedBySlug}  ` +
@@ -310,6 +465,7 @@ async function main() {
         `rankMoves=${s.rankMovesCaptured}`,
     );
   }
+  if (failed > 0) process.exit(1);
 }
 
 const entryFile = process.argv[1] ?? "";

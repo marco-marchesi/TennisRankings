@@ -102,7 +102,7 @@ describe("resolveWtaRound", () => {
     expect(main("6", 32)).toBeNull();
   });
 
-  it("anchors qualifying on the FINAL qualifying round", () => {
+  it("numbers qualifying rounds from the first (Q1, Q2, Q3)", () => {
     const q = (roundId: string, present: number[]) =>
       resolveWtaRound({
         roundId,
@@ -113,10 +113,14 @@ describe("resolveWtaRound", () => {
     // Three rounds (Slam-sized qualifying): straight through.
     expect(q("1", [1, 2, 3])).toEqual({ round: "Q1", isQualifying: true });
     expect(q("3", [1, 2, 3])).toEqual({ round: "Q3", isQualifying: true });
-    // Two rounds: the last is still the final qualifying round, which is the
-    // column the points tables are keyed on.
-    expect(q("2", [1, 2])).toEqual({ round: "Q3", isQualifying: true });
-    expect(q("1", [1, 2])).toEqual({ round: "Q2", isQualifying: true });
+    // Two rounds: Q1 / Q2. At a non-Slam the points table's Q3 slot is the
+    // qualifying WINNER's value and Q2 the last round's loser
+    // (docs/ranking-rules.md:96-98; points-table.test.ts). Anchoring on Q3
+    // charged a last-round loser the qualifier's value (WTA 125: 6 for 4;
+    // non-combined 1000: 30 for 20) — Phase 2a review, 2026-10-13. Matches
+    // TennisExplorer's Q-1R / Q-2R for the same matches.
+    expect(q("2", [1, 2])).toEqual({ round: "Q2", isQualifying: true });
+    expect(q("1", [1, 2])).toEqual({ round: "Q1", isQualifying: true });
   });
 
   it("returns null for the empty RoundID Grand Slam qualifying carries", () => {
@@ -195,12 +199,12 @@ describe("parseWtaMatches", () => {
     });
   });
 
-  it("resolves two-round qualifying onto Q2 and Q3", () => {
+  it("resolves two-round qualifying onto Q1 and Q2", () => {
     const counts = new Map<string, number>();
     for (const m of parsed.matches.filter((x) => x.isQualifying)) {
       counts.set(m.round, (counts.get(m.round) ?? 0) + 1);
     }
-    expect(Object.fromEntries(counts)).toEqual({ Q2: 7, Q3: 6 });
+    expect(Object.fromEntries(counts)).toEqual({ Q1: 7, Q2: 6 });
   });
 
   it("reads the winner from the status code, not from the set scores", () => {
@@ -235,9 +239,14 @@ describe("parseWtaMatches", () => {
     // source must not: distinct dates are what a 52-week window needs.
     const dates = new Set(parsed.matches.map((m) => m.playedOn));
     expect(dates.size).toBeGreaterThan(3);
-    for (const d of dates) {
-      expect(d! >= "2026-07-27" && d! <= "2026-08-02").toBe(true);
+    for (const m of parsed.matches) {
+      // Main draw inside the event; qualifying (25-26 Jul) before its start.
+      const from = m.isQualifying ? "2026-07-23" : "2026-07-27";
+      expect(m.playedOn! >= from && m.playedOn! <= "2026-08-02").toBe(true);
     }
+    const qualDates = new Set(parsed.matches.filter((m) => m.isQualifying).map((m) => m.playedOn));
+    expect(qualDates.has("2026-07-25")).toBe(true);
+    expect(qualDates.has("2026-07-26")).toBe(true);
   });
 
   it("carries a stable WTA id for every player", () => {
@@ -392,6 +401,62 @@ describe("Winner not recorded", () => {
     // Scoring this from a majority-of-one would invent a result.
     expect(parsed.matches.some((m) => m.round === "SF")).toBe(false);
     expect(parsed.unresolvedWinners).toEqual(['LS002 Winner="0"']);
+  });
+});
+
+describe("playedOn clamp", () => {
+  // Wuhan 2026: the embedded record's startDate is the MAIN-DRAW start
+  // (Mon 12 Oct); qualifying ran Sat-Sun 10-11 Oct. Clamping to the record's
+  // startDate stored every qualifying match as 12 Oct - on 10 Oct we already
+  // held "matches" dated two days in the future.
+  const row = (id: string, level: string, round: string, ts: string) => ({
+    MatchID: id,
+    DrawLevelType: level,
+    DrawMatchType: "S",
+    RoundID: round,
+    MatchState: "F",
+    Winner: "2",
+    MatchTimeStamp: ts,
+    PlayerIDA: `${id}a`,
+    PlayerNameFirstA: "Ann",
+    PlayerNameLastA: "Alpha",
+    PlayerIDB: `${id}b`,
+    PlayerNameFirstB: "Bea",
+    PlayerNameLastB: "Beta",
+    ScoreSet1A: "6",
+    ScoreSet1B: "2",
+    ScoreSet2A: "6",
+    ScoreSet2B: "3",
+  });
+  const WUHAN = {
+    tournament: {
+      tournamentGroup: { id: 1075, name: "WUHAN", level: "WTA 1000" },
+      year: 2026,
+      title: "Wuhan Open - Wuhan, CHN",
+      level: "WTA 1000",
+      startDate: "2026-10-12",
+      endDate: "2026-10-18",
+      singlesDrawSize: 64,
+    },
+    matches: [
+      row("QS001", "Q", "1", "2026-10-10T04:00:00+00:00"),
+      row("QS002", "Q", "2", "2026-10-11T05:00:00+00:00"),
+      row("LS001", "M", "1", "2026-10-12T06:00:00+00:00"),
+      // A stray timestamp well before qualifying still may not escape the event.
+      row("QS003", "Q", "1", "2026-09-30T06:00:00+00:00"),
+    ],
+  };
+  const parsed = parseWtaMatches(WUHAN, { tourneyId: "1075", year: 2026 });
+  const on = (id: string) => parsed.matches.find((m) => m.matchId === id)?.playedOn;
+
+  it("keeps qualifying on the day it was played, before the main-draw start", () => {
+    expect(on("QS001")).toBe("2026-10-10");
+    expect(on("QS002")).toBe("2026-10-11");
+    expect(on("LS001")).toBe("2026-10-12");
+  });
+
+  it("still clamps a timestamp that falls outside the qualifying window", () => {
+    expect(on("QS003")).toBe("2026-10-08");
   });
 });
 

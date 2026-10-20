@@ -16,6 +16,8 @@ pnpm test:e2e                       # Playwright smoke tests against dev server
 pnpm db:push                        # Apply src/db/schema.ts to DATABASE_URL
 pnpm db:views                       # Apply drizzle/views/*.sql (db:push does NOT)
 pnpm db:studio                      # Open Drizzle Studio
+pnpm replay                         # score our rules vs official weekly rankings (archive, 2023..2026-06)
+pnpm replay:check                   # exit 1 if any run scores below scraper/replay/baseline.json
 ```
 
 **Live integration tests** (sample DB against Wikidata + TennisExplorer; off by default):
@@ -27,19 +29,50 @@ $env:LIVE_TESTS = "1"; pnpm vitest run scraper/__tests__/source-truth.live.test.
 **Scraper pipeline** — each step is independently re-runnable:
 
 ```bash
-pnpm scraper:run                # top-100 ATP+WTA HTML refresh
-pnpm scraper:expand-rankings    # top-800 via TennisExplorer (carries rank Move)
+pnpm scraper:refresh            # official ATP+WTA rankings, ranks 1-500 (+ race); exits 1 on any failure
+pnpm scraper:expand-rankings    # ranks 501-800 via TennisExplorer (carries rank Move); refuses to mix weeks; -- --date YYYY-MM-DD rebuilds a past week
+pnpm scraper:challenger-calendar # ATP Challenger tiers -> scraper/config/challenger-calendar.json
+pnpm scraper:challenger-history # past seasons' Challenger tiers from Wikipedia (-- --years 2022,2023)
 pnpm scraper:backfill-history   # per-player ranking history from Tennis Abstract
 pnpm scraper:backfill-matches   # deep match history from Tennis Abstract CSVs
 pnpm scraper:daily-matches      # hourly TennisExplorer finished + planned matches
 pnpm scraper:leaderboards       # MCP serve/return/rally/winners-errors
 pnpm scraper:enrich-players     # Wikidata photos + Wikipedia bios
 pnpm scraper:projections        # recompute live_projections from current state
+pnpm scraper:merge-dupes        # report duplicate player rows (-- --apply merges; -- --pairs f.json merges evidence-backed pairs)
+pnpm scraper:repair-te-matches  # re-attribute stored TE rows (dry run; -- --apply writes)
 ```
 
 Wrappers in `scripts/`: `Weekly-Update.ps1` (full pipeline), `Hourly-Update.ps1` (TE matches + projections only), `Start-Dev.ps1`/`Stop-Dev.ps1` (Docker DB + dev server).
 
+Scheduled runs log to `logs/`: `weekly-update-<date>.log`, `compare-live-<date>.log`, `live-diff-<date>.log`, `live-diff-trend.log`. Weekly-Update and Compare-Live share `scripts/Pipeline-Lock.ps1`, so a logon that fires both runs them in sequence, never concurrently. Bare `pnpm scraper:*` does not load `.env.local` — set `DATABASE_URL` first, or go through a wrapper.
+
 ## Architecture
+
+### Replay harness — the ground truth for every rule
+
+`scraper/replay/` rebuilds every player's total from the Sackmann archive's
+match files and scores it against the **official** weekly ranking, 2023 to
+2026-06 (`docs/superpowers/specs/2026-10-12-ranking-accounting-design.md`).
+live-tennis.eu is not the target. Two modes: `full` (52-week ledger vs
+official) and `delta` (official N + entering − leaving vs official N+1).
+
+- An event whose tier we cannot place is reported as a gap
+  (`challenger_tier`, `points_era:wta:itf_w15:2022`, …), never scored as a
+  default tier.
+- Every result is scored with **its own season's** table
+  (`scraper/replay/points-eras.ts`, 2022-2026, sourced per table). The live
+  `scraper/config/points-table.ts` is the 2026 season. A change to the live
+  table must win on the 2026 weeks (`pnpm replay -- --from 2026-01-05`).
+- Judge a rule change on the **clean** rates (`clean X% of N` in the trend
+  line), not the overall ones: data gaps bias full mode and delta mode in
+  opposite directions. A clean rate can fall when N grows (new, harder
+  player-weeks join); say so in the ledger before `--force`.
+- A rule or data change must keep `pnpm replay:check` green; update the
+  baseline (`pnpm replay -- --update-baseline`) only when the score rises.
+- Each run writes `logs/replay-<date>.md` (causes, per-week scores, worst
+  residuals) and appends `logs/replay-trend.log`. The archive is cached in
+  `data/archive/` (gitignored); `--refresh` re-downloads.
 
 ### Two halves, one repo
 
@@ -85,7 +118,7 @@ The pattern appears in `src/lib/players.ts` (getRecentMatches, getSurfaceSplits)
 
 ### Data sources, by role
 
-- **ATP/WTA HTML** (`scraper/sources/atp.ts`, `wta.ts`) — authoritative top-100 + race rankings. Carries `points_move`, `drop_points`, `next_best_points` from the official site. Fetched via Playwright (`scraper/fetch-live.ts`) when politeFetch is blocked.
+- **ATP/WTA HTML** (`scraper/sources/atp.ts`, `wta.ts`) — authoritative ranks **1-500** (ATP via `?rankRange=1-500`, WTA via load-more) + race rankings. Carries `points_move`, `drop_points`, `next_best_points` from the official site. Fetched with Playwright through `scraper/browser.ts`. Rows it writes carry `scrape_run_id`; that is how every reader tells official rows from TennisExplorer's.
 - **TennisExplorer** (`scraper/sources/tennis-explorer.ts`, `tennis-explorer-rankings.ts`) — fresh-data overlay. Daily match lists, match details, top-800 rankings with the per-week "Move" column. Updates same-day after matches finish; ATP/WTA CSVs from Tennis Abstract lag by 1–3 weeks.
 - **Tennis Abstract** (`scraper/sources/tennis-abstract.ts`, `ta-leaderboards.ts`) — deep history. Per-year match CSVs for backfill, player metadata (DOB/height/hand/wikidata_id), and the MCP leaderboards. TA's reports all default-sort by serve-impact regardless of category — `scraper/sources/ta-leaderboards.ts` re-ranks per category at parse time.
 
@@ -110,6 +143,20 @@ The pattern appears in `src/lib/players.ts` (getRecentMatches, getSurfaceSplits)
   > supplies neither.
 - **Wikidata / Wikipedia** (`scraper/sources/wikipedia.ts`, `scraper/enrich-players.ts`) — photos and bios. Wikipedia infobox photos are usually portrait — the player profile pins `object-position: top` so the face stays in frame.
 
+### Headless browser and Cloudflare
+
+Every Cloudflare-fronted page (atptour.com rankings, results and Challenger calendar; live-tennis.eu) goes through `scraper/browser.ts`. It launches the **installed Google Chrome** (`channel: "chrome"`) first: Playwright's bundled Chromium never clears atptour.com's managed challenge, which is how the ATP rankings for 2026-09-14 and 2026-09-28 were lost. `SCRAPER_BROWSER_CHANNEL=bundled` forces the bundled build. `gotoPastChallenge` throws `CloudflareChallengeError` rather than handing an interstitial to a parser.
+
+`isChallengePage` must not match the bare `challenge-platform` path: every real atptour.com / live-tennis.eu page loads Cloudflare's passive beacon from `/cdn-cgi/challenge-platform/scripts/jsd/`.
+
+### Player identity
+
+Resolve players by the tour's own id, never by slug alone. `snapshot.ts` matches official ranking rows on `players.atp_id` (atptour.com's "s0ag") / `players.wta_id` (wtatennis.com's `data-player-id`) first, and the ranking page is the authority on those ids — it overwrites a conflicting stored id. Slug-only upserts created a second player every time the tour's spelling differed from ours. TennisExplorer's own player id lives in `players.te_slug`, learned only on proof (same week, rank and points as an official row).
+
+### TennisExplorer rows
+
+TE gives only `Surname I.`, a surname slug and no country. `scraper/te-player-resolver.ts` resolves within ONE tour and requires the initial to agree, returning null rather than guessing. `scraper/te-tournament-level.ts` stores a real tier: `X` (non-ranking: UTR, Laver Cup, Asian Games, BJK Cup), `ITF`, `CH50`-`CH175` (from the Challenger calendar), or the official WTA level of the same event that week. Never go back to deriving the level from the name alone — everything unknown became "A" (a 250).
+
 ### politeFetch and TLS fingerprints
 
 `scraper/http.ts` enforces 1 req/sec/host throttle, a kill-switch (`SCRAPER_KILL_SWITCH=true`), and **falls back to spawning `curl --compressed`** on 403/429 or socket errors. Cloudflare (atptour.com) and TennisExplorer fingerprint Node's TLS handshake (JA3) and block it regardless of User-Agent. Curl's handshake passes. Don't try to add `undici` cipher tweaks — the curl path works and is opt-in only on failure.
@@ -119,7 +166,7 @@ The pattern appears in `src/lib/players.ts` (getRecentMatches, getSurfaceSplits)
 `scraper/projections/runner.ts` orchestrates two derivers:
 
 - `derive-live-state.ts` — for each top-N player, finds their latest match in the lookback window (default 14 days) and infers `status ∈ {not_playing, in_progress, eliminated, won_tournament}`. Excludes tournaments that already have a Final on record (otherwise last month's Masters would re-award points).
-- `derive-dropping-points.ts` — for each top-N player, finds matches from 52 weeks ago that are about to roll off the rolling-window points total.
+- `derive-dropping-points.ts` — for each top-N player, the results that leave the ranking by the publish the live ranking projects to: next Monday, or — in the first week of a two-week event (Slam, 96-draw 1000) — the Monday after it ends (`drop-horizon.ts`). That is why Wuhan 2025 drops during Beijing 2026. WTA uses it outright; ATP adds only the part beyond next Monday to the published Dropping column.
 
 Both feed `scraper/projections/calculator.ts` which produces `live_projections` rows.
 

@@ -66,6 +66,9 @@ export function parseWtaRankings({ html, weekOf, isRace = false }: ParseInput): 
         slug: slugify(fullName),
         fullName,
         countryCode,
+        externalId:
+          ($row.attr("data-player-id") ?? $row.find("[data-player-id]").first().attr("data-player-id") ?? "")
+            .trim() || null,
         points,
         tournamentsPlayed,
         age,
