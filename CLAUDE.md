@@ -170,6 +170,14 @@ TE gives only `Surname I.`, a surname slug and no country. `scraper/te-player-re
 
 Both feed `scraper/projections/calculator.ts` which produces `live_projections` rows.
 
+The live total (`next_points`) is then set by the runner from three more pieces:
+
+- `derive-week-events.ts` + `event-points.ts` — everything secured this week, **per event**: qualifier (Q3 slot / Slam bonus) and lucky-loser (lost Q round) points on top of the main draw, a WTA qualifier who loses her first match keeps only the qualifying points, ITF events priced by tier (prize money from the TennisExplorer tournament page). A draw for NEXT week (weekend qualifying) is not credited.
+- **ATP best-of-N**: when a non-mandatory result drops and the player did not reach a main draw this week, the published Next Best takes the slot (`max(earned, nextBest) - drop`). Not in a Slam/1000 week.
+- **WTA best-18** (`wta-best-n.ts`): each player's official per-event points from `api.wtatennis.com/tennis/players/{id}/matches` (`sources/wta-player-events.ts`, cached per week in `data/wta-player-events/`, ~10 min to fill for 300 players). Slams, combined 1000s and the Finals are mandatory and cannot be displaced; the number of slots (zero-pointers) is calibrated so the model reproduces the official total. This replaced the history-derived WTA dropping for every player with a `wta_id`.
+
+Compare-Live projects the top `$Top + 100`, so a player who climbs into the compared top 200 this week has a projection. `compare-live.ts` pairs names the two sides spell differently through the official table (same rank, same points, same initials).
+
 Category inference (`scraper/projections/category-inference.ts`) maps a tournament's TA tier letter (`G/M/A/C/F/D/O`) + name into the internal `Category` enum. TE doesn't supply tier letters, so the function falls back to name-matching against `GRAND_SLAMS`, `MASTERS_1000_TOURNAMENTS`, `ATP_500_TOURNAMENTS`, etc. **Update those sets when adding new tournaments to the calendar** — otherwise new 500s/1000s get misclassified as 250s.
 
 ### DATABASE_URL routing

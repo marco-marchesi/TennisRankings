@@ -147,7 +147,43 @@ interface PlayerResult {
  * follow from points, so this is the diagnosis and the rank view is the
  * symptom.
  */
-function comparePlayers(ours: OurRow[], theirs: LiveTennisRow[], topN: number): PlayerResult {
+/** First letters of the first and last name, accents folded. */
+function initials(name: string): string {
+  const t = name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().split(/\s+/).filter(Boolean);
+  return t.length === 0 ? "" : `${t[0]![0]}${t[t.length - 1]![0]}`;
+}
+
+/**
+ * live-tennis.eu name -> our name, for players the two sides spell
+ * differently, learned from the OFFICIAL table: the same rank holding the same
+ * points on both sides, with the same initials, is the same player.
+ *
+ * The by-player comparison matches names strictly, so without this six WTA
+ * players were never compared at all ("Ludmilla" / "Liudmila" Samsonova,
+ * "Anastasiya Soboleva" / "Anastasiia Sobolieva", "Tyra Grant" / "Tyra
+ * Caterina Grant", ...): not wrong, just invisible to the measure.
+ */
+function officialAliases(ours: OurRow[], theirs: LiveTennisRow[]): Map<string, string> {
+  const ourByRank = new Map<number, OurRow[]>();
+  for (const o of ours) ourByRank.set(o.rank, [...(ourByRank.get(o.rank) ?? []), o]);
+  const out = new Map<string, string>();
+  for (const t of theirs) {
+    const at = ourByRank.get(t.rank) ?? [];
+    if (at.length !== 1 || t.points == null) continue;
+    const o = at[0]!;
+    if (o.points !== t.points || o.fullName.toLowerCase() === t.fullName.toLowerCase()) continue;
+    if (initials(o.fullName) !== initials(t.fullName) && !namesMatch(o.fullName, t.fullName)) continue;
+    out.set(t.fullName.toLowerCase(), o.fullName);
+  }
+  return out;
+}
+
+function comparePlayers(
+  ours: OurRow[],
+  theirs: LiveTennisRow[],
+  topN: number,
+  aliases: Map<string, string> = new Map(),
+): PlayerResult {
   const cohort = theirs.filter((t) => t.rank <= topN && t.points != null);
   const byName = new Map<string, OurRow>();
   for (const o of ours) byName.set(o.fullName.toLowerCase(), o);
@@ -165,6 +201,8 @@ function comparePlayers(ours: OurRow[], theirs: LiveTennisRow[], topN: number): 
     // Exact name first; fall back to the strict (non-fuzzy) matcher, which
     // handles diacritics and ordering but refuses genuinely different people.
     let mine = byName.get(t.fullName.toLowerCase());
+    const alias = aliases.get(t.fullName.toLowerCase());
+    if (!mine && alias) mine = byName.get(alias.toLowerCase());
     if (!mine) {
       const hits = ours.filter((o) => namesMatch(o.fullName, t.fullName, { fuzzy: false }));
       if (hits.length === 1) mine = hits[0];
@@ -371,6 +409,8 @@ async function main() {
 
   const results: TableResult[] = [];
   const players = new Map<string, PlayerResult>();
+  // Learned from each tour's official table, which TABLES lists first.
+  const aliases = new Map<Tour, Map<string, string>>();
   for (const t of TABLES) {
     let theirs: LiveTennisRow[];
     try {
@@ -383,7 +423,8 @@ async function main() {
     const ours = await ourTable(t.tour, t.kind);
     const r = compare(t.label, t.tour, t.kind, ours, theirs, topN);
     results.push(r);
-    players.set(t.label, comparePlayers(ours, theirs, topN));
+    if (t.kind === "official") aliases.set(t.tour, officialAliases(ours, theirs));
+    players.set(t.label, comparePlayers(ours, theirs, topN, aliases.get(t.tour)));
   }
 
   lines.push("SUMMARY");

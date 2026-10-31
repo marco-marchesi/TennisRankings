@@ -7357,6 +7357,13 @@
   "tier": 50
  },
  {
+  "city": "ankara",
+  "name": "Ankara, Turkiye",
+  "start": "2026-11-23",
+  "end": "2026-11-29",
+  "tier": 50
+ },
+ {
   "city": "temuco",
   "name": "Temuco, Chile",
   "start": "2026-11-30",
@@ -7429,6 +7436,13 @@
  {
   "city": "nonthaburi",
   "name": "Nonthaburi, Thailand",
+  "start": "2026-12-07",
+  "end": "2026-12-13",
+  "tier": 50
+ },
+ {
+  "city": "trnava",
+  "name": "Trnava, Slovak Republic",
   "start": "2026-12-07",
   "end": "2026-12-13",
   "tier": 50

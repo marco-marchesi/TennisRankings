@@ -31,6 +31,8 @@ Thumbs.db
 
 # replay harness: local cache of the Sackmann archive
 data/archive/
+# live WTA ranking: per-week cache of each player's official event points
+data/wta-player-events/
 *.swo
 
 # drizzle

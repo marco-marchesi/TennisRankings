@@ -172,8 +172,13 @@ if (-not $SkipRefresh) {
     Invoke-Step "3/5 TennisExplorer fallback (last $LookbackDays days)" `
         "pnpm scraper:daily-matches -- --lookback $LookbackDays --lookahead 2" -Optional | Out-Null
 
-    Invoke-Step "4/5 recompute projections (top $Top)" `
-        "pnpm scraper:projections -- --top $Top" | Out-Null
+    # Deeper than the compared $Top: a player ranked just outside it who wins
+    # this week climbs into it on the live ranking, and without a projection
+    # is shown at the official total (Kym, 2026-10-30: official #222, Basel QF
+    # as a qualifier, live #163 - 100 points short).
+    $projectTop = $Top + 100
+    Invoke-Step "4/5 recompute projections (top $projectTop)" `
+        "pnpm scraper:projections -- --top $projectTop" | Out-Null
 } else {
     Write-Log ">>> 1-4/5 refresh SKIPPED (--SkipRefresh)"
 }

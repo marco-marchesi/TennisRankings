@@ -79,51 +79,7 @@ export async function deriveDroppingPoints(opts: Options): Promise<Map<number, n
   // Madrid Masters, and this function charges points by event identity).
   const NORM = normSql;
 
-  // Events on now (or starting within the week), with their first dates in
-  // the current edition. Looked up over 21 days so the second week of a
-  // two-week event still sees its real start.
-  const nowRes = await db.execute(sql`
-    with cur as (
-      select ${NORM("prm.tournament_name")} as key, prm.tournament_name as name,
-             prm.tournament_level as level, prm.round, prm.played_on
-      from player_recent_matches prm
-      join players p on p.id = prm.player_id
-      where p.tour = ${opts.tour}
-        and prm.played_on >= ${isoDate(addDays(weekStartDate, -21))}
-      union all
-      select ${NORM("pum.tournament_name")}, pum.tournament_name, pum.tournament_level,
-             'MD' as round, pum.scheduled_date
-      from player_upcoming_matches pum
-      join players p on p.id = pum.player_id
-      where p.tour = ${opts.tour}
-        and pum.scheduled_date >= ${weekStart}
-        and pum.scheduled_date < ${isoDate(addDays(weekStartDate, 7))}
-    )
-    select key, max(name) as name, max(level) as level,
-           (min(played_on) filter (where round not like 'Q%'))::text as first_md,
-           min(played_on)::text as first_any
-    from cur
-    group by key
-    having max(played_on) >= ${weekStart}
-  `);
-  const nowRows = rowsOf(nowRes).map((r) => ({
-    key: String(r.key),
-    name: String(r.name),
-    level: (r.level as string | null) ?? null,
-    firstMainDraw: (r.first_md as string | null) ?? null,
-    firstAny: String(r.first_any),
-  }));
-  // Event key -> first main-draw date of its edition being played now.
-  const mainDrawStartByKey = new Map(
-    nowRows.filter((r) => r.key && r.key !== "—").map((r) => [r.key, r.firstMainDraw] as const),
-  );
-  const currentEvents: CurrentEvent[] = nowRows.map((r) => ({
-    name: r.name,
-    category: inferCategory(opts.tour, r.name, r.level),
-    firstMainDraw: r.firstMainDraw,
-    firstAny: r.firstAny,
-  }));
-  const horizon = dropHorizon(weekStart, currentEvents);
+  const { horizon, mainDrawStartByKey } = await currentEditions(opts.tour, weekStart);
 
   // Candidate results: editions from roughly a year before the horizon.
   const lo = isoDate(addDays(weekStartDate, -400));
@@ -232,6 +188,66 @@ export async function deriveDroppingPoints(opts: Options): Promise<Map<number, n
   }
 
   return result;
+}
+
+export interface CurrentEditions {
+  horizon: string;
+  /** normSql key of each event on now -> first main-draw date (null: qualifying only so far). */
+  mainDrawStartByKey: Map<string, string | null>;
+  events: Array<{ key: string; name: string; firstMainDraw: string | null }>;
+}
+
+/** The events being played this ranking week, and the publish the live ranking projects to. */
+export async function currentEditions(tour: "atp" | "wta", weekStart: string): Promise<CurrentEditions> {
+  const weekStartDate = new Date(`${weekStart}T00:00:00Z`);
+  const NORM = normSql;
+  const opts = { tour };
+  // Events on now (or starting within the week), with their first dates in
+  // the current edition. Looked up over 21 days so the second week of a
+  // two-week event still sees its real start.
+  const nowRes = await db.execute(sql`
+    with cur as (
+      select ${NORM("prm.tournament_name")} as key, prm.tournament_name as name,
+             prm.tournament_level as level, prm.round, prm.played_on
+      from player_recent_matches prm
+      join players p on p.id = prm.player_id
+      where p.tour = ${opts.tour}
+        and prm.played_on >= ${isoDate(addDays(weekStartDate, -21))}
+      union all
+      select ${NORM("pum.tournament_name")}, pum.tournament_name, pum.tournament_level,
+             'MD' as round, pum.scheduled_date
+      from player_upcoming_matches pum
+      join players p on p.id = pum.player_id
+      where p.tour = ${opts.tour}
+        and pum.scheduled_date >= ${weekStart}
+        and pum.scheduled_date < ${isoDate(addDays(weekStartDate, 7))}
+    )
+    select key, max(name) as name, max(level) as level,
+           (min(played_on) filter (where round not like 'Q%'))::text as first_md,
+           min(played_on)::text as first_any
+    from cur
+    group by key
+    having max(played_on) >= ${weekStart}
+  `);
+  const nowRows = rowsOf(nowRes).map((r) => ({
+    key: String(r.key),
+    name: String(r.name),
+    level: (r.level as string | null) ?? null,
+    firstMainDraw: (r.first_md as string | null) ?? null,
+    firstAny: String(r.first_any),
+  }));
+  // Event key -> first main-draw date of its edition being played now.
+  const mainDrawStartByKey = new Map(
+    nowRows.filter((r) => r.key && r.key !== "—").map((r) => [r.key, r.firstMainDraw] as const),
+  );
+  const currentEvents: CurrentEvent[] = nowRows.map((r) => ({
+    name: r.name,
+    category: inferCategory(opts.tour, r.name, r.level),
+    firstMainDraw: r.firstMainDraw,
+    firstAny: r.firstAny,
+  }));
+  const horizon = dropHorizon(weekStart, currentEvents);
+  return { horizon, mainDrawStartByKey, events: nowRows.map((r) => ({ key: r.key, name: r.name, firstMainDraw: r.firstMainDraw })) };
 }
 
 function rowsOf(res: unknown): Array<Record<string, unknown>> {

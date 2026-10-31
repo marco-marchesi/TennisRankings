@@ -225,7 +225,12 @@ function deriveOne(tour: "atp" | "wta", r: Record<string, unknown>): LiveState {
   // No recent match → could still be entered in a tournament that hasn't
   // started for them yet (e.g. Sinner before his French Open R1).
   if (!playedOn || !round || !tournamentName) {
-    if (nextTournament && nextDate) {
+    // Only an event of THIS ranking week. A draw already published for next
+    // week (Paris, on the Saturday of Basel / Vienna week) is not in the live
+    // ranking yet: live-tennis.eu showed Tsitsipas "Paris R64" at +0 while we
+    // credited +30. Its qualifying is played on THIS week's weekend, so a
+    // match scheduled from Saturday on is next week's too.
+    if (nextTournament && nextDate && nextDate < thisSaturday()) {
       // Drawn into a tournament, awaiting first match. Treat as in_progress
       // at the entry round for the category — points contribution is 0 but
       // status + dropping subtraction in live_points still apply.
@@ -318,6 +323,13 @@ function deriveOne(tour: "atp" | "wta", r: Record<string, unknown>): LiveState {
     roundReached: matchRound,
     lastMatchDate: playedOn,
   };
+}
+
+/** Saturday of the current ranking week, as an ISO date. */
+function thisSaturday(): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + 5);
+  return d.toISOString().slice(0, 10);
 }
 
 // Suppress unused-warning for the helper exports we want available later.
